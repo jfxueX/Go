@@ -93,7 +93,7 @@ Example 1.1
 ```go
 package main 
 
-funcmain(){ 
+func main(){ 
     println("hello world")
 }
 ```
@@ -308,44 +308,115 @@ Because **message()** returns two values we can use it in any context where at l
 For our final example we’re going to implement our own **variadic** function.
 Example 1.16
 
-     1 package main
-     2 import . "fmt"
-     3 4 func main() {
-     5   print("Hello", "world")
-     6 }
-     7 8func print(v ...interface{}) {
-     9  Println(v...)
-    10}
+```go
+    package main
+    import . "fmt"
     
+    func main() {
+        print("Hello", "world")
+    }
+    
+    func print(v ...interface{}) {
+        Println(v...)
+    }
+```    
 
-We have three interesting things going on here which need explaining. Firstly I’ve introduced a new type, **interface{}**, which acts as a proxy for any other type in a Go program. We’ll discuss the details of this shortly but for now it’s enough to know that anywhere an **interface{}** is accepted we can provide a string.
+We have three interesting things going on here which need explaining. Firstly 
+I’ve introduced a new type, <code><b>interface{}</b></code>, which acts as a proxy for any 
+other type in a Go program. We’ll discuss the details of this shortly but for 
+now it’s enough to know that anywhere an <b><code>interface{}</code></b> is accepted we can provide a string.
 
-In the function signature we use **v …interface{}** to declare a parameter **v** which takes any number of values. These are received by **print()** as a sequence of values and the subsequent call to **Println(v…)** uses this same sequence as this is the sequence expected by **Println()**.
+In the function signature we use <b><code>v …interface{}</code></b> to declare a parameter <code><b>v</b></code> 
+which takes any number of values. These are received by <code><b>print()</b></code> as a sequence of 
+values and the subsequent call to <code><b>Println(v…)</b></code> uses this same sequence as 
+this is the sequence expected by <code><b>Println()</b></code>.
 
-So why did we use **…interface{}** in defining our parameters instead of the more obvious **…string**? The **Println()** function is itself defined as **Println(…interface{})** so to provide a sequence of values en masse we likewise need to use **…interface{}** in the type signature of our function. Otherwise we’d have to create a **[]interface{}** (a **slice** of **interface{}** values, a concept we’ll cover in detail in a later chanpter) and copy each individual element into it before passing it into **Println()**.
+So why did we use <code><b>…interface{}</b></code> in defining our parameters instead of the more 
+obvious <code><b>…string</b></code>? The <code><b>Println()</b></code> function is itself defined as <code><b>Println(…interface{})</b></code> 
+so to provide a sequence of values en masse we likewise need to use <code><b>…interface{}</b></code> 
+in the type signature of our function. Otherwise we’d have to create a <code><b>[]interface{}</b></code> 
+(a <code><b>slice</b></code> of <code><b>interface{}</b></code> values, a concept we’ll cover in detail in a later chanpter) 
+and copy each individual element into it before passing it into <code><b>Println()</b></code>.
 
 ### Encapsulation
 
-In this chapter we’ll for the most part be using **Go**’s primitive types and types defined in various standard packages without any comment on their structure, however a key aspect of modern programming languages is the encapsulation of related data into structured types and **Go** supports this via the **struct** type. A **struct** describes an area of allocated memory which is subdivided into slots for holding named values, where each named value has its own type. A typical example of a **struct** in action would be
+In this chapter we’ll for the most part be using <code><b>Go</b></code>’s primitive types and 
+types defined in various standard packages without any comment on their structure, 
+however a key aspect of modern programming languages is the encapsulation of 
+related data into structured types and <code><b>Go</b></code> supports this via the <code><b>struct</b></code> 
+type. A <code><b>struct</b></code> describes an area of allocated memory which is subdivided into 
+slots for holding named values, where each named value has its own type. A 
+typical example of a <code><b>struct</b></code> in action would be
+
 Example 1.17
 
-     1 packagemain 2  3 import"fmt" 4  5 typeMessagestruct{ 6 Xstring 7 y*string 8 } 9 10 func(vMessage)Print(){11 ifv.y!=nil{12 fmt.Println(v.X,*v.y)13 }else{14 fmt.Println(v.X)15 }16 }17 18 func(v*Message)Store(x,ystring){19 v.X=x20 v.y=&y21 }22 23 funcmain(){24 m:=&Message{}25 m.Print()26 m.Store("Hello","world")27 m.Print()28 }
+```go
+package main                                                                                                                                                                                                                                                                  
+
+import "fmt"                                                                                                               
+
+type Message struct {                                                                                                      
+    X string                                                                                                               
+    y *string                                                                                                              
+}                                                                                                                          
+
+func (v Message) Print() {                                                                                                 
+    if v.y != nil {                                                                                                        
+        fmt.Println(v.X, *v.y)                                                                                             
+    } else {                                                                                                               
+        fmt.Println(v.X)                                                                                                   
+    }                                                                                                                      
+}                                                                                                                          
+
+func (v *Message) Store(x, y string) {                                                                                     
+    v.X = x                                                                                                                
+    v.y = &y                                                                                                               
+}                                                                                                                          
+
+func main() {                                                                                                              
+    m := &Message{}                                                                                                        
+    m.Print()                                                                                                              
+    m.Store("Hello", "world")                                                                                              
+    m.Print()                                                                                                              
+}                         
+```
 
     $ go run 17.go
     
     Hello world
     
 
-Here we’ve defined a struct **Message** which contains two values: X and y. **Go** uses a very simple rule for deciding if an identifier is visible outside of the package in which it’s defined which applies to both package-level constants and variables, and **type** names, methods and fields. If the identifier starts with a capital letter it’s visible outside the package otherwise it’s private to the package.
+Here we’ve defined a struct <code><b>Message</b></code> which contains two values: X and y. 
+**Go** uses a very simple rule for deciding if an identifier is visible outside 
+of the package in which it’s defined which applies to both package-level constants 
+and variables, and <code><b>type</b></code> names, methods and fields. If the identifier starts 
+with a capital letter it’s visible outside the package otherwise it’s private to the package.
 
-The **Go** language spec guarantees that all variables will be initialised to the zero value for their type. For a **struct** type this means that every field will be initialised to an appropriate zero value. Therefore when we declare a value of type **Message** the **Go** runtime will initialise all of its elements to their zero value (in this case a zero-length string and a nil pointer respectively), and likewise if we create a **Message** value using a literal
+The **Go** language spec guarantees that all variables will be initialised to 
+the zero value for their type. For a **struct** type this means that every field 
+will be initialised to an appropriate zero value. Therefore when we declare a value 
+of type **Message** the **Go** runtime will initialise all of its elements to 
+their zero value (in this case a zero-length string and a nil pointer respectively), 
+and likewise if we create a **Message** value using a literal
 
-    24 m:=&Message{}
+```go
+m := &Message{}
+```
 
-Having declared a **struct** type we can declare any number of **method** functions which will operate on this type. In this case we’ve introduced **Print()** which is called on a **Message** value to display it in the terminal, and **Store()** which is called on a pointer to a **Message** value to change its contents. The reason **Store()** applies to a pointer is that we want to be able to change the contents of the **Message** and have these changes persist. If we define the method to work directly on the value these changes won’t be propagated outside the method’s scope. To test this for yourself, make the following change to the program
+Having declared a **struct** type we can declare any number of **method** functions 
+which will operate on this type. In this case we’ve introduced **Print()** which 
+is called on a **Message** value to display it in the terminal, and **Store()** 
+which is called on a pointer to a **Message** value to change its contents. The 
+reason **Store()** applies to a pointer is that we want to be able to change the 
+contents of the **Message** and have these changes persist. If we define the 
+method to work directly on the value these changes won’t be propagated outside 
+the method’s scope. To test this for yourself, make the following change to the program
+
 Example 1.18
 
-    18 func(vMessage)Store(x,ystring){
+```go
+func (v Message) Store(x, y string) {
+```
 
 If you’re familiar with functional programming then the ability to use values immutably this way will doubtless spark all kinds of interesting ideas.
 
