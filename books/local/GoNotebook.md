@@ -348,37 +348,37 @@ type. A <code><b>struct</b></code> describes an area of allocated memory which i
 slots for holding named values, where each named value has its own type. A 
 typical example of a <code><b>struct</b></code> in action would be
 
-Example 1.17
+***Example 1.17***
 
 ```go
-package main                                                                                                                                                                                                                                                                  
+package main
 
-import "fmt"                                                                                                               
+import "fmt"
 
-type Message struct {                                                                                                      
-    X string                                                                                                               
-    y *string                                                                                                              
-}                                                                                                                          
+type Message struct {
+    X string
+    y *string
+}
 
-func (v Message) Print() {                                                                                                 
-    if v.y != nil {                                                                                                        
-        fmt.Println(v.X, *v.y)                                                                                             
-    } else {                                                                                                               
-        fmt.Println(v.X)                                                                                                   
-    }                                                                                                                      
-}                                                                                                                          
+func (v Message) Print() {
+    if v.y != nil {
+        fmt.Println(v.X, *v.y)
+    } else {
+        fmt.Println(v.X)
+    }
+}
 
-func (v *Message) Store(x, y string) {                                                                                     
-    v.X = x                                                                                                                
-    v.y = &y                                                                                                               
-}                                                                                                                          
+func (v *Message) Store(x, y string) {
+    v.X = x
+    v.y = &y
+}
 
-func main() {                                                                                                              
-    m := &Message{}                                                                                                        
-    m.Print()                                                                                                              
-    m.Store("Hello", "world")                                                                                              
-    m.Print()                                                                                                              
-}                         
+func main() {
+    m := &Message{}
+    m.Print()
+    m.Store("Hello", "world")
+    m.Print()
+}
 ```
 
     $ go run 17.go
@@ -389,8 +389,8 @@ func main() {
 Here we’ve defined a struct <code><b>Message</b></code> which contains two values: X and y. 
 **Go** uses a very simple rule for deciding if an identifier is visible outside 
 of the package in which it’s defined which applies to both package-level constants 
-and variables, and <code><b>type</b></code> names, methods and fields. If the identifier starts 
-with a capital letter it’s visible outside the package otherwise it’s private to the package.
+and variables, and <code><b>type</b></code> names, methods and fields. *If the identifier starts 
+with a capital letter it’s visible outside the package otherwise it’s private to the package*.
 
 The **Go** language spec guarantees that all variables will be initialised to 
 the zero value for their type. For a **struct** type this means that every field 
@@ -418,169 +418,607 @@ Example 1.18
 func (v Message) Store(x, y string) {
 ```
 
-If you’re familiar with functional programming then the ability to use values immutably this way will doubtless spark all kinds of interesting ideas.
+If you’re familiar with functional programming then the ability to use values 
+immutably this way will doubtless spark all kinds of interesting ideas.
 
-There’s another **struct** trick I want to show off before we move on and that’s **type embedding** using an anonymous field. **Go**’s design has upset quite a few people with an inheritance-based view of object orientation because it lacks inheritance, however thanks to **type embedding** we’re able to compose types which act as proxies to the **methods** provided by anonymous fields. As with most things, an example will make this much clearer
-Example 1.19 Type Embedding
+There’s another **struct** trick I want to show off before we move on and that’s 
+**type embedding** using an anonymous field. **Go**’s design has upset quite a 
+few people with an inheritance-based view of object orientation because it lacks 
+inheritance, however thanks to **type embedding** we’re able to compose types 
+which act as proxies to the **methods** provided by anonymous fields. As with 
+most things, an example will make this much clearer
 
-     1 packagemain 2  3 import"fmt" 4  5 typeHelloWorldstruct{} 6  7 func(hHelloWorld)String()string{ 8 return"Hello world" 9 }10 11 typeMessagestruct{12 HelloWorld13 }14 15 funcmain(){16 m:=&Message{}17 fmt.Println(m.HelloWorld.String())18 fmt.Println(m.String())19 fmt.Println(m)20 }
+***Example 1.19 Type Embedding***
 
+```go
+import "fmt"
+
+type Helloworld struct{}
+
+func (h Helloworld) String() string {
+    return "Hello world"
+}
+
+type Message struct {
+    Helloworld
+}
+
+func main() {
+    m := &Message{}
+    fmt.Println(m.Helloworld.String())
+    fmt.Println(m.String())
+    fmt.Println(m)
+}
+```
     $ go run 19.go
     Hello world
     Hello world
     Hello world
     
 
-Here we’re declaring a type **HelloWorld** which in this case is just an empty struct, but which in reality could be any declared type. **HelloWorld** defines a **String()** method which can be called on any **HelloWorld** value. We then declare a type **Message** which *embeds* the **HelloWorld** type by defining an anonymous field of the **HelloWorld** type. Wherever we encounter a value of type **Message** and wish to call **String()** on its embedded **HelloWorld** value we can do so by calling **String()** directly on the value, calling **String()** on the **Message** value, or in this case by allowing **fmt.Println()** to match it with the **fmt.Stringer** interface.
+Here we’re declaring a type **HelloWorld** which in this case is just an empty 
+struct, but which in reality could be any declared type. **HelloWorld** defines 
+a **String()** method which can be called on any **HelloWorld** value. We then 
+declare a type **Message** which *embeds* the **HelloWorld** type by <i>defining 
+an anonymous field</i> of the **HelloWorld** type. Wherever we encounter a value of 
+type **Message** and wish to call **String()** on its embedded **HelloWorld** 
+value we can do so by calling **String()** directly on the value, calling **String()** 
+on the **Message** value, or in this case by allowing **fmt.Println()** to 
+match it with the **fmt.Stringer** interface.
 
-Any declared type can be embedded, so in our next example we’re going to base **HelloWorld** on the primitive **bool** boolean type to prove the point
-Example 1.20 Type Embedding
+*Any declared type can be embedded*, so in our next example we’re going to base 
+**HelloWorld** on the primitive **bool** boolean type to prove the point
 
-     1 packagemain 2  3 import"fmt" 4  5 typeHelloWorldbool 6  7 func(hHelloWorld)String()(rstring){ 8 ifh{ 9 r="Hello world"10 }11 return12 }13 14 typeMessagestruct{15 HelloWorld16 }17 18 funcmain(){19 m:=&Message{HelloWorld:true}20 fmt.Println(m)21 m.HelloWorld=false22 fmt.Println(m)23 m.HelloWorld=true24 fmt.Println(m)25 }
+***Example 1.20 Type Embedding***
 
-In our final example we’ve declared the **Hello** type and embedded it in **Message**, then we’ve implemented a new **String()** method which allows a **Message** value more control over how it’s printed
-Example 1.21 Type Embedding
+```go
+package main
 
-     1 packagemain 2  3 import"fmt" 4  5 typeHellostruct{} 6  7 func(hHello)String()string{ 8 return"Hello" 9 }10 11 typeMessagestruct{12 *Hello13 Worldstring14 }15 16 func(vMessage)String()(rstring){17 ifv.Hello==nil{18 r=v.World19 }else{20 r=fmt.Sprintf("%v %v",v.Hello,v.World)21 }22 return23 }24 25 funcmain(){26 m:=&Message{}27 fmt.Println(m)28 m.Hello=new(Hello)29 fmt.Println(m)30 m.World="world"31 fmt.Println(m)32 }
+import "fmt"
 
+type Helloworld bool
+
+func (h Helloworld) String() (r string) {
+    if h {
+        r = "Hello world"
+    }
+    return
+}
+
+type Message struct {
+    Helloworld
+}
+
+func main() {
+    m := &Message{Helloworld: true}
+    fmt.Println(m)
+    m.Helloworld = false
+    fmt.Println(m)
+    m.Helloworld = true
+    fmt.Println(m)
+}
+```
+
+In our final example we’ve declared the **Hello** type and embedded it in 
+**Message**, then we’ve implemented a new **String()** method which allows a 
+**Message** value more control over how it’s printed
+
+***Example 1.21 Type Embedding***
+
+```go
+package main
+
+import "fmt"
+
+type Hello struct{}
+
+func (h Hello) String() string {
+    return "Hello"
+}
+
+type Message struct {
+    *Hello
+    World string
+}
+
+func (v Message) String() (r string) {
+    if v.Hello == nil {
+        r = v.World
+    } else {
+        r = fmt.Sprintf("%v %v", v.Hello, v.World)
+    }
+    return
+}
+
+func main() {
+    m := &Message{}
+    fmt.Println(m)
+    m.Hello = new(Hello)
+    fmt.Println(m)
+    m.World = "world"
+    fmt.Println(m)
+}
+```
     $ go run 21.go
     
     Hello 
     Hello world
     
 
-In all these examples we’ve made liberal use of the ***** and **&** operators. An explanation is in order.
+> In all these examples we’ve made liberal use of the <b>*</b> and **&** operators. 
+An explanation is in order.
 
-**Go** is a systems programming language, and this means that a **Go** program has direct access to the memory of the platform it’s running on. This requires that **Go** has a means of refering to specific addresses in memory and of accessing their contents indirectly.
-The **&** operator is prepended to the name of a variable or to a value literal when we wish to discover its address in memory, which we refer to as a **pointer**. To do anything with the **pointer** returned by the **&** operator we need to be able to declare a **pointer variable** which we do by prepending a **type name** with the ***** operator. An example will probably make this description somewhat clearer
+**Go** is a systems programming language, and this means that a **Go** program 
+has direct access to the memory of the platform it’s running on. This requires 
+that **Go** has a means of refering to specific addresses in memory and of 
+accessing their contents indirectly. The **&** operator is prepended to the name 
+of a variable or to a value literal when we wish to discover its address in 
+memory, which we refer to as a **pointer**. To do anything with the **pointer** 
+returned by the **&** operator we need to be able to declare a **pointer variable** 
+which we do by prepending a **type name** with the <b>*</b> operator. An example 
+will probably make this description somewhat clearer
+
 Pointers and Addresses
 
-     1 packagemain 2 import."fmt" 3  4 typeTextstring 5  6 funcmain(){ 7 varnameText="Ellie" 8 varpointer_to_name*Text 9 10 pointer_to_name=&name11 Printf("name = %v stored at %v\n",name,pointer_to_name)12 Printf("pointer_to_name references %v\n",*pointer_to_name)13 }
+```go
+package main
 
-    $ go run aside_01.go
-    name = Ellie stored at 0x208178170
-    pointer_to_name references Ellie
+import . "fmt"
+
+type Text string
+
+func main() {
+    var name Text = "Ellie"
+    var pointer_to_name *Text
+
+    pointer_to_name = &name
+    Printf("name = %v stored at %v\n", name, pointer_to_name)
+    Printf("pointer_to_name reference %v\n", *pointer_to_name)
+}
+```
+
+<pre>  <b>$ go run aside_01.go</b>
+  name = Ellie stored at 0x208178170
+  pointer_to_name references Ellie</pre>
     
 
-**Go** allows user-defined types to declare methods on either a **value type** or a **pointer** to a **value type**. When methods operate on a **value type** the **value** manipulated remains immutable to the rest of the program (essentially the method operates on a copy of the value) whilst with a **pointer** to a **value type** any changes to the **value** are apparent throughout the program.
+**Go** allows user-defined types to declare methods on either a **value type** 
+or a **pointer** to a **value type**. When methods operate on a **value type** 
+the **value** manipulated remains immutable to the rest of the program 
+(essentially the method operates on a copy of the value) whilst with a **pointer** 
+to a **value type** any changes to the **value** are apparent throughout the program.
 This has far-reaching implications which we’ll explore in later chapters.
 
 ### Generalisation
 
-Encapsulation is of huge benefit when writing complex programs and it also enables one of the more powerful features of **Go**’s type system, the **interface**. An **interface** is similar to a **struct** in that it combines one or more elements but rather than defining a type in terms of the data items it contains, an **interface** defines it in terms of a set of **method** signatures which it must implement.
+Encapsulation is of huge benefit when writing complex programs and it also 
+enables one of the more powerful features of **Go**’s type system, the 
+**interface**. An **interface** is similar to a **struct** in that it combines 
+one or more elements but rather than defining a type in terms of the data items 
+it contains, an **interface** defines it in terms of a set of **method** signatures 
+which it must implement.
 
-As none of the primitive types (**int**, **string**, etc.) have methods they match the empty **interface** (**interface{}**) as do all other types, a property used frequently in **Go** programs to create generic containers.
+> As none of the primitive types (**int**, **string**, etc.) have methods they 
+> match the empty **interface** (**interface{}**) as do all other types, a property 
+> used frequently in **Go** programs to create generic containers.
 
-Once declared an **interface** can be used just like any other declared type, allowing functions and variables to operate with unknown types based solely on their required behaviour. **Go**’s type inference system will then recognise compliant values as instances of the interface, allowing us to write generalised code with little fuss.
+Once declared an **interface** can be used just like any other declared type, 
+allowing functions and variables to operate with unknown types based solely on 
+their required behaviour. **Go**’s type inference system will then recognise 
+compliant values as instances of the interface, allowing us to write generalised 
+code with little fuss.
 
-In the next example we’re going to introduce a simple **interface** (by far the most common kind) which matches any type with a **func String() string** method signature.
-Example 1.22
+In the next example we’re going to introduce a simple **interface** (by far the 
+most common kind) which matches any type with a **func String() string** method signature.
 
-     1 packagemain 2  3 import"fmt" 4  5 typeStringerinterface{ 6 String()string 7 } 8  9 typeHellostruct{}10 11 func(hHello)String()string{12 return"Hello"13 }14 15 typeWorldstruct{}16 17 func(w*World)String()string{18 return"world"19 }20 21 typeMessagestruct{22 XStringer23 YStringer24 }25 26 func(vMessage)String()(rstring){27 switch{28 casev.X==nil&&v.Y==nil:29 casev.X==nil:30 r=v.Y.String()31 casev.Y==nil:32 r=v.X.String()33 default:34 r=fmt.Sprintf("%v %v",v.X,v.Y)35 }36 return37 }38 39 funcmain(){40 m:=&Message{}41 fmt.Println(m)42 m.X=new(Hello)43 fmt.Println(m)44 m.Y=new(World)45 fmt.Println(m)46 m.Y=m.X47 fmt.Println(m)48 m=&Message{X:new(World),Y:new(Hello)}49 fmt.Println(m)50 m.X,m.Y=m.Y,m.X51 fmt.Println(m)52 }
+***Example 1.22***
 
-    $ go run 22.go
+```go
+package main
+
+import "fmt"
+
+type Stringer interface {
+    String() string
+}
+
+type Hello struct{}
+
+func (h Hello) String() string {
+    return "Hello"
+}
+
+type World struct{}
+
+func (w *World) String() string {
+    return "world"
+}
+
+type Message struct {
+    X Stringer
+    Y Stringer
+}
+
+func (v Message) String() (r string) {
+    switch {
+    case v.X == nil && v.Y == nil:
+    case v.X == nil:
+        r = v.Y.String()
+    case v.Y == nil:
+        r = v.X.String()
+    default:
+        r = fmt.Sprintf("%v %v", v.X, v.Y)
+    }
+    return
+}
+
+func main() {
+    m := &Message{}
+    fmt.Println(m)
+    m.X = new(Hello)
+    fmt.Println(m)
+    m.Y = new(World)
+    fmt.Println(m)
+    m.Y = m.X
+    fmt.Println(m)
+    m = &Message{X: new(World), Y: new(Hello)}
+    fmt.Println(m)
+    m.X, m.Y = m.Y, m.X
+    fmt.Println(m)
+}
+```
+
+<pre>  <b>$ go run 22.go</b>
+
+  Hello
+  Hello world
+  Hello Hello
+  world Hello
+  Hello world</pre>
     
-    Hello
-    Hello world
-    Hello Hello
-    world Hello
-    Hello world
+
+This **interface** is copied directly from **fmt.Stringer**, so we can simplify 
+our code a little by using that interface instead
+
+***Example 1.23***
+
+```go
+type Message struct { 
+    X fmt.Stringer 
+    Y fmt.Stringer 
+}
+```
+
+As **Go** is strongly typed **interface** values contain both a pointer to the 
+value contained in the **interface**, and the **concrete** type of the stored 
+value. This allows us to perform **type assertions** to confirm that the value 
+inside an **interface** matches a particular concrete type
+
+***Example 1.24***
+
+```go
+package main
+
+import "fmt"
+
+type Hello struct{}
+
+func (h Hello) String() string {
+    return "Hello"
+}
+
+type World struct{}
+
+func (w *World) String() string {
+    return "world"
+}
+
+type Message struct {
+    X fmt.Stringer
+    Y fmt.Stringer
+}
+
+func (v Message) IsGreeting() (ok bool) {
+    if _, ok = v.X.(*Hello); !ok {
+        _, ok = v.Y.(*Hello)
+    }
+    return
+}
+
+func main() {
+    m := &Message{}
+    fmt.Println(m.IsGreeting())
+    m.X = new(Hello)
+    fmt.Println(m.IsGreeting())
+    m.Y = new(World)
+    fmt.Println(m.IsGreeting())
+    m.Y = m.X
+    fmt.Println(m.IsGreeting())
+    m = &Message{X: new(World), Y: new(Hello)}
+    fmt.Println(m.IsGreeting())
+    m.X, m.Y = m.Y, m.X
+    fmt.Println(m.IsGreeting())
+}
+```
+
+<pre>  <b>go run 24.go</b>
+  false
+  true
+  true
+  true
+  true
+  true</pre>
     
 
-This **interface** is copied directly from **fmt.Stringer**, so we can simplify our code a little by using that interface instead
-Example 1.23
+Here we’ve replaced **Message’s String()** method with **IsGreeting()**, a predicate 
+which uses a pair of **type assertions** to tell us whether or not one of **Message’s** 
+data fields contains a value of concrete type **Hello**.
 
-    17 typeMessagestruct{18 Xfmt.Stringer19 Yfmt.Stringer20 }
+So far in these examples we’ve been using pointers to **Hello** and **World** 
+so the **interface** variables are storing pointers to pointers to these values 
+(i.e. <b>**Hello</b> and <b>**World</b>) rather than pointers to the values themselves 
+(i.e. <b>*Hello</b> and <b>*World</b>). In the case of **World** we have to do this to 
+comply with the **fmt.Stringer** interface because **String()** is defined for 
+<b>*World</b> and if we modify main to assign a **World** value to either field we’ll 
+get a compile-time error
 
-As **Go** is strongly typed **interface** values contain both a pointer to the value contained in the **interface**, and the **concrete** type of the stored value. This allows us to perform **type assertions** to confirm that the value inside an **interface** matches a particular concrete type
-Example 1.24
+***Example 1.25***
 
-     1 packagemain 2  3 import"fmt" 4  5 typeHellostruct{} 6  7 func(hHello)String()string{ 8 return"Hello" 9 }10 11 typeWorldstruct{}12 13 func(w*World)String()string{14 return"world"15 }16 17 typeMessagestruct{18 Xfmt.Stringer19 Yfmt.Stringer20 }21 22 func(vMessage)IsGreeting()(okbool){23 if_,ok=v.X.(*Hello);!ok{24 _,ok=v.Y.(*Hello)25 }26 return27 }28 29 funcmain(){30 m:=&Message{}31 fmt.Println(m.IsGreeting())32 m.X=new(Hello)33 fmt.Println(m.IsGreeting())34 m.Y=new(World)35 fmt.Println(m.IsGreeting())36 m.Y=m.X37 fmt.Println(m.IsGreeting())38 m=&Message{X:new(World),Y:new(Hello)}39 fmt.Println(m.IsGreeting())40 m.X,m.Y=m.Y,m.X41 fmt.Println(m.IsGreeting())42 }
-
-    go run 24.go
-    false
-    true
-    true
-    true
-    true
-    true
-    
-
-Here we’ve replaced **Message’s String()** method with **IsGreeting()**, a predicate which uses a pair of **type assertions** to tell us whether or not one of **Message’s** data fields contains a value of concrete type **Hello**.
-
-So far in these examples we’ve been using pointers to **Hello** and **World** so the **interface** variables are storing pointers to pointers to these values (i.e. ****Hello** and ****World**) rather than pointers to the values themselves (i.e. ***Hello** and ***World**). In the case of **World** we have to do this to comply with the **fmt.Stringer** interface because **String()** is defined for ***World** and if we modify main to assign a **World** value to either field we’ll get a compile-time error
-Example 1.25
-
-    29 funcmain(){30 m:=&Message{}31 fmt.Println(m.IsGreeting())32 m.X=Hello{}33 fmt.Println(m.IsGreeting())34 m.X=new(Hello)35 fmt.Println(m.IsGreeting())36 m.X=World{}37 }
-
+```go
+func main() {
+    m := &Message{}
+    fmt.Println(m.IsGreeting())
+    m.X = Hello{}
+    fmt.Println(m.IsGreeting())
+    m.X = new(Hello)
+    fmt.Println(m.IsGreeting())
+    m.X = World{}
+}
+```
     $ go run 25.go
     # command-line-arguments
     ./25.go:36: cannot use World literal (type World) as type fmt.Stringer in assignment:
     	World does not implement fmt.Stringer (String method has pointer receiver)
     
 
-The final thing to mention about **interfaces** is that they support embedding of other **interfaces**. This allows us to compose a new, more restrictive **interface** based on one or more existing **interfaces**. Rather than demonstrate this with an example we’re going to look at code lifted directly from the standard **io** package which does this
+The final thing to mention about **interfaces** is that they support embedding 
+of other **interfaces**. This allows us to compose a new, more restrictive 
+**interface** based on one or more existing **interfaces**. Rather than demonstrate 
+this with an example we’re going to look at code lifted directly from the standard 
+**io** package which does this
+
 Extract from io
 
-    67 typeReaderinterface{68 Read(p[]byte)(nint,errerror)69 }
+```go
+type Reader interface {
+    Read(p []byte)(n int, err error)
+}
 
-    78 typeWriterinterface{79 Write(p[]byte)(nint,errerror)80 }
+type Writer interface {
+    Write(p []byte)(n int, err error)
+}
 
-    106 typeReadWriterinterface{107 Reader108 Writer109 }
+type ReadWriter interface {
+    Reader
+    Writer
+}
+```
 
-Here **io** is declaring three **interfaces**, the **Reader** and **Writer** which are independent of each other, and the **ReadWriter** which combines both. Any time we declare a variable, field or function parameter in terms of a **ReaderWriter** we know we can use both the **Read()** and **Write()** methods to manipulate it.
+Here **io** is declaring three **interfaces**, the **Reader** and **Writer** 
+which are independent of each other, and the **ReadWriter** which combines both. 
+Any time we declare a variable, field or function parameter in terms of a 
+**ReaderWriter** we know we can use both the **Read()** and **Write()** methods to manipulate it.
 
 ### Startup
 
-One of the less-discussed aspects of computer programs is the need to initialise many of them to a pre-determined state before they begin executing. Whilst this is probably the worst place to start discussing what to many people may appear to be advanced topics, one of my goals in this chapter is to cover all of the structural elements that we’ll meet when we examine more complex programs.
+One of the less-discussed aspects of computer programs is the need to initialise 
+many of them to a pre-determined state before they begin executing. Whilst this 
+is probably the worst place to start discussing what to many people may appear 
+to be advanced topics, one of my goals in this chapter is to cover all of the 
+structural elements that we’ll meet when we examine more complex programs.
 
-Every Go package may contain one or more **init()** functions specifying actions that should be taken during program initialisation. This is the one case I’m aware of where multiple declarations of the same identifier can occur without either resulting in a compilation error or the shadowing of a variable. In the following example we use the **init()** function to assign a value to our **world** variable
-Example 1.26
+Every Go package may contain one or more **init()** functions specifying actions 
+that should be taken during program initialisation. This is the one case I’m 
+aware of where multiple declarations of the same identifier can occur without 
+either resulting in a compilation error or the shadowing of a variable. In the 
+following example we use the **init()** function to assign a value to our **world** variable
 
-     1 packagemain 2 import."fmt" 3  4 constHello="hello" 5 varworldstring 6  7 funcinit(){ 8 world="world" 9 }10 11 funcmain(){12 Println(Hello,world)13 }
+***Example 1.26***
 
-However the **init()** function can contain any valid Go code, allowing us to place the whole of our program in **init()** and leaving **main()** as a stub to convince the compiler that this is indeed a valid Go program.
-Example 1.27
+```go
+package main
 
-     1 packagemain 2 import."fmt" 3  4 constHello="hello" 5 varworldstring 6  7 funcinit(){ 8 world="world" 9 Println(Hello,world)10 }11 12 funcmain(){}
+import . "fmt"
 
-When there are multiple **init()** functions the order in which they’re executed is indeterminate so in general it’s best not to do this unless you can be certain the **init()** functions don’t interact in any way. The following happens to work as expected on my development computer but an implementation of Go could just as easily arrange it to run in reverse order or even leave deciding the order of execution until runtime.
+const Hello = "Hello"
+
+var world string
+
+func init() {
+    world = "world"
+}
+
+func main() {
+    Println(Hello, world)
+}
+```
+
+However the **init()** function can contain any valid Go code, allowing us to 
+place the whole of our program in **init()** and leaving **main()** as a stub to 
+convince the compiler that this is indeed a valid Go program.
+
+***Example 1.27***
+
+```go
+package main
+
+import . "fmt"
+
+const Hello = "Hello"
+
+var world string
+
+func init() {
+    world = "world"
+    Println(Hello, world)
+}
+
+func main() {
+}
+```
+
+When there are multiple **init()** functions the order in which they’re executed 
+is indeterminate so in general it’s best not to do this unless you can be certain 
+the **init()** functions don’t interact in any way. The following happens to work 
+as expected on my development computer but an implementation of Go could just as 
+easily arrange it to run in reverse order or even leave deciding the order of 
+execution until runtime.
+
 Example 1.28
 
-     1 packagemain 2 import."fmt" 3  4 constHello="hello" 5 varworldstring 6  7 funcinit(){ 8 Print(Hello," ") 9 world="world"10 }11 12 funcinit(){13 Printf("%v\n",world)14 }15 16 funcmain(){}
+```go
+package main
+
+import . "fmt"
+
+const Hello = "Hello"
+
+var world string
+
+func init() {
+    Print(Hello, " ")
+    world = "world"
+}
+
+func init() {
+    Printf("%v\n", world)
+}
+
+func main() {
+}
+```
 
 ### HTTP
 
-So far our treatment of **Hello World** has followed the traditional route of printing a preset message to the console. Anyone would think we were living in the fuddy-duddy mainframe era of the 1970s instead of the shiny 21st Century, when web and mobile applications rule the world.
+So far our treatment of **Hello World** has followed the traditional route of 
+printing a preset message to the console. Anyone would think we were living in 
+the fuddy-duddy mainframe era of the 1970s instead of the shiny 21st Century, 
+when web and mobile applications rule the world.
 
-Turning **Hello World** into a web application is surprisingly simple, as the following example demonstrates.
-Example 1.29
+Turning **Hello World** into a web application is surprisingly simple, as the 
+following example demonstrates.
 
-     1 packagemain 2 import( 3 ."fmt" 4 "net/http" 5 ) 6  7 constMESSAGE="hello world" 8 constADDRESS=":1024" 9 10 funcmain(){11 http.HandleFunc("/hello",Hello)12 ife:=http.ListenAndServe(ADDRESS,nil);e!=nil{13 Println(e)14 }15 }16 17 funcHello(whttp.ResponseWriter,r*http.Request){18 w.Header().Set("Content-Type","text/plain")19 Fprintf(w,MESSAGE)20 }
+***Example 1.29***
+
+```go
+package main
+
+import (
+    . "fmt"
+    "net/http"
+)
+
+const MESSAGE = "hello world"
+const ADDRESS = ":1024"
+
+func main() {
+    http.HandleFunc("/hello", Hello)
+    if e := http.ListenAndServe(ADDRESS, nil); e != nil {
+        Println(e)
+    }
+}
+
+func Hello(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "text/plain")
+    Fprintf(w, MESSAGE)
+}
+```
 
     $ go run 29.go
     
 
-Our web server is now listening on localhost port 1024 (usually the first non-privileged port on most Unix-like operating systems) and if we visit the url **http://localhost:1024/hello** with a web browser our server will return **Hello World** in the response body.
+Our web server is now listening on localhost port 1024 (usually the first 
+non-privileged port on most Unix-like operating systems) and if we visit the 
+url **http://localhost:1024/hello** with a web browser our server will return 
+**Hello World** in the response body.
 ![Image 1.29 http://localhost:1024/hello](/site_images/GoNotebook/01_hello_world----29.png)Image 1.29 http://localhost:1024/hello
-The first thing to note is that the **net/http** package provides a fully-functional web server which requires very little configuration. All we have to do to get our content to the browser is define a **handler**, which in this case is a function to call whenever an **http.Request** is received, and then launch a server to listen on the desired address with **http.ListenAndServe()**. **http.ListenAndServe** returns an error if it’s unable to launch the server for some reason, which in this case we print to the console.
+The first thing to note is that the **net/http** package provides a fully-functional 
+web server which requires very little configuration. All we have to do to get 
+our content to the browser is define a **handler**, which in this case is a function 
+to call whenever an **http.Request** is received, and then launch a server to listen 
+on the desired address with **http.ListenAndServe()**. **http.ListenAndServe** returns 
+an error if it’s unable to launch the server for some reason, which in this case 
+we print to the console.
 
-We’re going to import the **net/http** package into the current namespace and assume our code won’t encounter any runtime errors to make the simplicity even more apparent. If you run into any problems whilst trying the examples which follow, reinserting the if statement will allow you to figure out what’s going on.
-Example 1.30
+We’re going to import the **net/http** package into the current namespace and 
+assume our code won’t encounter any runtime errors to make the simplicity even 
+more apparent. If you run into any problems whilst trying the examples which 
+follow, reinserting the if statement will allow you to figure out what’s going on.
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constMESSAGE="hello world" 8 constADDRESS=":1024" 9 10 funcmain(){11 HandleFunc("/hello",Hello)12 ListenAndServe(ADDRESS,nil)13 }14 15 funcHello(wResponseWriter,r*Request){16 w.Header().Set("Content-Type","text/plain")17 Fprintf(w,MESSAGE)18 }
+***Example 1.30***
 
-**HandleFunc()** registers a URL in the web server as the trigger for a function, so when a web request targets the URL the associated function will be executed to generate the result. The specified handler function is passed both a **ResponseWriter** to send output to the web client and the **Request** which is being replied to. The **ResponseWriter** is a file handle so we can use the **fmt.Fprint()** family of file-writing functions to create the response body.
+```go
+package main
 
-Finally we launch the server using **ListenAndServe()** which will block for as long as the server is active, returning an error if there is one to report.
+import (
+    . "fmt"
+    . "net/http"
+)
 
-In this example I’ve declared a function **Hello** and by referring to this in the call to **HandleFunc()** this becomes the function which is registered. However Go also allows us to define functions anonymously where we wish to use a function value, as demonstrated in the following variation on our theme.
-Example 1.31
+const MESSAGE = "hello world"
+const ADDRESS = ":1024"
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constMESSAGE="hello world" 8 constADDRESS=":1024" 9 10 funcmain(){11 HandleFunc("/hello",func(wResponseWriter,r*Request){12 w.Header().Set("Content-Type","text/plain")13 Fprintf(w,MESSAGE)14 })15 ListenAndServe(ADDRESS,nil)16 }
+func main() {
+    HandleFunc("/hello", Hello)
+    ListenAndServe(ADDRESS, nil)
+}
+
+func Hello(w ResponseWriter, r *Request) {
+    w.Header().Set("Content-Type", "text/plain")
+    Fprintf(w, MESSAGE)
+}
+```
+
+**HandleFunc()** registers a URL in the web server as the trigger for a function, 
+so when a web request targets the URL the associated function will be executed 
+to generate the result. The specified handler function is passed both a 
+**ResponseWriter** to send output to the web client and the **Request** which is 
+being replied to. The **ResponseWriter** is a file handle so we can use the 
+**fmt.Fprint()** family of file-writing functions to create the response body.
+
+Finally we launch the server using **ListenAndServe()** which will block for as 
+long as the server is active, returning an error if there is one to report.
+
+In this example I’ve declared a function **Hello** and by referring to this in the 
+call to **HandleFunc()** this becomes the function which is registered. However 
+Go also allows us to define functions anonymously where we wish to use a function 
+value, as demonstrated in the following variation on our theme.
+
+***Example 1.31***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const MESSAGE = "hello world"
+const ADDRESS = ":1024"
+
+func main() {
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, MESSAGE)
+    })
+    ListenAndServe(ADDRESS, nil)
+}
+```
 
 Functions are first-class values in Go and here **HandleFunc()** is passed an anonymous function value which is created at runtime. This value is a closure so it can also access variables in the lexical scope in which it’s defined. We’ll treat closures in greater depth later in the book, but for now here’s an example which demonstrates their basic premise by defining a variable **messages** in **main()** and then accessing it from within the anonymous function.
-Example 1.32
+
+***Example 1.32***
 
      1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8  9 funcmain(){10 message:="hello world"11 HandleFunc("/hello",func(wResponseWriter,r*Request){12 w.Header().Set("Content-Type","text/plain")13 Fprintf(w,message)14 })15 ListenAndServe(ADDRESS,nil)16 }
 
