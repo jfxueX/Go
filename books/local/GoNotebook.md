@@ -90,21 +90,36 @@ It’s a tradition in programming books to start with a canonical “Hello World
 Let’s begin with the simplest Go program that will output text to the console.
 Example 1.1
 
-    1 packagemain2 3 funcmain(){4 println("hello world")5 }
+```go
+package main 
 
-The first thing to note is that every Go source file belongs to a package, with the **main** package defining an executable program whilst all other packages represent libraries.
+funcmain(){ 
+    println("hello world")
+}
+```
 
-    1 packagemain
+**The first thing to note** is that *every Go source file belongs to a package*, with the **main** package defining an executable program whilst all other packages represent libraries.
+
+```go
+package main
+```
 
 For the **main** package to be executable it needs to include a **main()** function, which will be called following program initialisation.
 
-    3 funcmain(){
+```go
+    func main() {
+```        
 
-Notice that unlike C/C++ the **main()** function neither takes parameters nor has a return value. Whenever a program should interact with command-line parameters or return a value on termination these tasks are handled using functions in the standard package library. We’ll examine command-line parameters when developing **Echo**.
+Notice that unlike C/C++ the **main()** function neither takes parameters nor has a return value. 
+Whenever a program should interact with command-line parameters or return a value on termination 
+these tasks are handled using functions in the standard package library. 
+We’ll examine command-line parameters when developing **Echo**.
 
 Finally let’s look at our payload.
 
-    4 println("hello world")
+```go
+    println("hello world")
+```
 
 The **println()** function is one of a small set of builtin generic functions defined in the language specification and which in this case is usually used to assist debugging, whilst **“hello world”** is a value comprising an immutable string of characters in utf-8 format.
 
