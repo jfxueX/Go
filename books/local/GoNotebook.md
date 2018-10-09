@@ -1016,237 +1016,1004 @@ func main() {
 }
 ```
 
-Functions are first-class values in Go and here **HandleFunc()** is passed an anonymous function value which is created at runtime. This value is a closure so it can also access variables in the lexical scope in which it’s defined. We’ll treat closures in greater depth later in the book, but for now here’s an example which demonstrates their basic premise by defining a variable **messages** in **main()** and then accessing it from within the anonymous function.
+*Functions are first-class* values in Go and here **HandleFunc()** is passed an 
+anonymous function value which is created at runtime. This value is a closure 
+so it can also access variables in the lexical scope in which it’s defined. 
+We’ll treat closures in greater depth later in the book, but for now here’s an 
+example which demonstrates their basic premise by defining a variable **messages** 
+in **main()** and then accessing it from within the anonymous function.
 
 ***Example 1.32***
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8  9 funcmain(){10 message:="hello world"11 HandleFunc("/hello",func(wResponseWriter,r*Request){12 w.Header().Set("Content-Type","text/plain")13 Fprintf(w,message)14 })15 ListenAndServe(ADDRESS,nil)16 }
+```go
+package main
 
-This is only a very brief taster of what’s possible using **net/http** so we’ll conclude by serving our **hello world** web application over an SSL connection.
-Example 1.33
+import (
+    . "fmt"
+    . "net/http"
+)
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constSECURE_ADDRESS=":1025" 8  9 funcmain(){10 message:="hello world"11 HandleFunc("/hello",func(wResponseWriter,r*Request){12 w.Header().Set("Content-Type","text/plain")13 Fprintf(w,message)14 })15 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)16 }
+const ADDRESS = ":1024"
 
-Before we run this program we first need to generate a certificate and a public key, which we can do using **crypto/tls/generate_cert.go** in the standard package library.
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+    ListenAndServe(ADDRESS, nil)
+}
+```
 
-    $ go run $GOROOT/src/pkg/crypto/tls/generate_cert.go -ca=true -host="localhost"
-    2014/05/16 20:41:53 written cert.pem
-    2014/05/16 20:41:53 written key.pem
-    $ go run 33.go
+This is only a very brief taster of what’s possible using **net/http** so we’ll 
+conclude by serving our **hello world** web application over an SSL connection.
+
+***Example 1.33***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+    ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+}
+```
+
+Before we run this program we first need to generate a certificate and a public 
+key, which we can do using **crypto/tls/generate_cert.go** in the standard package library.
+
+<pre>  <b>$ go run $GOROOT/src/pkg/crypto/tls/generate_cert.go -ca=true -host="localhost"</b>
+  2014/05/16 20:41:53 written cert.pem
+  2014/05/16 20:41:53 written key.pem
+  <b>$ go run 33.go</b></pre>
     
 
-![Image 1.33 https://localhost:1025/hello](/site_images/GoNotebook/01_hello_world----33.png)Image 1.33 https://localhost:1025/hello
-This is a self-signed certificate, and not all modern web browsers like these. Firefox will refuse to connect on the grounds the certificate is inadequate and not being a Firefox user I’ve not devoted much effort to solving this. Meanwhile both Chrome and Safari will prompt the user to confirm the certificate is trusted. I have no idea how Internet Explorer behaves.
-For production applications you’ll need a certificate from a recognised Certificate Authority. Traditionally this would be purchased from a company such as [Thawte](https://www.thawte.com) for a fixed period but with the increasing emphasis on securing the web a number of major networking companies have banded together to launch [Let’s Encrypt](https://letsencrypt.org). It’s a free CA issuing short-duration certificates for SSL/TLS with support for automated renewal.
+![Image 1.33 https://localhost:1025/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----33.png)Image 1.33 https://localhost:1025/hello
+> This is a self-signed certificate, and not all modern web browsers like these. 
+> Firefox will refuse to connect on the grounds the certificate is inadequate and 
+> not being a Firefox user I’ve not devoted much effort to solving this. Meanwhile 
+> both Chrome and Safari will prompt the user to confirm the certificate is 
+> trusted. I have no idea how Internet Explorer behaves.
+> For production applications you’ll need a certificate from a recognised 
+> Certificate Authority. Traditionally this would be purchased from a company such 
+> as [Thawte](https://www.thawte.com) for a fixed period but with the increasing 
+> emphasis on securing the web a number of major networking companies have banded 
+> together to launch [Let’s Encrypt](https://letsencrypt.org). It’s a free CA issuing 
+> short-duration certificates for SSL/TLS with support for automated renewal.
 
-If you’re anything like me (and you have my sympathy if you are) then the next thought to idle through your mind will be a fairly obvious question: given that we can serve our content over both HTTP and HTTPS connections, how do we do both from the same program?
+If you’re anything like me (and you have my sympathy if you are) then the next 
+thought to idle through your mind will be a fairly obvious question: given that 
+we can serve our content over both HTTP and HTTPS connections, how do we do both 
+from the same program?
 
-To answer this we have to know a little - but not a lot - about how to model concurrency in a Go program. The **go** keyword marks a **goroutine** which is a lightweight thread scheduled by the Go runtime. How this is implemented under the hood doesn’t matter, all we need to know is that when a **goroutine** is launched it takes a function call and creates a separate thread of execution for it. Here we’re going to launch a **goroutine** to run the **HTTP** server then run the **HTTPS** server in the main flow of execution.
-Example 1.34
+To answer this we have to know a little - but not a lot - about how to model 
+concurrency in a Go program. The **go** keyword marks a **goroutine** which is 
+a lightweight thread scheduled by the Go runtime. How this is implemented under 
+the hood doesn’t matter, all we need to know is that when a **goroutine** is 
+launched it takes a function call and creates a separate thread of execution 
+for it. Here we’re going to launch a **goroutine** to run the **HTTP** server 
+then run the **HTTPS** server in the main flow of execution.
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8 constSECURE_ADDRESS=":1025" 9 10 funcmain(){11 message:="hello world"12 HandleFunc("/hello",func(wResponseWriter,r*Request){13 w.Header().Set("Content-Type","text/plain")14 Fprintf(w,message)15 })16 17 gofunc(){18 ListenAndServe(ADDRESS,nil)19 }()20 21 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)22 }
+***Example 1.34***
 
-When I first wrote this code it actually used two **goroutines**, one for each server. Unfortunately no matter how busy any particular **goroutine** is, when the **main()** function returns our program will exit and our web servers will terminate. So I tried the primitive approach we all know and love from C
+```go
+package main
 
-    10 funcmain(){11 message:="hello world"12 HandleFunc("/hello",func(wResponseWriter,r*Request){13 w.Header().Set("Content-Type","text/plain")14 Fprintf(w,message)15 })16 17 gofunc(){18 ListenAndServe(ADDRESS,nil)19 }()20 21 gofunc(){22 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)23 }()24 25 for{}26 }
+import (
+    . "fmt"
+    . "net/http"
+)
 
-Here we’re using an infinite **for** loop to prevent program termination: it’s inelegant, but this is a small program and dirty hacks have their appeal. Whilst semantically correct this unfortunately doesn’t work either because of the way **goroutines** are scheduled: the infinite loop can potentially starve the thread scheduler and prevent the other **goroutines** from running.
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
 
-    $ go version
-    go version go1.3 darwin/amd64
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    go func() {
+        ListenAndServe(ADDRESS, nil)
+    }()
+
+    ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+}
+```
+
+When I first wrote this code it actually used two **goroutines**, one for each 
+server. Unfortunately no matter how busy any particular **goroutine** is, when 
+the **main()** function returns our program will exit and our web servers will 
+terminate. So I tried the primitive approach we all know and love from C
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    go func() {
+        ListenAndServe(ADDRESS, nil)
+    }()
+
+    go func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    }()
+
+    for {
+    }
+}
+```
+
+Here we’re using an infinite **for** loop to prevent program termination: 
+it’s inelegant, but this is a small program and dirty hacks have their appeal. 
+Whilst semantically correct this unfortunately doesn’t work either because of 
+the way **goroutines** are scheduled: the infinite loop can potentially starve 
+the thread scheduler and prevent the other **goroutines** from running.
+
+<pre>  <b>$ go version</b>
+  go version go1.3 darwin/amd64</pre>
     
 
-In any event an **infinite loop** is a nasty, unnecessary hack as Go allows concurrent elements of a program to communicate with each other via **channels**, allowing us to rewrite our code as
-Example 1.35
+In any event an **infinite loop** is a nasty, unnecessary hack as Go allows 
+concurrent elements of a program to communicate with each other via **channels**, 
+allowing us to rewrite our code as
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8 constSECURE_ADDRESS=":1025" 9 10 funcmain(){11 message:="hello world"12 HandleFunc("/hello",func(wResponseWriter,r*Request){13 w.Header().Set("Content-Type","text/plain")14 Fprintf(w,message)15 })16 17 done:=make(chanbool)18 gofunc(){19 ListenAndServe(ADDRESS,nil)20 done<-true21 }()22 23 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)24 <-done25 }
+***Example 1.35***
 
-For the next pair of examples we’re going to use two separate **goroutines** to run our **HTTP** and **HTTPS** servers, yet again coordinating program termination with a shared channel. In the first example we’ll launch both of the **goroutines** from the **main()** function, which is a fairly typical code pattern
-Example 1.36
+```go
+package main
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8 constSECURE_ADDRESS=":1025" 9 10 funcmain(){11 message:="hello world"12 HandleFunc("/hello",func(wResponseWriter,r*Request){13 w.Header().Set("Content-Type","text/plain")14 Fprintf(w,message)15 })16 17 done:=make(chanbool)18 gofunc(){19 ListenAndServe(ADDRESS,nil)20 done<-true21 }()22 23 gofunc(){24 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)25 done<-true26 }()27 <-done28 <-done29 }
+import (
+    . "fmt"
+    . "net/http"
+)
 
-For our second deviation we’re going to launch a **goroutine** from **main()** which will run our **HTTPS** server and this will launch the second **goroutine** which manages our **HTTP** server
-Example 1.37
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 ) 6  7 constADDRESS=":1024" 8 constSECURE_ADDRESS=":1025" 9 10 funcmain(){11 message:="hello world"12 HandleFunc("/hello",func(wResponseWriter,r*Request){13 w.Header().Set("Content-Type","text/plain")14 Fprintf(w,message)15 })16 17 done:=make(chanbool)18 gofunc(){19 gofunc(){20 ListenAndServe(ADDRESS,nil)21 done<-true22 }()23 24 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)25 done<-true26 }()27 <-done28 <-done29 }
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
 
-There’s a certain amount of fragile repetition in this code as we have to remember to explicitly create a channel, and then to send and receive on it multiple times to coordinate execution. As **Go** provides first-order functions (i.e. allows us to refer to functions the same way we refer to data, assigning instances of them to variables and passing them around as parameters to other functions) we can refactor the server launch code as follows
-Example 1.38
+    done := make(chan bool)
+    go func() {
+        ListenAndServe(ADDRESS, nil)
+        done <- true
+    }()
 
-    packagemainimport(."fmt"."net/http")constADDRESS=":1024"constSECURE_ADDRESS=":1025"funcmain(){message:="hello world"HandleFunc("/hello",func(wResponseWriter,r*Request){w.Header().Set("Content-Type","text/plain")Fprintf(w,message)})Spawn(func(){ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)},func(){ListenAndServe(ADDRESS,nil)},)}funcSpawn(f...func()){done:=make(chanbool)for_,s:=rangef{gofunc(){s()done<-true}()}forl:=len(f);l>0;l--{<-done}}
+    ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    <-done
+}
+```
+
+For the next pair of examples we’re going to use two separate **goroutines** 
+to run our **HTTP** and **HTTPS** servers, yet again coordinating program 
+termination with a shared channel. In the first example we’ll launch both of 
+the **goroutines** from the **main()** function, which is a fairly typical code pattern
+
+***Example 1.36***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    done := make(chan bool)
+    go func() {
+        ListenAndServe(ADDRESS, nil)
+        done <- true
+    }()
+
+    go func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+        done <- true
+    }()
+
+    <-done
+    <-done
+}
+```
+
+For our second deviation we’re going to launch a **goroutine** from **main()** 
+which will run our **HTTPS** server and this will launch the second **goroutine** 
+which manages our **HTTP** server
+
+***Example 1.37***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    done := make(chan bool)
+    go func() {
+        go func() {
+            ListenAndServe(ADDRESS, nil)
+            done <- true
+        }()
+
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+        done <- true
+    }()
+
+    <-done
+    <-done
+}
+```
+
+There’s a certain amount of fragile repetition in this code as we have to 
+remember to explicitly create a channel, and then to send and receive on it 
+multiple times to coordinate execution. As **Go** provides first-order 
+functions (i.e. allows us to refer to functions the same way we refer to data, 
+assigning instances of them to variables and passing them around as parameters 
+to other functions) we can refactor the server launch code as follows
+
+***Example 1.38***
+
+```go
+import (
+    . "fmt"
+    . "net/http"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Spawn(
+        func() {
+            ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+        },
+        func() { ListenAndServe(ADDRESS, nil) },
+    )
+}
+
+func Spawn(f ...func()) {
+    done := make(chan bool)
+
+    for _, s := range f {
+        go func() {
+            s()
+            done <- true
+        }()
+    }
+
+    for l := len(f); l > 0; l-- {
+        <-done
+    }
+}
+```
 
 However this doesn’t work as expected, so let’s see if we can get any further insight
 
-    $ go vet 38.go
-    38.go:28: range variable s captured by func literal
-    exit status 1
+<pre>  <b>$ go vet 38.go</b>
+  38.go:28: range variable s captured by func literal
+  exit status 1</pre>
     
 
-Running **go** with the **vet** command runs a set of heuristics against our source code to check for common errors which wouldn’t be caught during compilation. In this case we’re being warned about this code
+Running **go** with the **vet** command runs a set of heuristics against our 
+source code to check for common errors which wouldn’t be caught during 
+compilation. In this case we’re being warned about this code
 
-    26 for_,s:=rangef{27 gofunc(){28 s()29 done<-true30 }()31 }
+```go
+    for _, s := range f {
+        go func() {
+            s()
+            done <- true
+        }()
+    }
+```
 
-Here we’re using a closure so it refers to the variable **s** in the **for**..**range** statement, and as the value of **s** changes on each successive iteration, so this is reflected in the call **s()**.
+Here we’re using a closure so it refers to the variable **s** in the 
+**for**..**range** statement, and as the value of **s** changes on each successive 
+iteration, so this is reflected in the call **s()**.
 
-To demonstrate this we’ll try a variant where we introduce a delay on each loop iteration much greater than the time taken to launch the **goroutine**.
-Example 1.39
+To demonstrate this we’ll try a variant where we introduce a delay on each loop 
+iteration much greater than the time taken to launch the **goroutine**.
 
-     1 package main
-     2 import (
-     3   . "fmt"
-     4   . "net/http"
-     5  "time"
-     6 )
-     7 8 const ADDRESS = ":1024"
-     9 const SECURE_ADDRESS = ":1025"
-    1011 func main() {
-    12   message := "hello world"
-    13   HandleFunc("/hello", func(w ResponseWriter, r *Request) {
-    14     w.Header().Set("Content-Type", "text/plain")
-    15     Fprintf(w, message)
-    16   })
-    1718   Spawn(
-    19     func() { ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil) },
-    20 	func() { ListenAndServe(ADDRESS, nil) },
-    21   )
-    22 }
-    2324 func Spawn(f ...func()) {
-    25   done := make(chan bool)
-    2627   for _, s := range f {
-    28     go func() {
-    29       s()
-    30       done <- true
-    31     }()
-    32    time.Sleep(time.Second)
-    33   }
-    3435   for l := len(f); l > 0; l-- {
-    36     <- done
-    37   }
-    38 }
-    
+***Example 1.39***
 
-When we run this we get the behaviour we expect with both **HTTP** and **HTTPS** servers running on their respective ports and responding to browser traffic. However this is hardly an elegant or practical solution and there’s a much better way of achieving the same effect.
-Example 1.40
+```go
+package main
 
-    26 for_,s:=rangef{27 gofunc(serverfunc()){28 server()29 done<-true30 }(s)31 }
+import (
+    . "fmt"
+    . "net/http"
+    "time"
+)
 
-By accepting the parameter **server** to the **goroutine**’s closure we can pass in the value of **s** and capture it so that on successive iterations of the **range** our **goroutines** use the correct value.
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
 
-**Spawn()** is an example of how powerful **Go**’s support for first-class functions can be, allowing us to run any arbitrary piece of code and wait for it to signal completion. It’s also a **variadic** function, taking as many or as few functions as desired and setting each of them up correctly.
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
 
-If we now reach for the standard library we discover that another alternative is to use a **sync.WaitGroup** to keep track of how many active **goroutines** we have in our program and only terminate the program when they’ve all completed their work. Yet again this allows us to run both servers in separate **goroutines** and manage termination correctly.
-Example 1.41
+    Spawn(
+        func() {
+            ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+        },
+        func() { ListenAndServe(ADDRESS, nil) },
+    )
+}
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "sync" 6 ) 7  8 constADDRESS=":1024" 9 constSECURE_ADDRESS=":1025"10 11 funcmain(){12 message:="hello world"13 HandleFunc("/hello",func(wResponseWriter,r*Request){14 w.Header().Set("Content-Type","text/plain")15 Fprintf(w,message)16 })17 18 varserverssync.WaitGroup19 servers.Add(1)20 gofunc(){21 deferservers.Done()22 ListenAndServe(ADDRESS,nil)23 }()24 25 servers.Add(1)26 gofunc(){27 deferservers.Done()28 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)29 }()30 servers.Wait()31 }
+func Spawn(f ...func()) {
+    done := make(chan bool)
 
-As there’s a certain amount of redundancy in this, let’s refactor a little by packaging server initiation into a new **Launch()** function. **Launch()** takes a parameter-less function and wraps this in a **closure** which will be launched as a **goroutine** in a separate thread of execution. Our **sync.WaitGroup** variable **servers** has been turned into a global variable to simplify the function signature of **Launch()**. When we call **Launch()** we’re freed from the need to manually increment **servers** prior to **goroutine** startup, and we use a **defer** statement to automatically call **servers.Done()** when the **goroutine** terminates even in the event that the **goroutine** crashes.
-Example 1.42
+    for _, s := range f {
+        go func() {
+            s()
+            done <- true
+        }()
+        time.Sleep(time.Second)
+    }
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "sync" 6 ) 7  8 constADDRESS=":1024" 9 constSECURE_ADDRESS=":1025"10 11 varserverssync.WaitGroup12 13 funcmain(){14 message:="hello world"15 HandleFunc("/hello",func(wResponseWriter,r*Request){16 w.Header().Set("Content-Type","text/plain")17 Fprintf(w,message)18 })19 20 Launch(func(){21 ListenAndServe(ADDRESS,nil)22 })23 24 Launch(func(){25 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)26 })27 servers.Wait()28 }29 30 funcLaunch(ffunc()){31 servers.Add(1)32 gofunc(){33 deferservers.Done()34 f()35 }()36 }
+    for l := len(f); l > 0; l-- {
+        <-done
+    }
+}
+```
+
+When we run this we get the behaviour we expect with both HTTP and HTTPS servers 
+running on their respective ports and responding to browser traffic. However 
+this is hardly an elegant or practical solution and there’s a much better way of 
+achieving the same effect.
+
+***Example 1.40***
+
+```go
+    for _, s := range f {
+        go func(server func()) {
+            server()
+            done <- true
+        }(s)
+    }
+```
+
+By accepting the parameter **server** to the **goroutine**’s closure we can pass 
+in the value of **s** and capture it so that on successive iterations of the 
+**range** our **goroutines** use the correct value.
+
+**Spawn()** is an example of how powerful **Go**’s support for first-class 
+functions can be, allowing us to run any arbitrary piece of code and wait for it 
+to signal completion. It’s also a **variadic** function, taking as many or as few 
+functions as desired and setting each of them up correctly.
+
+If we now reach for the standard library we discover that another alternative is 
+to use a **sync.WaitGroup** to keep track of how many active **goroutines** we 
+have in our program and only terminate the program when they’ve all completed 
+their work. Yet again this allows us to run both servers in separate **goroutines** 
+and manage termination correctly.
+
+***Example 1.41***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+    "sync"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    var servers sync.WaitGroup
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        ListenAndServe(ADDRESS, nil)
+    }()
+
+    servers.Add(2)
+    go func() {
+        defer servers.Done()
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    }()
+    servers.Wait()
+}
+```
+
+As there’s a certain amount of redundancy in this, let’s refactor a little by 
+packaging server initiation into a new **Launch()** function. **Launch()** takes 
+a parameter-less function and wraps this in a **closure** which will be launched 
+as a **goroutine** in a separate thread of execution. Our **sync.WaitGroup** 
+variable **servers** has been turned into a global variable to simplify the 
+function signature of **Launch()**. When we call **Launch()** we’re freed from 
+the need to manually increment **servers** prior to **goroutine** startup, and 
+we use a **defer** statement to automatically call **servers.Done()** when the 
+**goroutine** terminates even in the event that the **goroutine** crashes.
+
+***Example 1.42***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+    "sync"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+var servers sync.WaitGroup
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Launch(func() {
+        ListenAndServe(ADDRESS, nil)
+    })
+
+    Launch(func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    })
+
+    servers.Wait()
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+```
 
 ### The Environment
 
-The main shells used with modern operating systems (Linux, OSX, FreeBSD, Windows, etc.) provide a persistent environment which can be queried by running programs, allowing a user to store configuration values in named variables. Go supports reading and writing these variables using the **os** package functions **Getenv()** and **Setenv()**.
+The main shells used with modern operating systems (Linux, OSX, FreeBSD, 
+Windows, etc.) provide a persistent environment which can be queried by running 
+programs, allowing a user to store configuration values in named variables. Go 
+supports reading and writing these variables using the **os** package functions 
+**Getenv()** and **Setenv()**.
 
-In our next example we’re going to query the environment for the variable **SERVE_HTTP** which we’ll assume contains the default address on which to serve unencrypted web content.
-Example 1.43
+In our next example we’re going to query the environment for the variable 
+**SERVE_HTTP** which we’ll assume contains the default address on which to serve 
+unencrypted web content.
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "os" 6 "sync" 7 ) 8  9 constSECURE_ADDRESS=":1025"10 11 varaddressstring12 varserverssync.WaitGroup13 14 funcinit(){15 ifaddress=os.Getenv("SERVE_HTTP");address==""{16 address=":1024"17 }18 }19 20 funcmain(){21 message:="hello world"22 HandleFunc("/hello",func(wResponseWriter,r*Request){23 w.Header().Set("Content-Type","text/plain")24 Fprintf(w,message)25 })26 27 Launch(func(){28 ListenAndServe(address,nil)29 })30 31 Launch(func(){32 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)33 })34 servers.Wait()35 }36 37 funcLaunch(ffunc()){38 servers.Add(1)39 gofunc(){40 deferservers.Done()41 f()42 }()43 }
+***Example 1.43***
 
-Here we’ve defined a global variable **address** which we set in **init()** to either the value provided in **SERVE_HTTP** or a default value **“:1024”**.
+```go
+package main
 
-    $ go run 43.go
+import (
+    . "fmt"
+    . "net/http"
+    "os"
+    "sync"
+)
+
+const SECURE_ADDRESS = ":1025"
+
+var address string
+var servers sync.WaitGroup
+
+func init() {
+    if address = os.Getenv("SERVE_HTTP"); address == "" {
+        address = ":1024"
+    }
+}
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Launch(func() {
+        ListenAndServe(address, nil)
+    })
+
+    Launch(func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    })
+
+    servers.Wait()
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+```
+
+Here we’ve defined a global variable **address** which we set in **init()** to 
+either the value provided in **SERVE_HTTP** or a default value **“:1024”**.
+
+<pre>  <b>$ go run 43.go</b></pre>
     
 
-![Image 1.43a http://localhost:1024/hello](/site_images/GoNotebook/01_hello_world----43_1.png)Image 1.43a http://localhost:1024/hello
+![Image 1.43a http://localhost:1024/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_1.png)Image 1.43a http://localhost:1024/hello
 
-    $ SERVE_HTTP=":3030" go run 43.go
+<pre>  <b>$ SERVE_HTTP=":3030" go run 43.go</b></pre>
     
 
-![Image 1.43b http://localhost:3030/hello](/site_images/GoNotebook/01_hello_world----43_2.png)Image 1.43b http://localhost:3030/hello
-If we now extend this further to make the program fully configurable from the environment we arrive at
-Example 1.44
+![Image 1.43b http://localhost:3030/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_2.png)Image 1.43b http://localhost:3030/hello
+If we now extend this further to make the program fully configurable from the 
+environment we arrive at
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "os" 6 "sync" 7 ) 8  9 var(10 addressstring11 secure_addressstring12 certificatestring13 keystring14 )15 varserverssync.WaitGroup16 17 funcinit(){18 ifaddress=os.Getenv("SERVE_HTTP");address==""{19 address=":1024"20 }21 22 ifsecure_address=os.Getenv("SERVE_HTTPS");secure_address==""{23 secure_address=":1025"24 }25 26 ifcertificate=os.Getenv("SERVE_CERT");certificate==""{27 certificate="cert.pem"28 }29 30 ifkey=os.Getenv("SERVE_KEY");key==""{31 key="key.pem"32 }33 }34 35 funcmain(){36 message:="hello world"37 HandleFunc("/hello",func(wResponseWriter,r*Request){38 w.Header().Set("Content-Type","text/plain")39 Fprintf(w,message)40 })41 42 Launch(func(){43 ListenAndServe(address,nil)44 })45 46 Launch(func(){47 ListenAndServeTLS(secure_address,certificate,key,nil)48 })49 servers.Wait()50 }51 52 funcLaunch(ffunc()){53 servers.Add(1)54 gofunc(){55 deferservers.Done()56 f()57 }()58 }
+***Example 1.44***
 
-    $ SERVE_HTTP=":3030" SERVE_HTTPS=":4040" go run 44.go
+```go
+import (
+    . "fmt"
+    . "net/http"
+    "os"
+    "sync"
+)
+
+var (
+    address        string
+    secure_address string
+    certificate    string
+    key            string
+)
+
+var servers sync.WaitGroup
+
+func init() {
+    if address = os.Getenv("SERVE_HTTP"); address == "" {
+        address = ":1024"
+    }
+
+    if secure_address = os.Getenv("SERVE_HTTPS"); secure_address == "" {
+        secure_address = ":1025"
+    }
+
+    if certificate = os.Getenv("SERVE_CERT"); certificate == "" {
+        certificate = "cert.pem"
+    }
+
+    if key = os.Getenv("SERVER_KEY"); key == "" {
+        key = "key.pem"
+    }
+}
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Launch(func() {
+        ListenAndServe(address, nil)
+    })
+
+    Launch(func() {
+        ListenAndServeTLS(secure_address, certificate, key, nil)
+    })
+
+    servers.Wait()
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+```
+
+<pre>  <b>$ SERVE_HTTP=":3030" SERVE_HTTPS=":4040" go run 44.go</b></pre>
     
 
 ### Handling Signals
 
-If you’ve been running our example in the terminal and wondering how to terminate it without exiting the shell then you probably come from a GUI background and haven’t met control-C and its relatives (or rather you have, but most likely as cut’n’paste shortcuts).
+If you’ve been running our example in the terminal and wondering how to terminate 
+it without exiting the shell then you probably come from a GUI background and 
+haven’t met control-C and its relatives (or rather you have, but most likely 
+as cut’n’paste shortcuts).
 
-Both Windows and Unix-style operating systems have the concept of a **signal** which can be sent from one process to another, and for historic reasons many of these can be manually entered using a control-key combination. This is a useful convenience but shutting down a production server this way can result in data loss or corruption. However that’s not the case with our **Hello World** server, so we have an excellent excuse to examine how to catch a **termination signal** and do something of our own choosing.
+Both Windows and Unix-style operating systems have the concept of a **signal** 
+which can be sent from one process to another, and for historic reasons many of 
+these can be manually entered using a control-key combination. This is a useful 
+convenience but shutting down a production server this way can result in data 
+loss or corruption. However that’s not the case with our **Hello World** server, 
+so we have an excellent excuse to examine how to catch a **termination signal** 
+and do something of our own choosing.
 
-To listen for signals in **Go** we use the **os/signal** package in the standard library, which allows us to register a **channel** (an atomic **queue** for transferring messages between **goroutines** at runtime) on which notifications are to be received using the **signal.Notify()** function. Which signals will be made available depends largely on which operating system you’re working with and **Go** provides only two as standard across Windows and Unix: **os.Interrupt** and **os.Kill**. Of these **os.Interrupt** can be sent with **control-C** whilst **os.Kill** equates to **SIGKILL** on *nixen and is usually a non-maskable interrupt, meaning that it terminates execution and will never be received by **Notify()**.
+To listen for signals in **Go** we use the **os/signal** package in the standard 
+library, which allows us to register a **channel** (an atomic **queue** for 
+transferring messages between **goroutines** at runtime) on which notifications 
+are to be received using the **signal.Notify()** function. Which signals will be  
+made available depends largely on which operating system you’re working with and
+**Go** provides only two as standard across Windows and Unix: **os.Interrupt** 
+and **os.Kill**. Of these **os.Interrupt** can be sent with **control-C** whilst 
+**os.Kill** equates to **SIGKILL** on <b>*nixen</b> and is usually a non-maskable interrupt, 
+meaning that it terminates execution and will never be received by **Notify()**.
 
-In the following example we’re initialising a **signal handler** at program startup. This consists of a goroutine containing an infinite loop and blocking on a channel of fixed size (in this case able to hold only one element at a time). The **signal handler** should be trapping the **Interrupt** and **Kill** signals. In both cases if we catch the signal we print a message to the console before exiting, however as previously mentioned the **Kill** signal (which can be sent from another shell session using the **kill** command) will never be received by our **Go** code.
-Example 1.45
+In the following example we’re initialising a **signal handler** at program 
+startup. This consists of a goroutine containing an infinite loop and blocking 
+on a channel of fixed size (in this case able to hold only one element at a 
+time). The **signal handler** should be trapping the **Interrupt** and **Kill** 
+signals. In both cases if we catch the signal we print a message to the console 
+before exiting, however as previously mentioned the **Kill** signal (which can be 
+sent from another shell session using the **kill** command) will never be received 
+by our **Go** code.
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "os" 6 "os/signal" 7 ."sync" 8 ) 9 10 constADDRESS=":1024"11 constSECURE_ADDRESS=":1025"12 13 varserversWaitGroup14 15 funcinit(){16 goSignalHandler(make(chanos.Signal,1))17 }18 19 funcmain(){20 message:="hello world"21 HandleFunc("/hello",func(wResponseWriter,r*Request){22 w.Header().Set("Content-Type","text/plain")23 Fprintf(w,message)24 })25 26 Launch(func(){27 ListenAndServe(ADDRESS,nil)28 })29 30 Launch(func(){31 ListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)32 })33 servers.Wait()34 }35 36 funcLaunch(ffunc()){37 servers.Add(1)38 gofunc(){39 deferservers.Done()40 f()41 }()42 }43 44 funcSignalHandler(cchanos.Signal){45 signal.Notify(c,os.Interrupt)46 fors:=<-c;;s=<-c{47 switchs{48 caseos.Interrupt:49 Println("^C received")50 os.Exit(0)51 caseos.Kill:52 Println("SIGKILL received")53 os.Exit(1)54 }55 }56 }
+***Example 1.45***
+
+```go
+package main
+
+import (
+    . "fmt"
+    . "net/http"
+    "os"
+    "os/signal"
+    . "sync"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+var servers WaitGroup
+
+func init() {
+    go SignalHandler(make(chan os.Signal, 1))
+}
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Launch(func() {
+        ListenAndServe(ADDRESS, nil)
+    })
+
+    Launch(func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    })
+
+    servers.Wait()
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+
+func SignalHandler(c chan os.Signal) {
+    signal.Notify(c, os.Interrupt)
+    for s := <-c; ; s = <-c {
+        switch s {
+        case os.Interrupt:
+            Println("^C received")
+            os.Exit(0)
+        case os.Kill:
+            Println("SIGKILL received")
+            os.Exit(1)
+        }
+    }
+}
+```
 
 When we run this in the terminal on a Mac and press **control-C** we’ll see something like
 
-    $ go run 45.go
-    ^C^C received
+<pre>  <b>$ go run 45.go</b>
+  ^C^C received</pre>
     
 
-The key point of signals is that they allow our program to apply its own logic to events. In the following example we’re going to override the **Interrupt** signal sent by **control-C** so that the program continues execution. We’re then going to scan for other signals and use these to terminate the program. The **syscall** package defines a number of **os.Signal** values which can be detected by **Notify()** and of these I’ve chosen **SIGABRT**, **SIGTERM** and **SIGQUIT** as plausible termination signals. We’ll treat **SIGABRT** as an error condition and the other two as clean terminations.
+The key point of signals is that they allow our program to apply its own logic 
+to events. In the following example we’re going to override the **Interrupt** 
+signal sent by **control-C** so that the program continues execution. We’re then 
+going to scan for other signals and use these to terminate the program. The 
+**syscall** package defines a number of **os.Signal** values which can be detected 
+by **Notify()** and of these I’ve chosen **SIGABRT**, **SIGTERM** and **SIGQUIT** 
+as plausible termination signals. We’ll treat **SIGABRT** as an error condition 
+and the other two as clean terminations.
 
-Something else to note is that our **signal handler** is using a standard **for** loop statement to poll for input from the signal **channel** and then compare it to the **cases** of a **switch** statement. As the **signal handler** is designed to run for as long as **Notify()** is receiving signals we can simplify this a little
-Example 1.46
+Something else to note is that our **signal handler** is using a standard **for** 
+loop statement to poll for input from the signal **channel** and then compare it 
+to the **cases** of a **switch** statement. As the **signal handler** is designed 
+to run for as long as **Notify()** is receiving signals we can simplify this a little
 
-    45 funcSignalHandler(cchanos.Signal){46 signal.Notify(c,os.Interrupt,syscall.SIGABRT,syscall.SIGTERM,syscall.SIGQUIT)47 fors:=<-c;;s=<-c{48 switchs{49 caseos.Interrupt:50 Println("interrupt - continue running")51 casesyscall.SIGABRT:52 Println("abnormal exit")53 os.Exit(1)54 casesyscall.SIGTERM,syscall.SIGQUIT:55 Println("clean shutdown")56 os.Exit(0)57 }58 }59 }
+***Example 1.46***
 
-    $ go build 46.go
-    $ ./46
-    ^Cinterrupt - continue running
-    ^Cinterrupt - continue running
-    ^\clean shutdown
+```go
+import (
+    . "fmt"
+    . "net/http"
+    "os"
+    "os/signal"
+    . "sync"
+    "syscall"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1025"
+
+var servers WaitGroup
+
+func init() {
+    go SignalHandler(make(chan os.Signal, 1))
+}
+
+func main() {
+    message := "hellow world"
+    HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        Fprintf(w, message)
+    })
+
+    Launch(func() {
+        ListenAndServe(ADDRESS, nil)
+    })
+
+    Launch(func() {
+        ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+    })
+
+    servers.Wait()
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+
+func SignalHandler(c chan os.Signal) {
+    signal.Notify(c, os.Interrupt, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGQUIT)
+    for s := <-c; ; s = <-c {
+        switch s {
+        case os.Interrupt:
+            Println("interrupt - continue running")
+        case syscall.SIGABRT:
+            Println("abnormal exit")
+            os.Exit(1)
+        case syscall.SIGTERM, syscall.SIGQUIT:
+            Println("clean shutdown")
+            os.Exit(0)
+        }
+    }
+}
+```
+
+<pre>  <b>$ go build 46.go</b>
+  <b>$ ./46</b>
+  ^Cinterrupt - continue running
+  ^Cinterrupt - continue running
+  ^\clean shutdown</pre>
     
 
-We can send a **SIGABRT** signal using the **kill** command in a subshell and force our program to terminate abnormally
+We can send a **SIGABRT** signal using the **kill** command in a subshell and 
+force our program to terminate abnormally
 
-    $ go build 46.go
-    $ ./46
-    ^Z
-    [1]+  Stopped                 go run 46.go
-    $ ps
-      PID TTY           TIME CMD
-    41097 ttys016    0:00.48 -bash
-    58713 ttys016    0:00.10 go run 46.go
-    58716 ttys016    0:00.01 /var/folders/25/ybgksr451vxf78xk1svymm5c0000gn/T/go-build54380\
-    7549/command-line-arguments/_obj/exe/46
-    57608 ttys017    0:00.08 -bash
-    $ kill -SIGABRT 58716
-    $ fg
-    go run 46.go
-    abnormal exit
-    exit status 1
+<pre>  <b>$ go build 46.go</b>
+  <b>$ ./46</b>
+  <b>^Z</b>
+  [1]+  Stopped                 go run 46.go
+  $ ps
+    PID TTY           TIME CMD
+  41097 ttys016    0:00.48 -bash
+  58713 ttys016    0:00.10 go run 46.go
+  58716 ttys016    0:00.01 /var/folders/25/ybgksr451vxf78xk1svymm5c0000gn/T/go-build54380\
+  7549/command-line-arguments/_obj/exe/46
+  57608 ttys017    0:00.08 -bash
+  <b>$ kill -SIGABRT 58716</b>
+  <b>$ fg</b>
+  go run 46.go
+  abnormal exit
+  exit status 1</pre>
     
 
-So far we’ve looked at how our program receives signals, however it’s also possible to send signals. For now we’re going to focus on sending a **SIGABRT** signal from our program to itself when there’s an error launching one of the servers, in this case by setting ADDRESS and SECURE_ADDRESS to the same value.
-Example 1.47
+So far we’ve looked at how our program receives signals, however it’s also 
+possible to send signals. For now we’re going to focus on sending a **SIGABRT** 
+signal from our program to itself when there’s an error launching one of the 
+servers, in this case by setting ADDRESS and SECURE_ADDRESS to the same value.
 
-     1 packagemain 2 import( 3 ."fmt" 4 ."net/http" 5 "os" 6 "os/signal" 7 ."sync" 8 "syscall" 9 )10 11 constADDRESS=":1024"12 constSECURE_ADDRESS=":1024"13 14 varserversWaitGroup15 16 funcinit(){17 goSignalHandler(make(chanos.Signal,1))18 }19 20 funcmain(){21 message:="hello world"22 HandleFunc("/hello",func(wResponseWriter,r*Request){23 w.Header().Set("Content-Type","text/plain")24 Fprintf(w,message)25 })26 27 Launch("HTTP",func()error{28 returnListenAndServe(ADDRESS,nil)29 })30 31 Launch("HTTPS",func()error{32 returnListenAndServeTLS(SECURE_ADDRESS,"cert.pem","key.pem",nil)33 })34 servers.Wait()35 }36 37 funcLaunch(namestring,ffunc()error){38 servers.Add(1)39 gofunc(){40 deferservers.Done()41 ife:=f();e!=nil{42 Println(name,"->",e)43 syscall.Kill(syscall.Getpid(),syscall.SIGABRT)44 }45 }()46 }47 48 funcSignalHandler(cchanos.Signal){49 signal.Notify(c,os.Interrupt,syscall.SIGABRT,syscall.SIGTERM,syscall.SIGQUIT)50 fors:=<-c;;s=<-c{51 switchs{52 casesyscall.SIGABRT:53 Println("abnormal exit")54 os.Exit(1)55 caseos.Interrupt,syscall.SIGTERM,syscall.SIGQUIT:56 Println("clean shutdown")57 os.Exit(0)58 }59 }60 }
+***Example 1.47***
 
-We’ve modified our **Launch()** function to take a name which can be displayed as part of an error message, and its function parameter now has the signature **func() error** which specifies that it must return an **error** value, which is what’s returned by both **ListenAndServe()** and **ListenAndServeTLS()**. In the event the **error** (which is a predeclared interface) contains a value then we know an error condition’s occurred and can send a **SIGABRT** signal with **syscall.Kill()**. As **Kill()** is able to send signals to any running process we need to specify the ID of the current process, which we find using **syscall.Getpid()**.
+```go
+package main
 
-    $ go run 47.go
-    2014/06/25 14:42:25 HTTPS -> listen tcp :1024: bind: address already in use
-    abnormal exit
-    exit status 1
+import (
+	. "fmt"
+	. "net/http"
+	"os"
+	"os/signal"
+	. "sync"
+	"syscall"
+)
+
+const ADDRESS = ":1024"
+const SECURE_ADDRESS = ":1024"
+
+var servers WaitGroup
+
+func init() {
+	go SignalHandler(make(chan os.Signal, 1))
+}
+
+func main() {
+	message := "hellow world"
+	HandleFunc("/hello", func(w ResponseWriter, r *Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		Fprintf(w, message)
+	})
+
+	Launch("HTTP", func() error {
+		return ListenAndServe(ADDRESS, nil)
+	})
+
+	Launch("HTTPS", func() error {
+		return ListenAndServeTLS(SECURE_ADDRESS, "cert.pem", "key.pem", nil)
+	})
+
+	servers.Wait()
+}
+
+func Launch(name string, f func() error) {
+	servers.Add(1)
+	go func() {
+		defer servers.Done()
+		if e := f(); e != nil {
+			Println(name, "->", e)
+			syscall.Kill(syscall.Getpid(), syscall.SIGABRT)
+		}
+	}()
+}
+
+func SignalHandler(c chan os.Signal) {
+	signal.Notify(c, os.Interrupt, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGQUIT)
+	for s := <-c; ; s = <-c {
+		switch s {
+		case syscall.SIGABRT:
+			Println("abnormal exit")
+			os.Exit(1)
+		case os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT:
+			Println("clean shutdown")
+			os.Exit(0)
+		}
+	}
+}
+```
+
+We’ve modified our **Launch()** function to take a name which can be displayed 
+as part of an error message, and its function parameter now has the signature 
+**func() error** which specifies that it must return an **error** value, which 
+is what’s returned by both **ListenAndServe()** and **ListenAndServeTLS()**. In 
+the event the **error** (which is a predeclared interface) contains a value then 
+we know an error condition’s occurred and can send a **SIGABRT** signal with 
+**syscall.Kill()**. As **Kill()** is able to send signals to any running process 
+we need to specify the ID of the current process, which we find using 
+**syscall.Getpid()**.
+
+<pre>  <b>$ go run 47.go</b>
+  2014/06/25 14:42:25 HTTPS -> listen tcp :1024: bind: address already in use
+  abnormal exit
+  exit status 1</pre>
     
 
 ### TCP/IP
 
-Printing text in a web browser is a cool trick, but what of **real** network programming? You know, the kind that bearded sandle-wearing ***nix** hackers go in for? It turns out this is surprisingly simple
-Example 1.48 TCP/IP server
+Printing text in a web browser is a cool trick, but what of **real** network 
+programming? You know, the kind that bearded sandle-wearing <b>*nix</b> hackers go 
+in for? It turns out this is surprisingly simple
 
-     1 packagemain 2  3 import( 4 ."fmt" 5 "net" 6 ) 7  8 funcmain(){ 9 iflistener,e:=net.Listen("tcp",":1024");e==nil{10 for{11 ifconnection,e:=listener.Accept();e==nil{12 gofunc(cnet.Conn){13 deferc.Close()14 Fprintln(c,"hello world")15 }(connection)16 }17 }18 }19 }
+***Example 1.48 TCP/IP server***
 
-The **net** package revolves around server the **Listener** and client **Connection** types. A **Listener** is an **interface** which allows any type implementing its specified methods - **Accept()**, **Close()** and **Addr()** - to be used interchangeably and is a key tool in **Go** for generalising program design. Writing a server then becomes a simple process of
+```go
+package main
+
+import (
+    . "fmt"
+    "net"
+)
+
+func main() {
+    if listener, e := net.Listen("tcp", ":1024"); e == nil {
+        for {
+            if connection, e := listener.Accept(); e == nil {
+                go func(c net.Conn) {
+                    defer c.Close()
+                    Fprintln(c, "hello world")
+                }(connection)
+            }
+        }
+    }
+}
+```
+
+The **net** package revolves around server the **Listener** and client **Connection** 
+types. A **Listener** is an **interface** which allows any type implementing its 
+specified methods - **Accept()**, **Close()** and **Addr()** - to be used interchangeably 
+and is a key tool in **Go** for generalising program design. Writing a server then 
+becomes a simple process of
 
 - **Listen()** on a specified protocol and port number
 - **Accept()** incoming connections
@@ -1254,137 +2021,388 @@ The **net** package revolves around server the **Listener** and client **Connect
 - read from and write to the connection whilst performing work
 - close each connection when it finishes its work
 
-Here we start to see some of the power of **interfaces** as a **net.Conn** implements the **Writer** interface defined in the **io** package, and **fmt.Fprintf()** takes any type which integrates **io.Writer** as its target.
+Here we start to see some of the power of **interfaces** as a **net.Conn** implements 
+the **Writer** interface defined in the **io** package, and **fmt.Fprintf()** 
+takes any type which integrates **io.Writer** as its target.
 
-Moving away from **HTTP** means abandoning the browser for testing but both ***nix** and **Windows** have a handy command-line utility called **telnet** which allows us to connect directly to a **TCP/IP** server and interact with it. We’ll get into the interaction side of things later in the book, for now here’s an example run of our program.
+Moving away from **HTTP** means abandoning the browser for testing but both <b>*nix</b> 
+and **Windows** have a handy command-line utility called **telnet** which allows 
+us to connect directly to a **TCP/IP** server and interact with it. We’ll get into 
+the interaction side of things later in the book, for now here’s an example run 
+of our program.
 
-    $ go run 48.go &
-    [1] 17415
-    $ telnet localhost 1024
-    Trying 127.0.0.1...
-    Connected to localhost.
-    Escape character is '^]'.
-    hello world
-    Connection closed by foreign host.
+<pre>  <b>$ go run 48.go &</b>
+  [1] 17415
+  <b>$ telnet localhost 1024</b>
+  Trying 127.0.0.1...
+  Connected to localhost.
+  Escape character is '^]'.
+  hello world
+  Connection closed by foreign host.</pre>
     
 
-Telnet’s a useful tool, but it’d be nice if we could connect our own client to the server as this could then be built for any platform supported by **Go**. For stream-oriented protocols like TCP/IP we do this using the **net.Dial()** function to open a **net.Conn** connection to a server and we can then interact with this using the **io.Reader** and **io.Writer** interfaces. These interfaces are supported throughout the **Go** standard package library, allowing files and streaming connections to be used interchangeably.
-Example 1.49 TCP/IP client
+Telnet’s a useful tool, but it’d be nice if we could connect our own client to 
+the server as this could then be built for any platform supported by **Go**. For 
+stream-oriented protocols like TCP/IP we do this using the **net.Dial()** function 
+to open a **net.Conn** connection to a server and we can then interact with this 
+using the **io.Reader** and **io.Writer** interfaces. These interfaces are supported 
+throughout the **Go** standard package library, allowing files and streaming 
+connections to be used interchangeably.
 
-     1 packagemain 2  3 import( 4 "bufio" 5 ."fmt" 6 "net" 7 ) 8  9 funcmain(){10 ifconnection,e:=net.Dial("tcp",":1024");e==nil{11 deferconnection.Close()12 iftext,e:=bufio.NewReader(connection).ReadString('\n');e==nil{13 Printf(text)14 }15 }16 }
+***Example 1.49 TCP/IP client***
 
-Because a **net.Conn** represents streams of data flowing between client and server we’ve introduced the **bufio** package to our client so that the data it’s receiving is buffered. This avoids our having to write our own code for buffering incoming data and is another example of the flexibility **Go**’s interfaces provide.
+```go
+package main
 
-    $ go run 48.go &
-    [1] 6102
-    $ go run 49.go
-    hello world
-    $ go run 49.go
-    hello world
+import (
+    "bufio"
+    . "fmt"
+    "net"
+)
+
+func main() {
+    if connection, e := net.Dial("tcp", ":1024"); e == nil {
+        defer connection.Close()
+        if text, e := bufio.NewReader(connection).ReadString('\n'); e == nil {
+            Printf(text)
+        }
+    }
+}
+```
+
+Because a **net.Conn** represents streams of data flowing between client and server 
+we’ve introduced the **bufio** package to our client so that the data it’s receiving 
+is buffered. This avoids our having to write our own code for buffering incoming 
+data and is another example of the flexibility **Go**’s interfaces provide.
+
+<pre>  <b>$ go run 48.go &</b>
+  [1] 6102
+  <b>$ go run 49.go</b>
+  hello world
+  <b>$ go run 49.go</b>
+  hello world</pre>
     
 
-Most books on network programming tend to stop at vanilla TCP/IP and leave figuring out how to establish a secure connection between client and server as an exercise for the reader. However we’re not likely to get another chance to look at this problem with the same lack of clutter that **Hello World** provides, and anyway we know how to generate a key and a certificate from our **HTTPS** adventure so we might as well reuse the knowledge. This time we’re going to need two sets of keys so let’s take care of that first
+Most books on network programming tend to stop at vanilla TCP/IP and leave 
+figuring out how to establish a secure connection between client and server as 
+an exercise for the reader. However we’re not likely to get another chance to 
+look at this problem with the same lack of clutter that **Hello World** provides, 
+and anyway we know how to generate a key and a certificate from our **HTTPS** 
+adventure so we might as well reuse the knowledge. This time we’re going to need 
+two sets of keys so let’s take care of that first
 
-    $ cp cert.pem server.cert.pem
-    $ cp key.pem server.key.pem
-    $ go run $GOROOT/src/pkg/crypto/tls/generate_cert.go -ca=true -host="localhost"
-    2014/05/16 20:41:53 written cert.pem
-    2014/05/16 20:41:53 written key.pem
-    $ cp cert.pem client.cert.pem
-    $ cp key.pem client.key.pem
+<pre>  <b>$ cp cert.pem server.cert.pem</b>
+  <b>$ cp key.pem server.key.pem</b>
+  <b>$ go run $GOROOT/src/pkg/crypto/tls/generate_cert.go -ca=true -host="localhost"</b>
+  2014/05/16 20:41:53 written cert.pem
+  2014/05/16 20:41:53 written key.pem
+  <b>$ cp cert.pem client.cert.pem</b>
+  <b>$ cp key.pem client.key.pem</b></pre>
     
 
-Now we have our keys sorted, let’s take a look at what a TCP/IP server looks like in **Go**
-Example 1.50 TCP/IP server with tls
+Now we have our keys sorted, let’s take a look at what a TCP/IP server looks 
+like in **Go**
 
-     1 packagemain 2  3 import( 4 "crypto/rand" 5 "crypto/tls" 6 ."fmt" 7 ) 8  9 funcmain(){10 ifcertificate,e:=tls.LoadX509KeyPair("server.cert.pem","server.key.pem");e==n\
-    11 il{12 config:=tls.Config{13 Certificates:[]tls.Certificate{certificate},14 Rand:rand.Reader,15 }16 17 iflistener,e:=tls.Listen("tcp",":1025",&config);e==nil{18 for{19 ifconnection,e:=listener.Accept();e==nil{20 gofunc(c*tls.Conn){21 deferc.Close()22 Fprintln(c,"hello world")23 }(connection.(*tls.Conn))24 }25 }26 }27 }28 }
+***Example 1.50 TCP/IP server with tls***
 
-Importing **crypto/tls** provides us with an equivalent API to that defined in **net** and this means that as **tls.Listen()** fulfils the **net.Listener** interface our connections will be of type **net.Conn**. As a result if we want to pass the connection around inside our code we either have to import **net** so we can use **net.Conn** or perform a type assertion to use the connection as a ***tls.Conn**. We’ve made the latter choice here.
+```go
+package main
 
-    18  if connection, e := listener.Accept(); e == nil {
-    19    go func(c *tls.Conn) {
-    20       defer c.Close()
-    21       Fprintln(c, "hello world")
-    22    }(connection.(*tls.Conn))
-    23   }
+import (
+    "crypto/rand"
+    "crypto/tls"
+    . "fmt"
+)
+
+func main() {
+    if certificate, e := tls.LoadX509KeyPair("server.cert.pem", "server.key.pem"); e == nil {
+        config := tls.Config{
+            Certificates: []tls.Certificate{certificate},
+            Rand:         rand.Reader,
+        }
+
+        if listener, e := tls.Listen("tcp", ":1025", &config); e == nil {
+            for {
+                if connection, e := listener.Accept(); e == nil {
+                    go func(c *tls.Conn) {
+                        defer c.Close()
+                        Fprintf(c, "hello world")
+                    }(connection.(*tls.Conn))
+                }
+            }
+        }
+    }
+}
+```
+
+Importing **crypto/tls** provides us with an equivalent API to that defined in **net** 
+and this means that as **tls.Listen()** fulfils the **net.Listener** interface 
+our connections will be of type **net.Conn**. As a result if we want to pass the 
+connection around inside our code we either have to import **net** so we can use 
+**net.Conn** or perform a type assertion to use the connection as a <b>*tls.Conn</b>. 
+We’ve made the latter choice here.
+
+<pre>
+<b>if connection, e := listener.Accept(); e == nil {</b>
+    <b>go func(c *tls.Conn) {</b>
+        defer c.Close()
+        Fprintf(c, "hello world")
+    <b>}(connection.(*tls.Conn))</b>
+}
+</pre>
+
+For a server we import **crypto/rand** to access **rand.Reader**, a cryptographically 
+secure pseudo-random number generator which we’ll be using as a source of 
+randomness in the TLS connection. We then create a certificate using 
+**tls.LoadX509KeyPair()** to load the server key pair and if this is successful 
+then we set up a listener to accept incoming connections and write **“Hello World”** 
+to a client.
+
+As we’re using **TLS** we can’t test this version of **Hello World** using 
+**telnet** so instead we need to write a client. Yet again this requires a keypair 
+and where in our previous client we called **net.Dial()** we now use **tls.Dial()**, 
+resulting in a very similar program.
+
+***Example 1.51 TCP/IP client with tls***
+
+```go
+package main
+
+import (
+    "bufio"
+    "crypto/tls"
+    . "fmt"
+)
+
+func main() {
+    if certificate, e := tls.LoadX509KeyPair("client.cert.pem", "client.key.pem"); e == nil {
+        config := tls.Config{
+            Certificates:       []tls.Certificate{certificate},
+            InsecureSkipVerify: true,
+        }
+
+        if connection, e := tls.Dial("tcp", ":1025", &config); e == nil {
+            defer connection.Close()
+            if text, e := bufio.NewReader(connection).ReadString('\n'); e == nil {
+                Printf(text)
+            }
+        }
+    }
+}
+```
+
+<pre>  <b>$ go run 50.go &</b>
+  [1] 6107
+  <b>$ go run 51.go</b>
+  hello world
+  <b>$ go run 51.go</b>
+  hello world</pre>
     
 
-For a server we import **crypto/rand** to access **rand.Reader**, a cryptographically secure pseudo-random number generator which we’ll be using as a source of randomness in the TLS connection. We then create a certificate using **tls.LoadX509KeyPair()** to load the server key pair and if this is successful then we set up a listener to accept incoming connections and write **“Hello World”** to a client.
+Looking back at our **HTTP** experiments, we were able to write a program which 
+served over both **HTTP** and **HTTPS** connections. It’d be nice to do something 
+similar with **TCP/IP**, if only to compare the two code-paths.
 
-As we’re using **TLS** we can’t test this version of **Hello World** using **telnet** so instead we need to write a client. Yet again this requires a keypair and where in our previous client we called **net.Dial()** we now use **tls.Dial()**, resulting in a very similar program.
-Example 1.51 TCP/IP client with tls
+***Example 1.52 TCP/IP dual-mode server***
 
-     1 packagemain 2  3 import( 4 "bufio" 5 "crypto/tls" 6 ."fmt" 7 ) 8  9 funcmain(){10 ifcertificate,e:=tls.LoadX509KeyPair("client.cert.pem","client.key.pem");e==n\
-    11 il{12 config:=tls.Config{13 Certificates:[]tls.Certificate{certificate},14 InsecureSkipVerify:true,15 }16 17 ifconnection,e:=tls.Dial("tcp",":1025",&config);e==nil{18 deferconnection.Close()19 iftext,e:=bufio.NewReader(connection).ReadString('\n');e==nil{20 Printf(text)21 }22 }23 }24 }
+```go
+package main
 
-    $ go run 50.go &
-    [1] 6107
-    $ go run 51.go
-    hello world
-    $ go run 51.go
-    hello world
-    
+import (
+    "crypto/rand"
+    "crypto/tls"
+    . "fmt"
+    "net"
+    "sync"
+)
 
-Looking back at our **HTTP** experiments, we were able to write a program which served over both **HTTP** and **HTTPS** connections. It’d be nice to do something similar with **TCP/IP**, if only to compare the two code-paths.
-Example 1.52 TCP/IP dual-mode server
+var servers sync.WaitGroup
 
-     1 packagemain 2  3 import( 4 "crypto/rand" 5 "crypto/tls" 6 ."fmt" 7 "net" 8 "sync" 9 )10 11 varserverssync.WaitGroup12 13 funcmain(){14 iflistener,e:=net.Listen("tcp",":1024");e==nil{15 Serve(listener)16 }17 18 Serve(TLSListener("server.cert.pem","server.key.pem",":1025"))19 servers.Wait()20 }21 22 funcTLSListener(cert,key,addressstring)(rnet.Listener){23 ifcertificate,e:=tls.LoadX509KeyPair(cert,key);e==nil{24 config:=tls.Config{25 Certificates:[]tls.Certificate{certificate},26 Rand:rand.Reader,27 }28 iflistener,e:=tls.Listen("tcp",address,&config);e==nil{29 r=listener30 }31 }32 return33 }34 35 funcServe(listenernet.Listener){36 iflistener!=nil{37 Launch(func(){38 for{39 ifconnection,e:=listener.Accept();e==nil{40 gofunc(cnet.Conn){41 deferc.Close()42 Fprintln(c,"hello world")43 }(connection)44 }45 }46 })47 }48 }49 50 funcLaunch(ffunc()){51 servers.Add(1)52 gofunc(){53 deferservers.Done()54 f()55 }()56 }
+func main() {
+    if listener, e := net.Listen("tcp", ":1024"); e == nil {
+        Serve(listener)
+    }
 
-We’ve reused **Launch()** from **Example 1.33** to manage the lifecycle of our two server **goroutines** and introduced **Serve()** to phrase the server behaviour in terms of the **net.Listener** interface. We then move all the setup code for creating a **tls.Listener** into a separate function **TLSListener()** which returns a **net.Listener** value as **tls.Listener** complies with its interface, or a nil value if **tls.Listen()** returns an error.
+    Serve(TLSListener("server.cert.pem", "server.key.pem", ":1025"))
+    servers.Wait()
+}
+
+func TLSListener(cert, key, address string) (r net.Listener) {
+    if certificate, e := tls.LoadX509KeyPair(cert, key); e == nil {
+        config := tls.Config{
+            Certificates: []tls.Certificate{certificate},
+            Rand:         rand.Reader,
+        }
+
+        if listener, e := tls.Listen("tcp", address, &config); e == nil {
+            r = listener
+        }
+    }
+    return
+}
+
+func Serve(listener net.Listener) {
+    if listener != nil {
+        Launch(func() {
+            for {
+                if connection, e := listener.Accept(); e == nil {
+                    go func(c net.Conn) {
+                        defer c.Close()
+                        Fprintln(c, "hello world")
+                    }(connection)
+                }
+            }
+        })
+    }
+}
+
+func Launch(f func()) {
+    servers.Add(1)
+    go func() {
+        defer servers.Done()
+        f()
+    }()
+}
+```
+
+We’ve reused **Launch()** from **Example 1.33** to manage the lifecycle of our 
+two server **goroutines** and introduced **Serve()** to phrase the server behaviour 
+in terms of the **net.Listener** interface. We then move all the setup code for 
+creating a **tls.Listener** into a separate function **TLSListener()** which returns 
+a **net.Listener** value as **tls.Listener** complies with its interface, or a nil 
+value if **tls.Listen()** returns an error.
 
 If we now run this server we can connect to it with both of our client programs.
 
-    $ go run 52.go &
-    [1] 6278
-    $ go run 49.go
-    hello world
-    $ go run 51.go
-    hello world
-    $ go run 51.go
-    hello world
-    $ go run 49.go
-    hello world
+<pre>  <b>$ go run 52.go &</b>
+  [1] 6278
+  <b>$ go run 49.go</b>
+  hello world
+  <b>$ go run 51.go</b>
+  hello world
+  <b>$ go run 51.go</b>
+  hello world
+  <b>$ go run 49.go</b>
+  hello world</pre>
     
 
 ### UDP
 
-Both TCP/IP and HTTP communications are connection-oriented and this involves a reasonable amount of handshaking and error-correction to assemble data packets in the correct order. For most applications this is exactly how we want to organise our network communications but sometimes the size of our messages is sufficiently small that we can fit them into individual packets, and when this is the case the UDP protocol is an ideal candidate.
+Both TCP/IP and HTTP communications are connection-oriented and this involves 
+a reasonable amount of handshaking and error-correction to assemble data packets 
+in the correct order. For most applications this is exactly how we want to 
+organise our network communications but sometimes the size of our messages is 
+sufficiently small that we can fit them into individual packets, and when this 
+is the case the UDP protocol is an ideal candidate.
 
 As with our previous examples we still need both server and client applications.
-Example 1.53 UDP server
 
-     1 packagemain 2  3 import( 4 ."fmt" 5 "net" 6 ) 7  8 varHELLO_WORLD=([]byte)("Hello World\n") 9 10 funcmain(){11 ifaddress,e:=net.ResolveUDPAddr("udp",":1024");e==nil{12 ifserver,e:=net.ListenUDP("udp",address);e==nil{13 forbuffer:=MakeBuffer();;buffer=MakeBuffer(){14 ifn,client,e:=server.ReadFromUDP(buffer);e==nil{15 gofunc(c*net.UDPAddr,packet[]byte){16 ifn,e:=server.WriteToUDP(HELLO_WORLD,c);e==nil{17 Printf("%v bytes written to: %v\n",n,c)18 }19 }(client,buffer[:n])20 }21 }22 }23 }24 }25 26 funcMakeBuffer()(r[]byte){27 returnmake([]byte,1024)28 }
+***Example 1.53 UDP server***
 
-We have a somewhat more complex code pattern here than with TCP/IP to take account of the difference in underlying semantics: UDP is an unreliable transport dealing in individual packets (datagrams) which are independent of each other, therefore a server doesn’t maintain streams to any of its clients and these are responsible for any error-correction or packet ordering which may be necessary to coordinate successive signals. Because of these differences from TCP/IP we end up with the following generic workflow
+```go
+package main
+
+import (
+    . "fmt"
+    "net"
+)
+
+var HELLO_WORLD = ([]byte)("hello world")
+
+func main() {
+    if address, e := net.ResolveUDPAddr("udp", ":1024"); e == nil {
+        if server, e := net.ListenUDP("udp", address); e == nil {
+            for buffer := MakeBuffer(); ; buffer = MakeBuffer() {
+                if n, client, e := server.ReadFromUDP(buffer); e == nil {
+                    go func(c *net.UDPAddr, packet []byte) {
+                        if n, e := server.WriteToUDP(HELLO_WORLD, c); e == nil {
+                            Printf("%v byte written to: %v\n", n, c)
+                        }
+                    }(client, buffer[:n])
+                }
+            }
+        }
+    }
+}
+
+func MakeBuffer() (r []byte) {
+    return make([]byte, 1024)
+}
+```
+
+We have a somewhat more complex code pattern here than with TCP/IP to take 
+account of the difference in underlying semantics: UDP is an unreliable 
+transport dealing in individual packets (datagrams) which are independent of 
+each other, therefore a server doesn’t maintain streams to any of its clients 
+and these are responsible for any error-correction or packet ordering which may 
+be necessary to coordinate successive signals. Because of these differences from 
+TCP/IP we end up with the following generic workflow
 
 - **net.ResolveUDPAddr()** to resolve the address
 - **net.ListenUDP()** opens a UDP port and listens for traffic
 - **net.ReadFromUDP()** copies incoming data into a buffer and provides the remote client’s address
 - **net.WriteToUDP()** writes data back to the remote client’s address
 
-For trivial uses of UDP we could probably forego the use of a separate **goroutine** to process each received packet, and indeed we may also have an application architecture where instead of processing the packet we’d hand it off to a message queue elsewhere. However many real-world examples such as serving DNS requests may introduce appreciable delays for processing and by using **goroutines** we ensure the server itself isn’t stalled.
+For trivial uses of UDP we could probably forego the use of a separate **goroutine** 
+to process each received packet, and indeed we may also have an application 
+architecture where instead of processing the packet we’d hand it off to a 
+message queue elsewhere. However many real-world examples such as serving DNS 
+requests may introduce appreciable delays for processing and by using **goroutines** 
+we ensure the server itself isn’t stalled.
 
-Here our main overhead is the cost of buffer allocation as we use a different data buffer for each request. In a real-world example we’d very likely introduce a buffer pool which would expand and contract with demand, and reuse individual buffers once their associated request has completed. This is surprisingly simple to implement in **Go** and we’ll look at this in detail in a later chapter.
+Here our main overhead is the cost of buffer allocation as we use a different 
+data buffer for each request. In a real-world example we’d very likely introduce 
+a buffer pool which would expand and contract with demand, and reuse individual 
+buffers once their associated request has completed. This is surprisingly simple 
+to implement in **Go** and we’ll look at this in detail in a later chapter.
 
-Our client has the same basic boilerplate as the server, only we use **net.DialUDP()** to set up a connection. We could use **net.ReadFromUDP()** and **net.WriteToUDP()** however as a **net.UDPConn** connection implements the **io.ReadWriter** interface we can use **bufio.Reader** to manage reading, and for writes the connection already knows the server address. As the server only knows about clients by receiving data from them we start our interaction with a **UDPConn.Write()** and then perform the buffered ReadString() to get a response.
-Example 1.54 UDP client
+Our client has the same basic boilerplate as the server, only we use **net.DialUDP()** 
+to set up a connection. We could use **net.ReadFromUDP()** and **net.WriteToUDP()** 
+however as a **net.UDPConn** connection implements the **io.ReadWriter** interface 
+we can use **bufio.Reader** to manage reading, and for writes the connection already 
+knows the server address. As the server only knows about clients by receiving 
+data from them we start our interaction with a **UDPConn.Write()** and then perform 
+the buffered ReadString() to get a response.
 
-     1 packagemain 2  3 import( 4 "bufio" 5 ."fmt" 6 "net" 7 ) 8  9 varCRLF=([]byte)("\n")10 11 funcmain(){12 ifaddress,e:=net.ResolveUDPAddr("udp",":1024");e==nil{13 ifserver,e:=net.DialUDP("udp",nil,address);e==nil{14 deferserver.Close()15 if_,e=server.Write(CRLF);e==nil{16 iftext,e:=bufio.NewReader(server).ReadString('\n');e==nil{17 Printf("%v",text)18 }19 }20 }21 }22 }
+***Example 1.54 UDP client***
 
+```go
+package main
+
+import (
+    "bufio"
+    . "fmt"
+    "net"
+)
+
+var CRLF = ([]byte)("\n")
+
+func main() {
+    if address, e := net.ResolveUDPAddr("udp", ":1024"); e == nil {
+        if server, e := net.DialUDP("udp", nil, address); e == nil {
+            defer server.Close()
+            if _, e = server.Write(CRLF); e == nil {
+                if text, e := bufio.NewReader(server).ReadString('\n'); e == nil {
+                    Printf("%v", text)
+                }
+            }
+        }
+    }
+}
+```
 Let’s give this a test run in the shell.
 
-    $ go run 53.go &
-    [2] 12777
-    $ go run 54.go
-    12 bytes written to: 127.0.0.1:58015
-    Hello World
-    $ go run 54.go
-    12 bytes written to: 127.0.0.1:50159
-    Hello World
-    $ go run 54.go
-    12 bytes written to: 127.0.0.1:51813
-    Hello World
+<pre>  <b>$ go run 53.go &</b>
+  [2] 12777
+  <b>$ go run 54.go</b>
+  12 bytes written to: 127.0.0.1:58015
+  Hello World
+  <b>$ go run 54.go</b>
+  12 bytes written to: 127.0.0.1:50159
+  Hello World
+  <b>$ go run 54.go</b>
+  12 bytes written to: 127.0.0.1:51813
+  Hello World</pre>
     
 
 Note how each time we run the client program it’s assigned a different network port by the operating system each time **net.DialUDP** is called.
