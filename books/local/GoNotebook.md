@@ -44,7 +44,7 @@ This book is my homage to those hacker years when PCs were still *exciting* and 
 
 To reassure the more sober amongst you that this book does indeed have some intrinsic technical merit, I should probably mention that much of the material is drawn from a series of presentations and workshops I’ve delivered at well-respected software development conferences starting in 2009 and continuing to the present day.
 
-The main advantage of reworking this material in book format is that I get to explore things at a more leisurely pace than with a live audience, and I hope in doing so to also recapture some of the anarchic can-do feel of those early books and magazine articles which first inspired me as a teenager. So what I’m really looking to create here is the kind of book about programming in Go that if my untutored younger self had found a copy, it would have kept her enthralled for months or even years. In some sense it’s therefore an attempt at a “write your own adventure” programming course - inspired perhaps by that marvellous book in *Neal Stephenson’s*[The Diamond Age](https://en.wikipedia.org/wiki/The_Diamond_Age) - which takes it for granted that even the casual reader can learn the full measure of Go without any other help.
+The main advantage of reworking this material in book format is that I get to explore things at a more leisurely pace than with a live audience, and I hope in doing so to also recapture some of the anarchic can-do feel of those early books and magazine articles which first inspired me as a teenager. So what I’m really looking to create here is the kind of book about programming in Go that if my untutored younger self had found a copy, it would have kept her enthralled for months or even years. In some sense it’s therefore an attempt at a “write your own adventure” programming course - inspired perhaps by that marvellous book in *Neal Stephenson’s* [The Diamond Age](https://en.wikipedia.org/wiki/The_Diamond_Age) - which takes it for granted that even the casual reader can learn the full measure of Go without any other help.
 
 I mention this because there are many clever, talented people in this world who’d really enjoy programming if only they thought they were capable. But somehow they’ve been convinced that programming is difficult. Well yes, it often is. In the same way that writing a story or building with LEGO bricks can be difficult. But not for the bogus reasons propagated in media depictions of typical programmers!
 
@@ -102,7 +102,7 @@ package main
 For the **main** package to be executable it needs to include a **main()** function, which will be called following program initialisation.
 
 ```go
-    func main() {
+func main() {
 ```        
 
 Notice that unlike C/C++ the **main()** function neither takes parameters nor has a return value. 
@@ -113,7 +113,7 @@ We’ll examine command-line parameters when developing **Echo**.
 Finally let’s look at our payload.
 
 ```go
-    println("hello world")
+println("hello world")
 ```
 
 The **println()** function is one of a small set of builtin generic functions defined in the language specification and which in this case is usually used to assist debugging, whilst **“hello world”** is a value comprising an immutable string of characters in utf-8 format.
@@ -318,7 +318,7 @@ func main() {
 }
 ```
 
-Here we’ve introduced a new *local* variable **world** within **main()** which takes its value from an operation concatenating the value of the *global***world** variable with an exclamation mark. Within **main()** any subsequent reference to **world** will always access the *local* version of the variable without affecting the *global***world** variable. The is known as **shadowing**.
+Here we’ve introduced a new *local* variable **world** within **main()** which takes its value from an operation concatenating the value of the *global* **world** variable with an exclamation mark. Within **main()** any subsequent reference to **world** will always access the *local* version of the variable without affecting the *global***world** variable. The is known as **shadowing**.
 
 The **:=** operator marks an assignment declaration in which the type of the expression is inferred from the type of the value being assigned. If we chose to declare the local variable separately from the assignment we’d have to give it a different name to avoid a compilation error.
 
@@ -416,7 +416,7 @@ func message(name string) (message string) {
 ```    
 
 If we compare the **main()** and **message()** functions, we notice that **main()** doesn’t have a **return** statement. Likewise if we define our own functions without return values we can omit the **return** statement though later we’ll meet examples where we’d still use a **return** statement to prematurely exit a function.
-Example 1.14
+***Example 1.14***
 
 ```go
 package main 
@@ -432,7 +432,7 @@ func greet(name string) {
 ```    
 
 In the next example we’ll see what a function which uses multiple return values looks like.
-Example 1.15
+***Example 1.15***
 
 ```go
      1 packagemain 2 import."fmt" 3  4 funcmain(){ 5 Println(message()) 6 } 7  8 funcmessage()(string,string){ 9 return"hello","world"10 }
@@ -441,7 +441,7 @@ Example 1.15
 Because **message()** returns two values we can use it in any context where at least two parameters can be consumed. **Println()** happens to be a **variadic** function, which we’ll explain in a moment, and takes zero or more parameters so it happily consumes both of the values **message()** returns.
 
 For our final example we’re going to implement our own **variadic** function.
-Example 1.16
+***Example 1.16***
 
 ```go
     package main
@@ -516,9 +516,9 @@ func main() {
 }
 ```
 
-    $ go run 17.go
-    
-    Hello world
+<pre>  <b>$ go run 17.go</b>
+  
+  Hello world</pre>
     
 
 Here we’ve defined a struct <code><b>Message</b></code> which contains two values: X and y. 
@@ -585,10 +585,10 @@ func main() {
     fmt.Println(m)
 }
 ```
-    $ go run 19.go
-    Hello world
-    Hello world
-    Hello world
+<pre>  <b>$ go run 19.go</b>
+  Hello world
+  Hello world
+  Hello world</pre>
     
 
 Here we’re declaring a type **HelloWorld** which in this case is just an empty 
@@ -674,10 +674,10 @@ func main() {
     fmt.Println(m)
 }
 ```
-    $ go run 21.go
-    
-    Hello 
-    Hello world
+<pre>  <b>$ go run 21.go</b>
+  
+  Hello 
+  Hello world</pre>
     
 
 > In all these examples we’ve made liberal use of the <b>*</b> and **&** operators. 
