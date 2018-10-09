@@ -120,8 +120,8 @@ The **println()** function is one of a small set of builtin generic functions de
 
 We can now run our program from the command-line (Terminal on MacOS X or Command Prompt on Windows) with the command
 
-    $ go run 01.go
-    hello world
+<pre>  <b>$ go run 01.go</b>
+  hello world</pre>
     
 
 ## Packages
@@ -129,113 +129,214 @@ We can now run our program from the command-line (Terminal on MacOS X or Command
 Now we’re going to apply a technique which I plan to use throughout this book by taking this simple task and developing increasingly complex ways of expressing it in Go. This runs counter to how experienced programmers usually develop code but I feel this makes for a very effective way to introduce features of Go in rapid succession and have used it with some success during presentations and workshops.
 
 There are a number of ways we can artificially complicate our **hello world** example and by the time we’ve finished I hope to have demonstrated all the features you can expect to see in the global scope of a Go package. Our first change is to remove the builtin **println()** function and replace it with something intended for production code.
-Example 1.2
 
-    1 packagemain2 import"fmt"3 4 funcmain(){5 fmt.Println("hello world")6 }
+***Example 1.2***
+
+```go
+package main
+import "fmt"
+
+funcmain(){
+    fmt.Println("hello world")
+}
+```
 
 The structure of our program remains essentially the same, but we’ve introduced two new features.
 
-    2 import"fmt"
+```go
+import "fmt"
+```
 
 The **import** statement is a reference to the fmt package, one of many packages defined in Go’s standard runtime library. A **package** is a library which provides a group of related functions and data types we can use in our programs. In this case **fmt** provides functions and types associated with formatting text for printing and displaying it on a console or in the command shell.
 
-    5 fmt.Println("hello world")
+```go
+fmt.Println("hello world")
+```
 
 One of the functions provided by **fmt** is **Println()** which takes one or more parameters and prints them to the console with a carriage return appended. Go assumes that any identifier starting with a capital letter is part of the public interface of a package whilst identifiers starting with any other letter or symbol are private to the package.
 
 In production code we might choose to simplify matters a little by importing the **fmt** namespace into the namespace of the current source file, which requires we change our import statement.
 
-    2 import."fmt"
+```go
+import ."fmt"
+```
 
 And this consequently allows the explicit package reference to be removed from the **Println()** function call.
 
-    5 Println("hello world")
+```go
+Println("hello world")
+```
 
 In this case we notice little gain however in later examples we’ll use this feature extensively to keep our code legible.
-Example 1.3
 
-    1 packagemain2 import."fmt"3 4 funcmain(){5 Println("hello world")6 }
+***Example 1.3***
+
+```go
+package main
+import . "fmt"
+
+func main(){
+    Println("hello world")
+}
+```
 
 One aspect of imports that we’ve not yet looked at is Go’s builtin support for code hosted on a variety of popular social code-sharing sites such as GitHub and Google Code. Don’t worry, we’ll get to this in later chapters.
 
 ## Constants
 
 A significant proportion of Go codebases feature identifiers whose values will not change during the runtime execution of a program and our **hello world** example is no different, so we’re going to factor these out.
-Example 1.4
 
-    1 packagemain2 import."fmt"3 4 constHello="hello"5 constworld="world"6 7 funcmain(){8 Println(Hello,world)9 }
+***Example 1.4***
+
+```go
+package main
+import . "fmt"
+
+const Hello = "hello"
+constworld = "world"
+
+func main() {
+    Println(Hello, world)
+}
+```
 
 Here we’ve introduced two constants: **Hello** and **world**. Each identifier is assigned its value during compilation, and that value cannot be changed at runtime. As the identifier **Hello** starts with a capital letter the associated constant is visible to other packages - though this isn’t relevant in the context of a **main** package - whilst the identifier **world** starts with a lowercase letter and is only accessible within the **main** package.
 
 We don’t need to specify the type of these constants as the Go compiler identifies them both as strings.
 
 Another neat trick in Go’s armoury is multiple assignment so let’s see how this looks.
-Example 1.5
 
-    1 package main
-    2 import . "fmt"
-    34const Hello, world = "hello", "world"
-    56 func main() {
-    7   Println(Hello, world)
-    8 }
-    
+***Example 1.5***
+
+```go
+package main
+import . "fmt"
+
+const Hello, world = "hello", "world"
+
+func main() {
+    Println(Hello, world)
+}
+``` 
 
 This is compact, but I personally find it too cluttered and prefer the more general form.
-Example 1.6
 
-     1 packagemain 2 import."fmt" 3  4 const( 5 Hello="hello" 6 world="world" 7 ) 8  9 funcmain(){10 Println(Hello,world)11 }
+***Example 1.6***
+
+```go
+package main 
+import . "fmt" 
+ 
+const( 
+    Hello = "hello" 
+    world = "world" 
+) 
+ 
+func main() {
+    Println(Hello, world)
+}
+```
 
 Because the **Println()** function is **variadic** (i.e. can take a varible number of parameters) we can pass it both constants and it will print them on the same line, separate by whitespace. **fmt** also provides the **Printf()** function which gives precise control over how its parameters are displayed using a format specifier which will be familiar to seasoned C/C++ programmers.
 
-    10 Printf("%v %v\n",Hello,world)
+```go
+Printf("%v %v\n", Hello, world)
+```
 
 **fmt** defines a number of **%** replacement terms which can be used to determine how a particular parameter will be displayed. Of these **%v** is the most generally used as it allows the formatting to be specified by the type of the parameter. We’ll discuss this in depth when we look at user-defined types, but in this case it will simply replace a **%v** with the corresponding string.
 
 When parsing strings the Go compiler recognises a number of **escape sequences** which are available to mark tabs, new lines and specific unicode characters. In this case we use **\n** to mark a new line.
-Example 1.7
 
-     1 packagemain 2 import."fmt" 3  4 const( 5 Hello="hello" 6 world="world" 7 ) 8  9 funcmain(){10 Printf("%v %v\n",Hello,world)11 }
+***Example 1.7***
+
+```go
+package main 
+import . "fmt" 
+ 
+const( 
+    Hello = "hello" 
+    world = "world" 
+) 
+ 
+func main() {
+    Printf("%v %v\n", Hello, world)
+}
+```
 
 ## Variables
 
 Constants are useful for referring to values which shouldn’t change at runtime, however most of the time when we’re referencing values in an imperative language like Go we need the freedom to change these values. We associate values which will change with variables. What follows is a simple variation of our **Hello World** program which allows the value of **world** to be changed at runtime by creating a new value and assigning it to the **world** variable.
-Example 1.8
+***Example 1.8***
 
-     1 packagemain 2 import."fmt" 3  4 constHello="hello" 5 varworld="world" 6  7 funcmain(){ 8 world+="!" 9 Println(Hello,world)10 }
+```go
+package main 
+import . "fmt" 
+ 
+const Hello = "hello" 
+var world = "world" 
+ 
+func main(){ 
+    world += "!" 
+    Println(Hello, world)
+}
+```
 
 There are two important changes here. Firstly we’ve introduced syntax for declaring a variable and assigning a value to it. Once more Go’s ability to infer type allows us assign a **string** value to the variable **world** without explicitly specifying the type.
 
-    5 varworld="world"
+```go
+var world = "world"
+```
 
 However if we wish to be more explicit we can be.
 
-    5 varworldstring="world"
+```go
+var world string = "world"
+```
 
 Having defined **world** as a variable in the global scope we can modify its value in **main()**, and in this case we choose to append an exclamation mark. Strings in Go are immutable values so following the assignment **world** will reference a new value.
 
-    8 world+="!"
+```go
+world += "!"
+```
 
 To add some extra interest I’ve chosen to use an **augmented assignment** operator. These are a syntactic convenience popular in many languages which allow the value contained in a variable to be modified and the resulting value then assigned to the same variable.
 
 I don’t intend to expend much effort discussing scope in Go. The point of this book is to experiment and learn by playing with code, referring to the [comprehensive language specification](http://http://golang.org/ref/spec) available from Google when you need to know the technicalities of a given point. However to illustrate the difference between **global** and **local** scope we’ll modify this program further.
-Example 1.9
 
-     1 package main
-     2 import . "fmt"
-     3 4 const Hello = "hello"
-     5 var world = "world"
-     6 7 func main() {
-     8  world := world + "!"
-     9   Println(Hello, world)
-    10 }
-    
+***Example 1.9***
+
+```go
+package main
+import . "fmt"
+
+const Hello = "hello"
+var world = "world"
+
+func main() {
+    world := world + "!"
+    Println(Hello, world)
+}
+```
 
 Here we’ve introduced a new *local* variable **world** within **main()** which takes its value from an operation concatenating the value of the *global***world** variable with an exclamation mark. Within **main()** any subsequent reference to **world** will always access the *local* version of the variable without affecting the *global***world** variable. The is known as **shadowing**.
 
 The **:=** operator marks an assignment declaration in which the type of the expression is inferred from the type of the value being assigned. If we chose to declare the local variable separately from the assignment we’d have to give it a different name to avoid a compilation error.
-Example 1.10
 
-     1 packagemain 2 import."fmt" 3  4 constHello="hello" 5 varworld="world" 6  7 funcmain(){ 8 varwstring 9 w=world+"!"10 Println(Hello,w)11 }
+***Example 1.10***
+
+```go
+package main 
+import . "fmt" 
+ 
+const Hello = "hello" 
+var world = "world" 
+ 
+func main() { 
+    var w string 
+    w = world + "!"
+    Println(Hello, w)
+}
+```
 
 Another thing to note in this example is that when *w* is declared it’s also initialised to the zero value, which in the case of *string* happens to be *”“*. This is a *string* containing no characters.
 
@@ -244,18 +345,23 @@ In fact all variables in Go are initialised to the zero value for their type whe
 ## Functions
 
 Having looked at how to reference values in Go and how to use the **Println()** function to display them, it’s only natural to wonder how we can implement our own functions. Obviously we’ve already implemented **main()** which hints at what’s involved, but **main()** is something of a special case as it exist to allow a Go program to execute and it neither requires any parameters nor produces any values to be used elsewhere in the program.
-Example 1.11
 
-     1 package main
-     2 import . "fmt"
-     3 4 const Hello = "hello"
-     5 6 func main() {
-     7   Println(Hello, world())
-     8 }
-     910func world() string {
-    11  return "world"
-    12}
-    
+***Example 1.11***
+
+```go
+package main
+import . "fmt"
+
+const Hello = "hello"
+
+func main() {
+    Println(Hello, world())
+}
+
+func world() string {
+    return "world"
+}
+```
 
 In this example we’ve introduced **world()**, a function which to the outside world has the same operational purpose as the variable of the same name that we used in the previous section.
 
@@ -263,40 +369,74 @@ The empty brackets **()** indicate that there are no parameters passed into the 
 
 Go is unusual in that its syntax allows a function to return more than one value and as such each function takes two sets of **()**, the first for parameters and the second for results. We could therefore write our function in long form as
 
-    10 funcworld()(string){11 return"world"12 }
+```go
+func world() (string) {
+    return "world"
+}
+```    
 
 In this next example we use a somewhat richer function signature, passing the parameter **name** which is a string value into the function **message()**, and assigning the function’s return value to **message** which is a variable declared and available throughout the function.
-Example 1.12
 
-     1 package main
-     2 import "fmt"
-     3 4 func main() {
-     5   fmt.Println(message("world"))
-     6 }
-     7 8func message(name string) (message string) {
-     9  message = fmt.Sprintf("hello %v", name)
-    10  return message
-    11}
-    
+***Example 1.12***
+
+```go
+package main
+import "fmt"
+
+func main() {
+    fmt.Println(message("world"))
+}
+
+func message(name string) (message string) {
+    message = fmt.Sprintf("hello %v", name)
+    return message
+}
+```    
 
 As with **world()** the **message()** function can be used anywhere that the Go compiler expects to find a string value. However where **world()** simply returned a predetermined value, **message()** performs a calculation using the **Sprintf()** function and returns its result.
 
 **Sprintf()** is similar to **Printf()** which we met when discussing constants, only rather than create a string according to a format and displaying it in the terminal it instead returns this string as a value which we can assign to a variable or use as a parameter in another function call such as **Println()**.
 
 Because we’ve explicitly named the return value we don’t need to reference it in the return statement as each of the named return values is implied.
-Example 1.13
 
-     1 packagemain 2 import."fmt" 3  4 funcmain(){ 5 Println(message("world")) 6 } 7  8 funcmessage(namestring)(messagestring){ 9 message=Sprintf("hello %v",name)10 return11 }
+***Example 1.13***
+
+```go
+package main 
+import . "fmt" 
+ 
+func main(){ 
+    Println(message("world")) 
+} 
+ 
+func message(name string) (message string) { 
+    message = Sprintf("hello %v", name)
+    return
+}
+```    
 
 If we compare the **main()** and **message()** functions, we notice that **main()** doesn’t have a **return** statement. Likewise if we define our own functions without return values we can omit the **return** statement though later we’ll meet examples where we’d still use a **return** statement to prematurely exit a function.
 Example 1.14
 
-     1 packagemain 2 import."fmt" 3  4 funcmain(){ 5 greet("world") 6 } 7  8 funcgreet(namestring){ 9 Println("hello",name)10 }
+```go
+package main 
+import . "fmt" 
+ 
+func main() { 
+    greet("world") 
+} 
+ 
+func greet(name string) { 
+    Println("hello", name)
+}
+```    
 
 In the next example we’ll see what a function which uses multiple return values looks like.
 Example 1.15
 
+```go
      1 packagemain 2 import."fmt" 3  4 funcmain(){ 5 Println(message()) 6 } 7  8 funcmessage()(string,string){ 9 return"hello","world"10 }
+```    
 
 Because **message()** returns two values we can use it in any context where at least two parameters can be consumed. **Println()** happens to be a **variadic** function, which we’ll explain in a moment, and takes zero or more parameters so it happily consumes both of the values **message()** returns.
 
@@ -407,7 +547,7 @@ contents of the **Message** and have these changes persist. If we define the
 method to work directly on the value these changes won’t be propagated outside 
 the method’s scope. To test this for yourself, make the following change to the program
 
-Example 1.18
+***Example 1.18***
 
 ```go
 func (v Message) Store(x, y string) {
