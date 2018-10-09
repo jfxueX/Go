@@ -1,29 +1,24 @@
-A Go Developer's Notebook
-
-[Buy on Leanpub](/GoNotebook)
----
-
-##### A Go Developer's Notebook
+# A Go Developer's Notebook
 
 ## Table of Contents
 
-- [Preface](#leanpub-auto-preface)
-- [Hello World](#leanpub-auto-hello-world)
-- [Packages](#leanpub-auto-packages)
-- [Constants](#leanpub-auto-constants)
-- [Variables](#leanpub-auto-variables)
-- [Functions](#leanpub-auto-functions)
-- [Encapsulation](#leanpub-auto-encapsulation)
-- [Generalisation](#leanpub-auto-generalisation)
-- [Startup](#leanpub-auto-startup)
-- [HTTP](#leanpub-auto-http)
-- [The Environment](#leanpub-auto-the-environment)
-- [Handling Signals](#leanpub-auto-handling-signals)
-- [TCP/IP](#leanpub-auto-tcpip)
-- [UDP](#leanpub-auto-udp)
-- [RSA obfuscated UDP](#leanpub-auto-rsa-obfuscated-udp)
-- [Error Handling](#leanpub-auto-error-handling)
-- [Exceptions](#leanpub-auto-exceptions)
+* [Preface](#preface)
+* [Hello World](#hello-world)
+* [Packages](#packages)
+* [Constants](#constants)
+* [Variables](#variables)
+* [Functions](#functions)
+* [Encapsulation](#encapsulation)
+* [Generalisation](#generalisation)
+* [Startup](#startup)
+* [HTTP](#http)
+* [The Environment](#the-environment)
+* [Handling Signals](#handling-signals)
+* [TCP/IP](#tcpip)
+* [UDP](#udp)
+* [RSA obfuscated UDP](#rsa-obfuscated-udp)
+* [Error Handling](#error-handling)
+* [Exceptions](#exceptions)
 
 ## Preface
 
@@ -129,7 +124,7 @@ We can now run our program from the command-line (Terminal on MacOS X or Command
     hello world
     
 
-### Packages
+## Packages
 
 Now we’re going to apply a technique which I plan to use throughout this book by taking this simple task and developing increasingly complex ways of expressing it in Go. This runs counter to how experienced programmers usually develop code but I feel this makes for a very effective way to introduce features of Go in rapid succession and have used it with some success during presentations and workshops.
 
@@ -163,7 +158,7 @@ Example 1.3
 
 One aspect of imports that we’ve not yet looked at is Go’s builtin support for code hosted on a variety of popular social code-sharing sites such as GitHub and Google Code. Don’t worry, we’ll get to this in later chapters.
 
-### Constants
+## Constants
 
 A significant proportion of Go codebases feature identifiers whose values will not change during the runtime execution of a program and our **hello world** example is no different, so we’re going to factor these out.
 Example 1.4
@@ -201,7 +196,7 @@ Example 1.7
 
      1 packagemain 2 import."fmt" 3  4 const( 5 Hello="hello" 6 world="world" 7 ) 8  9 funcmain(){10 Printf("%v %v\n",Hello,world)11 }
 
-### Variables
+## Variables
 
 Constants are useful for referring to values which shouldn’t change at runtime, however most of the time when we’re referencing values in an imperative language like Go we need the freedom to change these values. We associate values which will change with variables. What follows is a simple variation of our **Hello World** program which allows the value of **world** to be changed at runtime by creating a new value and assigning it to the **world** variable.
 Example 1.8
@@ -246,7 +241,7 @@ Another thing to note in this example is that when *w* is declared it’s also i
 
 In fact all variables in Go are initialised to the zero value for their type when they’re declared and this eliminates an entire category of initialisation bugs which could otherwise be difficult to identify.
 
-### Functions
+## Functions
 
 Having looked at how to reference values in Go and how to use the **Println()** function to display them, it’s only natural to wonder how we can implement our own functions. Obviously we’ve already implemented **main()** which hints at what’s involved, but **main()** is something of a special case as it exist to allow a Go program to execute and it neither requires any parameters nor produces any values to be used elsewhere in the program.
 Example 1.11
@@ -338,7 +333,7 @@ in the type signature of our function. Otherwise we’d have to create a <code><
 (a <code><b>slice</b></code> of <code><b>interface{}</b></code> values, a concept we’ll cover in detail in a later chanpter) 
 and copy each individual element into it before passing it into <code><b>Println()</b></code>.
 
-### Encapsulation
+## Encapsulation
 
 In this chapter we’ll for the most part be using <code><b>Go</b></code>’s primitive types and 
 types defined in various standard packages without any comment on their structure, 
@@ -589,7 +584,7 @@ the **value** manipulated remains immutable to the rest of the program
 to a **value type** any changes to the **value** are apparent throughout the program.
 This has far-reaching implications which we’ll explore in later chapters.
 
-### Generalisation
+## Generalisation
 
 Encapsulation is of huge benefit when writing complex programs and it also 
 enables one of the more powerful features of **Go**’s type system, the 
@@ -809,7 +804,7 @@ which are independent of each other, and the **ReadWriter** which combines both.
 Any time we declare a variable, field or function parameter in terms of a 
 **ReaderWriter** we know we can use both the **Read()** and **Write()** methods to manipulate it.
 
-### Startup
+## Startup
 
 One of the less-discussed aspects of computer programs is the need to initialise 
 many of them to a pre-determined state before they begin executing. Whilst this 
@@ -898,7 +893,7 @@ func main() {
 }
 ```
 
-### HTTP
+## HTTP
 
 So far our treatment of **Hello World** has followed the traditional route of 
 printing a preset message to the console. Anyone would think we were living in 
@@ -941,7 +936,7 @@ Our web server is now listening on localhost port 1024 (usually the first
 non-privileged port on most Unix-like operating systems) and if we visit the 
 url **http://localhost:1024/hello** with a web browser our server will return 
 **Hello World** in the response body.
-![Image 1.29 http://localhost:1024/hello](/site_images/GoNotebook/01_hello_world----29.png)Image 1.29 http://localhost:1024/hello
+![Image 1.29 http://localhost:1024/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----29.png)
 The first thing to note is that the **net/http** package provides a fully-functional 
 web server which requires very little configuration. All we have to do to get 
 our content to the browser is define a **handler**, which in this case is a function 
@@ -1079,7 +1074,7 @@ key, which we can do using **crypto/tls/generate_cert.go** in the standard packa
   <b>$ go run 33.go</b></pre>
     
 
-![Image 1.33 https://localhost:1025/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----33.png)Image 1.33 https://localhost:1025/hello
+![Image 1.33 https://localhost:1025/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----33.png)
 > This is a self-signed certificate, and not all modern web browsers like these. 
 > Firefox will refuse to connect on the grounds the certificate is inadequate and 
 > not being a Firefox user I’ve not devoted much effort to solving this. Meanwhile 
@@ -1538,7 +1533,7 @@ func Launch(f func()) {
 }
 ```
 
-### The Environment
+## The Environment
 
 The main shells used with modern operating systems (Linux, OSX, FreeBSD, 
 Windows, etc.) provide a persistent environment which can be queried by running 
@@ -1606,12 +1601,12 @@ either the value provided in **SERVE_HTTP** or a default value **“:1024”**.
 <pre>  <b>$ go run 43.go</b></pre>
     
 
-![Image 1.43a http://localhost:1024/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_1.png)Image 1.43a http://localhost:1024/hello
+![Image 1.43a http://localhost:1024/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_1.png)
 
 <pre>  <b>$ SERVE_HTTP=":3030" go run 43.go</b></pre>
     
 
-![Image 1.43b http://localhost:3030/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_2.png)Image 1.43b http://localhost:3030/hello
+![Image 1.43b http://localhost:3030/hello](https://leanpub.com/site_images/GoNotebook/01_hello_world----43_2.png)
 If we now extend this further to make the program fully configurable from the 
 environment we arrive at
 
@@ -1682,7 +1677,7 @@ func Launch(f func()) {
 <pre>  <b>$ SERVE_HTTP=":3030" SERVE_HTTPS=":4040" go run 44.go</b></pre>
     
 
-### Handling Signals
+## Handling Signals
 
 If you’ve been running our example in the terminal and wondering how to terminate 
 it without exiting the shell then you probably come from a GUI background and 
@@ -1979,7 +1974,7 @@ we need to specify the ID of the current process, which we find using
   exit status 1</pre>
     
 
-### TCP/IP
+## TCP/IP
 
 Printing text in a web browser is a cool trick, but what of **real** network 
 programming? You know, the kind that bearded sandle-wearing <b>*nix</b> hackers go 
@@ -2286,7 +2281,7 @@ If we now run this server we can connect to it with both of our client programs.
   hello world</pre>
     
 
-### UDP
+## UDP
 
 Both TCP/IP and HTTP communications are connection-oriented and this involves 
 a reasonable amount of handshaking and error-correction to assemble data packets 
@@ -2405,48 +2400,142 @@ Let’s give this a test run in the shell.
   Hello World</pre>
     
 
-Note how each time we run the client program it’s assigned a different network port by the operating system each time **net.DialUDP** is called.
+Note how each time we run the client program it’s assigned a different network 
+port by the operating system each time **net.DialUDP** is called.
 
-In the case of OSX this port will usually be at the upper end of the non-privileged port range.
+> In the case of OSX this port will usually be at the upper end of the 
+> non-privileged port range.
 
-We can make this apparent by performing multiple sequences of Write() and Read() operations
-Example 1.55 UDP client
+We can make this apparent by performing multiple sequences of Write() and 
+Read() operations
 
-     1 packagemain 2  3 import( 4 "bufio" 5 ."fmt" 6 "net" 7 ) 8  9 varCRLF=([]byte)("\n")10 11 funcmain(){12 ifaddress,e:=net.ResolveUDPAddr("udp",":1024");e==nil{13 ifserver,e:=net.DialUDP("udp",nil,address);e==nil{14 deferserver.Close()15 fori:=0;i<3;i++{16 if_,e=server.Write(CRLF);e==nil{17 iftext,e:=bufio.NewReader(server).ReadString('\n');e==nil{18 Printf("%v: %v",i,text)19 }20 }21 }22 }23 }24 }
+***Example 1.55 UDP client***
 
-    $ go run 53.go &
-    [1] 12883
-    $ go run 55.go
-    12 bytes written to: 127.0.0.1:51732
-    0: Hello World
-    12 bytes written to: 127.0.0.1:51732
-    1: Hello World
-    12 bytes written to: 127.0.0.1:51732
-    2: Hello World
-    $ go run 55.go
-    12 bytes written to: 127.0.0.1:55504
-    0: Hello World
-    12 bytes written to: 127.0.0.1:55504
-    1: Hello World
-    12 bytes written to: 127.0.0.1:55504
-    2: Hello World
+```go
+package main
+
+import (
+    "bufio"
+    . "fmt"
+    "net"
+)
+
+var CRLF = ([]byte)("\n")
+
+func main() {
+    if address, e := net.ResolveUDPAddr("udp", ":1024"); e == nil {
+        if server, e := net.DialUDP("udp", nil, address); e == nil {
+            defer server.Close()
+            for i := 0; i < 3; i++ {
+                if _, e = server.Write(CRLF); e == nil {
+                    if text, e := bufio.NewReader(server).ReadString('\n'); e == nil {
+                        Printf("%v: %v", i, text)
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+<pre>  <b>$ go run 53.go &</b>
+  [1] 12883
+  <b>$ go run 55.go</b>
+  12 bytes written to: 127.0.0.1:51732
+  0: Hello World
+  12 bytes written to: 127.0.0.1:51732
+  1: Hello World
+  12 bytes written to: 127.0.0.1:51732
+  2: Hello World
+  <b>$ go run 55.go</b>
+  12 bytes written to: 127.0.0.1:55504
+  0: Hello World
+  12 bytes written to: 127.0.0.1:55504
+  1: Hello World
+  12 bytes written to: 127.0.0.1:55504
+  2: Hello World</pre>
     
 
-### RSA obfuscated UDP
+## RSA obfuscated UDP
 
-With all of our network examples to date we’ve included a secure transport option, but UDP doesn’t have a secured mode so we appear stuck with sending our message unencrypted for all the world to see. This is fine for a message such as **Hello World** which we’re happy for intervening network nodes to observe, but what if we want to send confidential data in our UDP packet?
+With all of our network examples to date we’ve included a secure transport 
+option, but UDP doesn’t have a secured mode so we appear stuck with sending 
+our message unencrypted for all the world to see. This is fine for a message 
+such as **Hello World** which we’re happy for intervening network nodes to 
+observe, but what if we want to send confidential data in our UDP packet?
 
-In the following example we’re going to use our existing client RSA key-pair by sending the public key to our server which will then encrypt the message with this key and send it back to the client. The client already possesses the RSA private key so it’s a simple task to decrypt the message and display it. When we send the public key we could do so in a number of different formats: as an RSA pem file; as a raw binary buffer; or, serialised in some form. As both client and server are written in **Go** we’ll opt for the serialisation format provided in package **gob**. This is a pragmatic choice as if we were to send a **pem** file then that’d make it obvious that we’re using an encrypted format, and if we use a raw binary buffer we’d have to include a discussion of **Go**’s **unsafe** and **reflection** packages which are covered later in this book.
-Example 1.56 RSA-enabled UDP server
+In the following example we’re going to use our existing client RSA key-pair by 
+sending the public key to our server which will then encrypt the message with 
+this key and send it back to the client. The client already possesses the RSA 
+private key so it’s a simple task to decrypt the message and display it. When we 
+send the public key we could do so in a number of different formats: as an RSA 
+pem file; as a raw binary buffer; or, serialised in some form. As both client 
+and server are written in **Go** we’ll opt for the serialisation format provided 
+in package **gob**. This is a pragmatic choice as if we were to send a **pem** 
+file then that’d make it obvious that we’re using an encrypted format, and if we 
+use a raw binary buffer we’d have to include a discussion of **Go**’s **unsafe** 
+and **reflection** packages which are covered later in this book.
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 ."fmt"10 ."net"11 )12 13 varHELLO_WORLD=[]byte("Hello World")14 varRSA_LABEL=[]byte("served")15 16 funcmain(){17 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){18 varkeyrsa.PublicKey19 ife:=gob.NewDecoder(packet).Decode(&key);e==nil{20 ifresponse,e:=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,RSA\
-    21 _LABEL);e==nil{22 n,_=connection.WriteToUDP(response,c)23 }24 }25 return26 })27 }28 29 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){30 Launch(address,func(connection*UDPConn){31 for{32 buffer:=make([]byte,1024)33 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{34 gofunc(c*UDPAddr,b[]byte){35 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{36 Println(n,"bytes written to",c)37 }38 }(client,buffer[:n])39 }40 }41 })42 }43 44 funcLaunch(addressstring,ffunc(*UDPConn)){45 ifa,e:=ResolveUDPAddr("udp",address);e==nil{46 ifserver,e:=ListenUDP("udp",a);e==nil{47 f(server)48 }49 }50 }
+***Example 1.56 RSA-enabled UDP server***
+
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    . "fmt"
+    . "net"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        if e := gob.NewDecoder(packet).Decode(&key); e == nil {
+            if response, e := rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e == nil {
+                n, _ = connection.WriteToUDP(response, c)
+            }
+        }
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) {
+        for {
+            buffer := make([]byte, 1024)
+            if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                go func(c *UDPAddr, b []byte) {
+                    if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                        Println(n, "bytes written to", c)
+                    }
+                }(client, buffer[:n])
+            }
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn)) {
+    if a, e := ResolveUDPAddr("udp", address); e == nil {
+        if server, e := ListenUDP("udp", a); e == nil {
+            f(server)
+        }
+    }
+}
+```
 
 So, the first thing to note is that we’ve refactored connection management into **Serve()** to make the server code easier to follow, and then we’re passing a **function literal** into this with the tasks to be performed each time a client connects. For now this is a quick hack so we’re not launching **Serve()** in its own **goroutine** with all the extra boilerplate for **sync.WaitGroup** which we’ve seen in previous examples. However we are spawning a separate **goroutine** for each packet received so that the server doesn’t block, and as an added bonus each time data is written to a client the number of bytes transferred is logged.
 
 For each connection we read the client’s message which we know should be a valid public key in **gob** format. To decode this we create a **gob.Decoder** with the message as its base, then **Decode()** this to get a valid **rsa.PublicKey** which we then use to encrypt our message with **rsa.EncryptOAEP()**. The main thing to note here is that **RSA_LABEL** is a parameter which must be set the same for both **rsa.EncryptOAEP()** and **rsa.DecryptOAEP()** for the message to be correctly read by the latter. There’s no reason why this couldn’t be configured on a per-connection basis.
 
 Now, let’s take a look at our client application
+
 Example 1.57 RSA-enabled UDP client
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "crypto/x509" 9 "encoding/gob"10 "encoding/pem"11 "io/ioutil"12 ."fmt"13 ."net"14 )15 16 varRSA_LABEL=[]byte("served")17 18 funcmain(){19 Connect(":1025",func(server*UDPConn,private_key*rsa.PrivateKey){20 cipher_text:=MakeBuffer()21 ifn,e:=server.Read(cipher_text);e==nil{22 ifplain_text,e:=rsa.DecryptOAEP(sha1.New(),rand.Reader,private_key,cipher_\
@@ -2471,7 +2560,7 @@ The most obvious thing about this code is the heavy use of **function literals**
 
 To keep **SendKey()** as generic as possible it takes a parameterless function which is basically just a closure into the caller’s environment. In the case of **Connect()** the closure we pass to **SendKey()** binds to the **server** and **private_key** variables.
 
-### Error Handling
+## Error Handling
 
 The examples in this chapter are for the most part designed to follow the *happy* path as our interest is in seeing some simple **Go** code that we can later build upon. The one obvious exception was when we explored signal handling and used the presence of an error as an excuse to send a **SIGABRT** to terminate the server. However error-handling is a large part of most real-world programming - especially in a system level language.
 
@@ -2559,13 +2648,13 @@ Example 1.61
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "errors"10 "fmt"11 "log"12 ."net"13 )14 15 varHELLO_WORLD=[]byte("Hello World")16 varRSA_LABEL=[]byte("served")17 18 funcmain(){19 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){20 varkeyrsa.PublicKey21 varresponse[]byte22 23 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{24 log.Println("unable to decode wrapper:",c)25 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
     26 RSA_LABEL);e!=nil{27 log.Println("unable to encrypt server response")28 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{29 log.Println("unable to write response to client:",c)30 }31 return32 })33 }34 35 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){36 e:=Launch(address,func(connection*UDPConn)(eerror){37 deferfunc(){38 ifx:=recover();x!=nil{39 e=fmt.Errorf("serve failure %v",x)40 }41 }()42 for{43 buffer:=make([]byte,1024)44 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{45 gofunc(c*UDPAddr,b[]byte){46 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{47 log.Println(n,"bytes written to",c)48 }49 }(client,buffer[:n])50 }else{51 log.Println(address,e.Error())52 }53 }54 return55 })56 57 ife!=nil{58 log.Fatalln(e.Error())59 }60 }61 62 funcLaunch(addressstring,ffunc(*UDPConn)error)error{63 varconnection*UDPConn64 65 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{66 returnfmt.Errorf("unable to resolve UDP address: %v",e)67 }elseifconnection,e=ListenUDP("udp",a);e!=nil{68 returnerrors.New(fmt.Sprintf("can't open socket for listening: %v",e.Error()))69 }70 returnf(connection)71 }
 
-### Exceptions
+## Exceptions
 
 If we consider these programs for a minute or two it becomes apparent that propagating our errors this way works very well when we wish to deal with an error immediately, which is usually the case. However there are occasions when an error will need to be propagated through several layers of function calls, and when this is the case there’s a lot of boilerplate involved in intermediate functions in the call stack.
 
 We can do away with much of this by rolling our own lightweight equivalent of **exceptions** using **defer** and the **panic()** and **recover()** calls. In the next example we’ll do just this, introducing the **Exception** type which is an **interface** with **error** embedded within it. This means that any **error** value will also be useable as an **Exception** value.
 
-### Why doesn’t Go have native exceptions?
+## Why doesn’t Go have native exceptions?
 
 A common criticism of **Go** is its use of inline error handling rather than the kind of exception-handling mechanism we’re developing here. The [language FAQ](https://golang.org/doc/faq#exceptions) has a coherent explanation which is worth quoting in full:
 
@@ -2709,7 +2798,7 @@ The **type** switch allows us to select different courses of action depending on
 
 The use of type switches in this manner is a common idiom in **go** and I quite like this solution as the only magic at work here is our abuse of the **panic()**/**recover()** mechanism. However I’d really prefer to split exception handling into several different functions, each keyed to a particular exception type. This is relatively easy to do but requires that we pop open **go**’s hood at runtime using **type reflection**.
 
-### Dynamism comes at a price
+## Dynamism comes at a price
 
 Reflection in **Go** rests on two powerful packages: **reflect** and **unsafe**. With **reflect** you can find out pretty much anything about a value at runtime and write code based on that knowledge, whilst with **unsafe** you can bypass runtime type guarantees to repurpose memory. The cases when **reflect** is useful are much more numerous than those for **unsafe**, but neither is essential to day-to-day programming so many **Go** programmers will never use either in anger. However it’s still worth knowing a little both.
 
