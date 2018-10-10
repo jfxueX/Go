@@ -387,7 +387,7 @@ package main
 import . "fmt"
 
 const Hello = "hello"
-constworld = "world"
+const world = "world"
 
 func main() {
     Println(Hello, world)
@@ -1199,10 +1199,10 @@ func main() {
     m.X = World{}
 }
 ```
-    $ go run 25.go
-    # command-line-arguments
-    ./25.go:36: cannot use World literal (type World) as type fmt.Stringer in assignment:
-    	World does not implement fmt.Stringer (String method has pointer receiver)
+<pre>  <b>$ go run 25.go</b>
+  # command-line-arguments
+  ./25.go:36: cannot use World literal (type World) as type fmt.Stringer in assignment:
+  	World does not implement fmt.Stringer (String method has pointer receiver)</pre>
     
 
 The final thing to mention about **interfaces** is that they support embedding 
@@ -2980,22 +2980,87 @@ configured on a per-connection basis.
 
 Now, let’s take a look at our client application
 
-Example 1.57 RSA-enabled UDP client
+***Example 1.57 RSA-enabled UDP client***
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "crypto/x509" 9 "encoding/gob"10 "encoding/pem"11 "io/ioutil"12 ."fmt"13 ."net"14 )15 16 varRSA_LABEL=[]byte("served")17 18 funcmain(){19 Connect(":1025",func(server*UDPConn,private_key*rsa.PrivateKey){20 cipher_text:=MakeBuffer()21 ifn,e:=server.Read(cipher_text);e==nil{22 ifplain_text,e:=rsa.DecryptOAEP(sha1.New(),rand.Reader,private_key,cipher_\
-    23 text[:n],RSA_LABEL);e==nil{24 Println((string)(plain_text))25 }26 }27 })28 }29 30 funcConnect(addressstring,ffunc(*UDPConn,*rsa.PrivateKey)){31 LoadPrivateKey("client.key.pem",func(private_key*rsa.PrivateKey){32 ifaddress,e:=ResolveUDPAddr("udp",":1025");e==nil{33 ifserver,e:=DialUDP("udp",nil,address);e==nil{34 deferserver.Close()35 SendKey(server,private_key.PublicKey,func(){36 f(server,private_key)37 })38 }39 }40 })41 }42 43 funcLoadPrivateKey(filestring,ffunc(*rsa.PrivateKey)){44 iffile,e:=ioutil.ReadFile(file);e==nil{45 ifblock,_:=pem.Decode(file);block!=nil{46 ifblock.Type=="RSA PRIVATE KEY"{47 ifkey,_:=x509.ParsePKCS1PrivateKey(block.Bytes);key!=nil{48 f(key)49 }50 }51 }52 }53 return54 }55 56 funcSendKey(server*UDPConn,public_keyrsa.PublicKey,ffunc()){57 varencoded_keybytes.Buffer58 ife:=gob.NewEncoder(&encoded_key).Encode(public_key);e==nil{59 if_,e=server.Write(encoded_key.Bytes());e==nil{60 f()61 }62 }63 }64 65 funcMakeBuffer()(r[]byte){66 returnmake([]byte,1024)67 }
+```go
+package main
 
-    $ go run 56.go &
-    [1] 66945
-    $ go run 57.go
-    256 bytes written to 127.0.0.1:51328
-    Hello World
-    $ go run 57.go
-    256 bytes written to 127.0.0.1:64834
-    Hello World
-    $ go run 57.go
-    256 bytes written to 127.0.0.1:50982
-    Hello World
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "crypto/x509"
+    "encoding/gob"
+    "encoding/pem"
+    . "fmt"
+    "io/ioutil"
+    . "net"
+)
+
+var RSA_LABEL = ([]byte)("served")
+
+func main() {
+    Connect(":1025", func(server *UDPConn, private_key *rsa.PrivateKey) {
+        cipher_text := MakeBuffer()
+        if n, e := server.Read(cipher_text); e == nil {
+            if plain_text, e := rsa.DecryptOAEP(sha1.New(), rand.Reader, private_key, cipher_text[:n], RSA_LABEL); e == nil {
+                Println((string)(plain_text))
+            }
+        }
+    })
+}
+
+func Connect(address string, f func(*UDPConn, *rsa.PrivateKey)) {
+    LoadPrivateKey("client.key.pem", func(private_key *rsa.PrivateKey) {
+        if address, e := ResolveUDPAddr("udp", ":1025"); e == nil {
+            if server, e := DialUDP("udp", nil, address); e == nil {
+                defer server.Close()
+                SendKey(server, private_key.PublicKey, func() {
+                    f(server, private_key)
+                })
+            }
+        }
+    })
+}
+
+func LoadPrivateKey(file string, f func(*rsa.PrivateKey)) {
+    if file, e := ioutil.ReadFile(file); e == nil {
+        if block, _ := pem.Decode(file); block != nil {
+            if block.Type == "RSA PRIVATE KEY" {
+                if key, _ := x509.ParsePKCS1PrivateKey(block.Bytes); key != nil {
+                    f(key)
+                }
+            }
+        }
+    }
+}
+
+func SendKey(server *UDPConn, public_key rsa.PublicKey, f func()) {
+    var encoded_key bytes.Buffer
+    if e := gob.NewEncoder(&encoded_key).Encode(public_key); e == nil {
+        if _, e = server.Write(encoded_key.Bytes()); e == nil {
+            f()
+        }
+    }
+}
+
+func MakeBuffer() (r []byte) {
+    return make([]byte, 1024)
+}
+```
+
+<pre>  <b>$ go run 56.go &</b>
+  [1] 66945
+  <b>$ go run 57.go</b>
+  256 bytes written to 127.0.0.1:51328
+  Hello World
+  <b>$ go run 57.go</b>
+  256 bytes written to 127.0.0.1:64834
+  Hello World
+  <b>$ go run 57.go</b>
+  256 bytes written to 127.0.0.1:50982
+  Hello World</pre>
     
 
 The most obvious thing about this code is the heavy use of **function
@@ -3032,7 +3097,11 @@ programming - especially in a system level language.
 **Go** takes a typically pragmatic approach to error handling, the language
 specification defining the **error** type as a predeclared interface
 
-    typeerrorinterface{Error()string}
+```go
+type error interface {
+    Error() string
+}
+```
 
 In the following example we’re going to rewrite our encrypted UDP server from
 example 1.56 so that start-up errors cause the server to terminate and signal an
@@ -3044,20 +3113,90 @@ traditional <b>*nix</b> tools and infrastructure.
 Whilst our program is still trivial in purpose, we now have all the basic
 conveniences for running a scalable server and integrating it with third-party
 
-monitoring and logging tools at deployment.  Example 1.58
+monitoring and logging tools at deployment.  
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "log"10 ."net"11 )12 13 varHELLO_WORLD=[]byte("Hello World")14 varRSA_LABEL=[]byte("served")15 16 funcmain(){17 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){18 vareerror19 varkeyrsa.PublicKey20 varresponse[]byte21 22 ife=gob.NewDecoder(packet).Decode(&key);e!=nil{23 log.Println("unable to decode wrapper:",c)24 }25 26 ifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,RSA_LA\
-    27 BEL);e!=nil{28 log.Println("unable to encrypt server response")29 }30 31 ifn,e=connection.WriteToUDP(response,c);e!=nil{32 log.Println("unable to write response to client:",c)33 }34 return35 })36 }37 38 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){39 Launch(address,func(connection*UDPConn){40 for{41 buffer:=make([]byte,1024)42 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{43 gofunc(c*UDPAddr,b[]byte){44 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{45 log.Println(n,"bytes written to",c)46 }47 }(client,buffer[:n])48 }else{49 log.Println(address,e.Error())50 }51 }52 })53 }54 55 funcLaunch(addressstring,ffunc(*UDPConn)){56 vareerror57 vara*UDPAddr58 varserver*UDPConn59 60 ifa,e=ResolveUDPAddr("udp",address);e!=nil{61 log.Fatalln("unable to resolve UDP address:",e.Error())62 }63 64 ifserver,e=ListenUDP("udp",a);e!=nil{65 log.Fatalln("can't open socket for listening:",e.Error())66 }67 68 f(server)69 }
+***Example 1.58***
 
-    $ go run 58.go &
-    [1] 15397
-    $ go run 57.go
-    2016/07/13 09:13:11 256 bytes written to 127.0.0.1:65099
-    Hello World
-    $ go run 58.go
-    2016/07/13 09:13:51 can't open socket for listening: listen udp :1025: bind: address al\
-    ready in use
-    exit status 1
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "log"
+    . "net"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var e error
+        var key rsa.PublicKey
+        var response []byte
+
+        if e = gob.NewDecoder(packet).Decode(&key); e != nil {
+            log.Println("unable to decode wrapper:", c)
+        }
+
+        if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+            log.Println("unable to encrypt server response")
+        }
+
+        if n, e = connection.WriteToUDP(response, c); e != nil {
+            log.Println("unable to write response to client:", c)
+        }
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) {
+        for {
+            buffer := make([]byte, 1024)
+            if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                go func(c *UDPAddr, b []byte) {
+                    if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                        log.Println(n, "bytes written to", c)
+                    }
+                }(client, buffer[:n])
+            } else {
+                log.Println(address, e.Error())
+            }
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn)) {
+    var e error
+    var a *UDPAddr
+    var server *UDPConn
+
+    if a, e = ResolveUDPAddr("udp", address); e != nil {
+        log.Fatalln("unable to resolve UDP address")
+    }
+
+    if server, e = ListenUDP("udp", a); e != nil {
+        log.Fatalln("can't open socket for listening:", e.Error())
+    }
+
+    f(server)
+}
+```
+
+<pre>  <b>$ go run 58.go &</b>
+  [1] 15397
+  <b>$ go run 57.go</b>
+  2016/07/13 09:13:11 256 bytes written to 127.0.0.1:65099
+  Hello World
+  <b>$ go run 58.go</b>
+  2016/07/13 09:13:51 can't open socket for listening: listen udp :1025: bind: address al\
+  ready in use
+  exit status 1</pre>
     
 
 This is the only error condition that’s likely to occur in our shell-based test
@@ -3065,21 +3204,22 @@ environment but if we forceably corrupt the gob encoding of our client’s
 response key by modifying its **SendKey** function to drop the first byte we can
 emulate key corruption in transit
 
-    55 func SendKey(server *UDPConn, public_key rsa.PublicKey, f func()) {
-    56   var encoded_key bytes.Buffer
-    57   if e := gob.NewEncoder(&encoded_key).Encode(public_key); e == nil {
-    58    if _, e = server.Write(encoded_key.Bytes()[1:]); e == nil {
-    59       f()
-    60     }
-    61   }
-    62 }
-    
+<pre>
+func SendKey(server \*UDPConn, public_key rsa.PublicKey, f func()) {
+    var encoded_key bytes.Buffer
+    if e := gob.NewEncoder(&encoded_key).Encode(public_key); e == nil {
+        <b>if _, e = server.Write(encoded_key.Bytes()[1:]); e == nil {</b>
+            f()
+        }
+    }
+}
+</pre>
 
-    $ go run 58.go &
-    [1] 16289
-    $ go run 57_corrupt_key.go
-    2016/07/13 09:24:44 unable to decode wrapper: 127.0.0.1:55085
-    2016/07/13 09:24:44 unable to encrypt server response
+<pre>  <b>$ go run 58.go &</b>
+  [1] 16289
+  <b>$ go run 57_corrupt_key.go</b>
+  2016/07/13 09:24:44 unable to decode wrapper: 127.0.0.1:55085
+  2016/07/13 09:24:44 unable to encrypt server response</pre>
     
 
 One of the cool things about interfaces is that they’re reference types,
@@ -3087,7 +3227,14 @@ something we’ll routinely use to decide whether an error has occured or not. I
 it has then the interface will contain an **error** value, and if not the
 interface itself will be a **nil** value. This leads to the common code pattern
 
-    if_,e:=SomeCall();e!=nil{log.Println("some error",e)// this is our sad path}else{// perform desired actions}
+```go
+if _, e := SomeCall(); e != nil {
+    log.Println("some error", e) 
+    // this is our sad path
+} else {
+    // perform desired actions
+}
+```
 
 Our *sad* path will generally either return it’s own error to the calling
 function or terminate the program with a call to **log.Fatalln()** or
@@ -3104,8 +3251,67 @@ assignment with a test leads to very succinct code.
 
 ***Example 1.59***
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "log"10 ."net"11 )12 13 varHELLO_WORLD=[]byte("Hello World")14 varRSA_LABEL=[]byte("served")15 16 funcmain(){17 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){18 varkeyrsa.PublicKey19 varresponse[]byte20 21 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{22 log.Println("unable to decode wrapper:",c)23 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
-    24 RSA_LABEL);e!=nil{25 log.Println("unable to encrypt server response")26 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{27 log.Println("unable to write response to client:",c)28 }29 return30 })31 }32 33 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){34 Launch(address,func(connection*UDPConn){35 for{36 buffer:=make([]byte,1024)37 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{38 gofunc(c*UDPAddr,b[]byte){39 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{40 log.Println(n,"bytes written to",c)41 }42 }(client,buffer[:n])43 }else{44 log.Println(address,e.Error())45 }46 }47 })48 }49 50 funcLaunch(addressstring,ffunc(*UDPConn)){51 varconnection*UDPConn52 53 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{54 log.Fatalln("unable to resolve UDP address:",e.Error())55 }elseifconnection,e=ListenUDP("udp",a);e!=nil{56 log.Fatalln("can't open socket for listening:",e.Error())57 }58 f(connection)59 }
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "log"
+    . "net"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+            log.Println("unable to decode wrapper:", c)
+        } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+            log.Println("unable to encrypt server response")
+        } else if n, e = connection.WriteToUDP(response, c); e != nil {
+            log.Println("unable to write response to client:", c)
+        }
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) {
+        for {
+            buffer := make([]byte, 1024)
+            if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                go func(c *UDPAddr, b []byte) {
+                    if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                        log.Println(n, "bytes written to", c)
+                    }
+                }(client, buffer[:n])
+            } else {
+                log.Println(address, e.Error())
+            }
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn)) {
+    var server *UDPConn
+
+    if a, e := ResolveUDPAddr("udp", address); e != nil {
+        log.Fatalln("unable to resolve UDP address")
+    } else if server, e = ListenUDP("udp", a); e != nil {
+        log.Fatalln("can't open socket for listening:", e.Error())
+    }
+
+    f(server)
+}
+```
 
 Whilst I personally find this easier on the eye in many cases, it’s a less
 common idiom than successive **if** statements. It’s also important to remember
@@ -3122,13 +3328,108 @@ own **Error()** method.
 
 ***Example 1.60***
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "fmt"10 "log"11 ."net"12 )13 14 varHELLO_WORLD=[]byte("Hello World")15 varRSA_LABEL=[]byte("served")16 17 typeLaunchError[]interface{}18 19 func(lLaunchError)Error()(rstring){20 iflen(l)>0{21 r=fmt.Sprintf(l[0].(string),l[1:]...)22 }23 return24 }25 26 funcNewLaunchError(formatstring,v...interface{})(lLaunchError){27 returnLaunchError(append([]interface{}{format},v))28 }29 30 funcmain(){31 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){32 varkeyrsa.PublicKey33 varresponse[]byte34 35 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{36 log.Println("unable to decode wrapper:",c)37 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
-    38 RSA_LABEL);e!=nil{39 log.Println("unable to encrypt server response")40 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{41 log.Println("unable to write response to client:",c)42 }43 return44 })45 }46 47 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){48 e:=Launch(address,func(connection*UDPConn)(eerror){49 deferfunc(){50 ifx:=recover();x!=nil{51 e=LaunchError{"serve failure %v",x}52 }53 }()54 for{55 buffer:=make([]byte,1024)56 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{57 gofunc(c*UDPAddr,b[]byte){58 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{59 log.Println(n,"bytes written to",c)60 }61 }(client,buffer[:n])62 }else{63 log.Println(address,e.Error())64 }65 }66 return67 })68 69 ife,ok:=e.(LaunchError);ok{70 log.Fatalln(e.Error())71 }72 }73 74 funcLaunch(addressstring,ffunc(*UDPConn)error)error{75 varconnection*UDPConn76 77 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{78 returnNewLaunchError("unable to resolve UDP address:",e.Error())79 }elseifconnection,e=ListenUDP("udp",a);e!=nil{80 returnLaunchError{"can't open socket for listening:",e.Error()}81 }82 returnf(connection)83 }
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+type LaunchError []interface{}
+
+func (l LaunchError) Error() (r string) {
+    if len(l) > 0 {
+        r = fmt.Sprintf(l[0].(string), l[1:]...)
+    }
+    return
+}
+
+func NewLaunchError(format string, v ...interface{}) (l LaunchError) {
+    return LaunchError(append([]interface{}{format}, v))
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+            log.Println("unable to decode wrapper:", c)
+        } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+            log.Println("unable to encrypt server response")
+        } else if n, e = connection.WriteToUDP(response, c); e != nil {
+            log.Println("unable to write response to client:", c)
+        }
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    e := Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                e = LaunchError{"Server failure %v", x}
+            }
+        }()
+        for {
+            buffer := make([]byte, 1024)
+            if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                go func(c *UDPAddr, b []byte) {
+                    if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                        log.Println(n, "bytes written to", c)
+                    }
+                }(client, buffer[:n])
+            } else {
+                log.Println(address, e.Error())
+            }
+        }
+    })
+
+    if e, ok := e.(LaunchError); ok {
+        log.Fatalln(e.Error())
+    }
+}
+
+func Launch(address string, f func(*UDPConn) error) error {
+    var connection *UDPConn
+
+    if a, e := ResolveUDPAddr("udp", address); e != nil {
+        return NewLaunchError("unable to resolve UDP address", e.Error())
+    } else if connection, e = ListenUDP("udp", a); e != nil {
+        return LaunchError{"can't open socket for listening:", e.Error()}
+    }
+
+    return f(connection)
+}
+```
 
 This is quite a complicated example, so let’s take a look at the various changes
 we’ve made in detail.
 
-    17 typeLaunchError[]interface{}18 19 func(lLaunchError)Error()(rstring){20 iflen(l)>0{21 r=fmt.Sprintf(l[0].(string),l[1:]...)22 }23 return24 }25 26 funcNewLaunchError(formatstring,v...interface{})(lLaunchError){27 returnLaunchError(append([]interface{}{format},v))28 }
+```go
+type LaunchError []interface{}
+
+func (l LaunchError) Error() (r string) {
+    if len(l) > 0 {
+        r = fmt.Sprintf(l[0].(string), l[1:]...)
+    }
+    return
+}
+
+func NewLaunchError(format string, v ...interface{}) (l LaunchError) {
+    return LaunchError(append([]interface{}{format}, v))
+}
+```
 
 For simplicity we’ve made **LaunchError** a slice of **interface{}** values and
 declared an **Error()** method which uses the first element in the slice as a
@@ -3137,14 +3438,33 @@ format string and successive elements as parameters for **fmt.Sprintf()**. The
 we’d export from a package, and later in the code we show both construction this
 way and using a **LaunchError{}** literal.
 
-    73 funcLaunch(addressstring,ffunc(*UDPConn)error)error{74 varconnection*UDPConn75 76 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{77 returnNewLaunchError("unable to resolve UDP address:",e.Error())78 }elseifconnection,e=ListenUDP("udp",a);e!=nil{79 returnLaunchError{"can't open socket for listening:",e.Error()}80 }81 returnf(connection)82 }
+```go
+func Launch(address string, f func(*UDPConn) error) error {
+    var connection *UDPConn
+
+    if a, e := ResolveUDPAddr("udp", address); e != nil {
+        return NewLaunchError("unable to resolve UDP address", e.Error())
+    } else if connection, e = ListenUDP("udp", a); e != nil {
+        return LaunchError{"can't open socket for listening:", e.Error()}
+    }
+
+    return f(connection)
+}
+```
 
 We’ve made another change to **Launch()** related to our new approach to error
 handling, which is to propogate these errors back to the caller via a return
 value - and just for completeness we’re allowing errors to bubble up from the
 function parameter **f** as well. This leads to changes in **Serve** as well.
 
-    46 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){47 e:=Launch(address,func(connection*UDPConn)(eerror){48 deferfunc(){49 ifx:=recover();x!=nil{50 e=LaunchError{"serve failure %v",e}51 }52 }()
+```go
+e := Launch(address, func(connection *UDPConn) (e error) {
+    defer func() {
+        if x := recover(); x != nil {
+            e = LaunchError{"Server failure %v", x}
+        }
+    }()
+```
 
 Here we set a value for **e** from the **error** returned by **Launch()** as
 well as intercepting any **panic** raised by the associated closure with
@@ -3154,7 +3474,11 @@ program. As **defer** takes a closure the **e** referenced inside it is the same
 error)**, a pattern encountered in many existing **Go** codebases. We then use
 the returned error value before exiting **Serve()**.
 
-    68 ife,ok:=e.(LaunchError);ok{69 log.Fatalln(e.Error())70 }
+```go
+if e, ok := e.(LaunchError); ok {
+    log.Fatalln(e.Error())
+}
+```
 
 It should come as no surprise that **Go** provides support for creating
 **error** values without our having to define **error** types, in the form of
@@ -3163,8 +3487,78 @@ type and rewrite our program.
 
 ***Example 1.61***
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "errors"10 "fmt"11 "log"12 ."net"13 )14 15 varHELLO_WORLD=[]byte("Hello World")16 varRSA_LABEL=[]byte("served")17 18 funcmain(){19 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){20 varkeyrsa.PublicKey21 varresponse[]byte22 23 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{24 log.Println("unable to decode wrapper:",c)25 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
-    26 RSA_LABEL);e!=nil{27 log.Println("unable to encrypt server response")28 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{29 log.Println("unable to write response to client:",c)30 }31 return32 })33 }34 35 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){36 e:=Launch(address,func(connection*UDPConn)(eerror){37 deferfunc(){38 ifx:=recover();x!=nil{39 e=fmt.Errorf("serve failure %v",x)40 }41 }()42 for{43 buffer:=make([]byte,1024)44 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{45 gofunc(c*UDPAddr,b[]byte){46 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{47 log.Println(n,"bytes written to",c)48 }49 }(client,buffer[:n])50 }else{51 log.Println(address,e.Error())52 }53 }54 return55 })56 57 ife!=nil{58 log.Fatalln(e.Error())59 }60 }61 62 funcLaunch(addressstring,ffunc(*UDPConn)error)error{63 varconnection*UDPConn64 65 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{66 returnfmt.Errorf("unable to resolve UDP address: %v",e)67 }elseifconnection,e=ListenUDP("udp",a);e!=nil{68 returnerrors.New(fmt.Sprintf("can't open socket for listening: %v",e.Error()))69 }70 returnf(connection)71 }
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "errors"
+    "fmt"
+    "log"
+    . "net"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+            log.Println("unable to decode wrapper:", c)
+        } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+            log.Println("unable to encrypt server response")
+        } else if n, e = connection.WriteToUDP(response, c); e != nil {
+            log.Println("unable to write response to client:", c)
+        }
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    e := Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                e = fmt.Errorf("Server failure %v", x)
+            }
+        }()
+        for {
+            buffer := make([]byte, 1024)
+            if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                go func(c *UDPAddr, b []byte) {
+                    if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                        log.Println(n, "bytes written to", c)
+                    }
+                }(client, buffer[:n])
+            } else {
+                log.Println(address, e.Error())
+            }
+        }
+    })
+
+    if e != nil {
+        log.Fatalln(e.Error())
+    }
+}
+
+func Launch(address string, f func(*UDPConn) error) error {
+    var connection *UDPConn
+
+    if a, e := ResolveUDPAddr("udp", address); e != nil {
+        return fmt.Errorf("unable to resolve UDP address: %v", e.Error())
+    } else if connection, e = ListenUDP("udp", a); e != nil {
+        return errors.New(fmt.Sprintf("can't open socket for listening: %v", e.Error()))
+    }
+
+    return f(connection)
+}
+```
 
 ## Exceptions
 
@@ -3190,15 +3584,33 @@ worth quoting in full:
 
 > #### *Why does Go not have exceptions?*
 > 
-> *We believe that coupling exceptions to a control structure, as in the try-catch-finally idiom, results in convoluted code. It also tends to encourage programmers to label too many ordinary errors, such as failing to open a file, as exceptional.*
+> *We believe that coupling exceptions to a control structure, as in the
+> try-catch-finally idiom, results in convoluted code. It also tends to
+> encourage programmers to label too many ordinary errors, such as failing to
+> open a file, as exceptional.*
 > 
-> *Go takes a different approach. For plain error handling, Go’s multi-value returns make it easy to report an error without overloading the return value. A canonical error type, coupled with Go’s other features, makes error handling pleasant but quite different from that in other languages.*
+> *Go takes a different approach. For plain error handling, Go’s multi-value
+> returns make it easy to report an error without overloading the return value.
+> A canonical error type, coupled with Go’s other features, makes error handling
+> pleasant but quite different from that in other languages.*
 > 
-> *Go also has a couple of built-in functions to signal and recover from truly exceptional conditions. The recovery mechanism is executed only as part of a function’s state being torn down after an error, which is sufficient to handle catastrophe but requires no extra control structures and, when used well, can result in clean error-handling code.*
+> *Go also has a couple of built-in functions to signal and recover from truly
+> exceptional conditions. The recovery mechanism is executed only as part of a
+> function’s state being torn down after an error, which is sufficient to handle
+> catastrophe but requires no extra control structures and, when used well, can
+> result in clean error-handling code.*
 > 
-> *See the [Defer, Panic, and Recover](https://golang.org/doc/articles/defer_panic_recover.html) article for details.*
+> *See the [Defer, Panic, and
+> Recover](https://golang.org/doc/articles/defer_panic_recover.html) article for
+> details.*
 
-**Go** is a conservative language with a minimal set of features chosen primarily to avoid unnecessary *magic* in code, with all the maintenance problems that can bring. As you’ll find by the end of this chapter, exception handling is most decidedly *magical* if it’s to be elegant, potentially introducing several layers of source-code abstraction between the logic for performing an operation and the error recovery code which cleans up when it goes wrong.
+**Go** is a conservative language with a minimal set of features chosen
+primarily to avoid unnecessary *magic* in code, with all the maintenance
+problems that can bring. As you’ll find by the end of this chapter, exception
+handling is most decidedly *magical* if it’s to be elegant, potentially
+introducing several layers of source-code abstraction between the logic for
+performing an operation and the error recovery code which cleans up when it goes
+wrong.
 
 That’s not to say that exception-style mechanisms aren’t useful for certain
 tasks, and as I hope the following examples will demonstrate (as well as those
@@ -3207,8 +3619,105 @@ your purpose when the need arises.
 
 ***Example 1.62***
 
-     1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "fmt"10 "log"11 ."net"12 "os"13 )14 15 varHELLO_WORLD=[]byte("Hello World")16 varRSA_LABEL=[]byte("served")17 18 typeExceptioninterface{19 error20 }21 22 funcRaise(messagestring,parameters...interface{}){23 panic(fmt.Errorf(message,parameters...))24 }25 26 funcRescue(ffunc()){27 deferfunc(){28 ife:=recover();e!=nil{29 ife,ok:=e.(Exception);ok{30 log.Println("Exception:",e.Error())31 os.Exit(1)32 }else{33 panic(e)34 }35 }36 }()37 38 f()39 }40 41 funcmain(){42 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){43 varkeyrsa.PublicKey44 varresponse[]byte45 46 Rescue(func(){47 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{48 Raise("unable to decode wrapper: %v",c)49 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORL\
-    50 D,RSA_LABEL);e!=nil{51 Raise("unable to encrypt server response")52 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{53 Raise("unable to write response to client: %v",c)54 }55 })56 return57 })58 }59 60 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){61 Rescue(func(){62 e:=Launch(address,func(connection*UDPConn)(eerror){63 for{64 buffer:=make([]byte,1024)65 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{66 gofunc(c*UDPAddr,b[]byte){67 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{68 log.Println(n,"bytes written to",c)69 }70 }(client,buffer[:n])71 }else{72 log.Println(address,e.Error())73 }74 }75 return76 })77 78 ife!=nil{79 log.Fatalln(e.Error())80 }81 })82 }83 84 funcLaunch(addressstring,ffunc(*UDPConn)error)error{85 varconnection*UDPConn86 87 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{88 Raise("unable to resolve UDP address: %v",e)89 }elseifconnection,e=ListenUDP("udp",a);e!=nil{90 Raise("can't open socket for listening: %v",e.Error())91 }92 returnf(connection)93 }
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+    "os"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+type Exception interface {
+    error
+}
+
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
+
+func Rescue(f func()) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                log.Println("Exception:", e.Error())
+                os.Exit(1)
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        Rescue(func() {
+            if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+                log.Println("unable to decode wrapper:", c)
+            } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+                log.Println("unable to encrypt server response")
+            } else if n, e = connection.WriteToUDP(response, c); e != nil {
+                log.Println("unable to write response to client:", c)
+            }
+        })
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Rescue(func() {
+        e := Launch(address, func(connection *UDPConn) (e error) {
+            defer func() {
+                if x := recover(); x != nil {
+                    e = fmt.Errorf("Server failure %v", x)
+                }
+            }()
+            for {
+                buffer := make([]byte, 1024)
+                if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                    go func(c *UDPAddr, b []byte) {
+                        if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                            log.Println(n, "bytes written to", c)
+                        }
+                    }(client, buffer[:n])
+                } else {
+                    log.Println(address, e.Error())
+                }
+            }
+        })
+
+        if e != nil {
+            log.Fatalln(e.Error())
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn) error) error {
+    var connection *UDPConn
+
+    if a, e := ResolveUDPAddr("udp", address); e != nil {
+        Raise("unable to resolve UDP address: %v", e.Error())
+    } else if connection, e = ListenUDP("udp", a); e != nil {
+        Raise(fmt.Sprintf("can't open socket for listening: %v", e.Error()))
+    }
+
+    return f(connection)
+}
+```
 
 Our updated code looks surprisingly similar to that of **Example 1.60** with a
 set of type declarations replacing **LaunchError** with **Exception** and
@@ -3216,7 +3725,11 @@ set of type declarations replacing **LaunchError** with **Exception** and
 **panic** to propagate the **Exception** value back up the calling stack. We’ve
 also introduced **Rescue()**
 
-    22 funcRaise(messagestring,parameters...interface{}){23 panic(fmt.Errorf(message,parameters...))24 }
+```go
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
+```
 
 To intercept this **panic** we need a **defer** statement somewhere up the call
 stack which can handle it, otherwise it will bubble up through **main()** and
@@ -3225,19 +3738,34 @@ the program will terminate with a stack trace. In our implementation of
 with a type assertion and where these match the **Exception** interface the
 program will be terminated cleanly.
 
-    26 funcRescue(ffunc()){27 deferfunc(){28 ife:=recover();e!=nil{29 ife,ok:=e.(Exception);ok{30 log.Println("Exception:",e.Error())31 os.Exit(1)32 }else{33 panic(e)34 }35 }36 }()37 38 f()39 }
+```go
+func Rescue(f func()) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                log.Println("Exception:", e.Error())
+                os.Exit(1)
+            } else {
+                panic(e)
+            }
+        }
+    }()
 
-    $ go run 62.go &
-    [1] 53769
-    $ go run 62.go
-    2016/07/13 17:39:33 Exception: can't open socket for listening: listen udp :1025: bind:\
-     address already in use
-    exit status 1
-    $ go run 57_corrupt_key.go 
-    2016/07/13 17:39:37 Exception: unable to decode wrapper: 127.0.0.1:49325
-    exit status 1
-    ^Csignal: interrupt
-    [1]+  Exit 1                  go run 62.go
+    f()
+}
+```
+
+<pre>  <b>$ go run 62.go &</b>
+  [1] 53769
+  <b>$ go run 62.go</b>
+  2016/07/13 17:39:33 Exception: can't open socket for listening: listen udp :1025: bind:\
+   address already in use
+  exit status 1
+  <b>$ go run 57_corrupt_key.go</b> 
+  2016/07/13 17:39:37 Exception: unable to decode wrapper: 127.0.0.1:49325
+  exit status 1
+  ^Csignal: interrupt
+  [1]+  Exit 1                  go run 62.go</pre>
     
 
 The semantics here are subtly different to our previous example and any error in
@@ -3250,44 +3778,188 @@ respond according to the **Exception** value generated.
 
 ***[Example 1.63a] Rescue() function definition***
 
-    26func Rescue(f func(), r func(Exception)) {
-    27   defer func() {
-    28     if e := recover(); e != nil {
-    29       if e, ok := e.(Exception); ok {
-    30        r(e)
-    31       } else {
-    32         panic(e)
-    33       }
-    34     }
-    35   }()
-    3637   f()
-    38 }
-    
+```go
+func Rescue(f func(), r func(Exception)) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                r(e)
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+```    
 
 ***[Example 1.63b] Rescue() function in use***
 
-    67       Rescue(
-    68         func() {
-    69           buffer := make([]byte, 1024)
-    70           if n, client, e := connection.ReadFromUDP(buffer); e == nil {
-    71             go func(c *UDPAddr, b []byte) {
-    72               if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
-    73                 log.Println(n, "bytes written to", c)
-    74               }
-    75             }(client, buffer[:n])
-    76           } else {
-    77             Raise("%v: %v", address, e.Error())
-    78           }
-    79         },
-    80        func(e Exception) {
-    81          log.Println(e.Error())
-    82        },
-    83       )
-    
+```go
+Rescue(
+    func() {
+        buffer := make([]byte, 1024)
+        if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+            go func(c *UDPAddr, b []byte) {
+                if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                    log.Println(n, "bytes written to", c)
+                }
+            }(client, buffer[:n])
+        } else {
+            Raise("%v: %v", address, e.Error())
+        }
+    },
+    func(e Exception) {
+        log.Println("Exception:", e.Error())
+    },
+)                                                                                                           
+```
 
 ***[Example 1.63c] Launch() rewritten to use Rescue()***
 
-    67 funcLaunch(addressstring,ffunc(*UDPConn)error){68 varconnection*UDPConn69 70 Rescue(71 func(){72 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{73 Raise("unable to resolve UDP address: %v",e)74 }elseifconnection,e=ListenUDP("udp",a);e!=nil{75 Raise("can't open socket for listening: %v",e)76 }elseife=f(connection);e!=nil{77 Raise("connection error: %v",e)78 }79 },80 func(eException){81 log.Println(e.Error())82 os.Exit(1)83 },84 )85 }
+```go
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                Raise("unable to resolve UDP address: %v", e.Error())
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                Raise(fmt.Sprintf("can't open socket for listening: %v", e.Error()))
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            log.Println("Exception:", e.Error())
+            os.Exit(1)
+        },
+    )
+}
+```
+
+***Example 1.63***
+
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+    "os"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+type Exception interface {
+    error
+}
+
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
+
+func Rescue(f func(), r func(Exception)) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                r(e)
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        Rescue(
+            func() {
+                if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+                    Raise("unable to decode wrapper: %v", c)
+                } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+                    Raise("unable to encrypt server response")
+                } else if n, e = connection.WriteToUDP(response, c); e != nil {
+                    Raise("unable to write response to client: %v", c)
+                }
+            },
+            func(e Exception) {
+                log.Println("Exception", e.Error())
+            },
+        )
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                //e = fmt.Errorf("Server failure %v", x)
+                log.Println("Server failure %v", x)
+            }
+        }()
+
+        for {
+            Rescue(
+                func() {
+                    buffer := make([]byte, 1024)
+                    if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                        go func(c *UDPAddr, b []byte) {
+                            if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                                log.Println(n, "bytes written to", c)
+                            }
+                        }(client, buffer[:n])
+                    } else {
+                        Raise("%v: %v", address, e.Error())
+                    }
+                },
+                func(e Exception) {
+                    log.Println("Exception:", e.Error())
+                },
+            )
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                Raise("unable to resolve UDP address: %v", e.Error())
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                Raise(fmt.Sprintf("can't open socket for listening: %v", e.Error()))
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            log.Println("Exception:", e.Error())
+            os.Exit(1)
+        },
+    )
+}
+```
 
 This now gives us a primitive *domain specific language* for exceptions using
 **Rescue()** blocks to guard behaviour and **Raise()** to trigger them.
