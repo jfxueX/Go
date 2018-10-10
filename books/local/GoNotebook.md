@@ -22,57 +22,213 @@
 
 ## Preface
 
-It was a cold, dark night at the tail-end of 1980 and I was attending an open evening for my local Grammar School when I first met a programmable computer, one of a series of steel-framed rack-mount monstrosities with trailing ribbon cables and large clunky floppy drives that would have looked equally at home in a Soviet space capsule or a Quatermass-era germ warfare lab. These were clustered in a long, narrow, beige room lit by anaemic fluorescent tubes and dominated by an ageing teletype machine, in the midst of one of those prefab 1960s science blocks so popular with the British educational establishment.
+It was a cold, dark night at the tail-end of 1980 and I was attending an open
+evening for my local Grammar School when I first met a programmable computer,
+one of a series of steel-framed rack-mount monstrosities with trailing ribbon
+cables and large clunky floppy drives that would have looked equally at home in
+a Soviet space capsule or a Quatermass-era germ warfare lab. These were
+clustered in a long, narrow, beige room lit by anaemic fluorescent tubes and
+dominated by an ageing teletype machine, in the midst of one of those prefab
+1960s science blocks so popular with the British educational establishment.
 
-This certainly wasn’t the first time I’d seen a computer. That honour probably belongs to “Tomorrow’s World”, the BBC’s flagship futurology show. My first clear memory though is from a couple of years earlier when I found a book on technology in my local library with photos of the LEO 1, describing how these electronic machines could ‘think’ and ‘solve problems’. This was a common theme of the 1970s with sentient computers on TV shows like “Blake’s 7” and in movies such as “Futureworld” and “Logan’s Run”.
+This certainly wasn’t the first time I’d seen a computer. That honour probably
+belongs to “Tomorrow’s World”, the BBC’s flagship futurology show. My first
+clear memory though is from a couple of years earlier when I found a book on
+technology in my local library with photos of the LEO 1, describing how these
+electronic machines could ‘think’ and ‘solve problems’. This was a common theme
+of the 1970s with sentient computers on TV shows like “Blake’s 7” and in movies
+such as “Futureworld” and “Logan’s Run”.
 
-Experience has made me all too painfully aware that it’s actually programmers who do the thinking and problem solving but to the unsullied mind of an eight year old proto-boffin the idea that a machine could ‘think’ was fascinating - and as inscrutable as the collection of disassembled transister radios and alarm clocks cluttering my bedroom draws. A few months later a family friend with an interest in technology gave me a current issue of Personal Computer World which made me realise that computers were something real people might one day play with at home, and not just the heroes of my favourite sci-fi shows. From then on anything I could find which mentioned computers was read cover to cover until the pages were dog-eared and yellowed.
+Experience has made me all too painfully aware that it’s actually programmers
+who do the thinking and problem solving but to the unsullied mind of an eight
+year old proto-boffin the idea that a machine could ‘think’ was fascinating -
+and as inscrutable as the collection of disassembled transister radios and alarm
+clocks cluttering my bedroom draws. A few months later a family friend with an
+interest in technology gave me a current issue of Personal Computer World which
+made me realise that computers were something real people might one day play
+with at home, and not just the heroes of my favourite sci-fi shows. From then on
+anything I could find which mentioned computers was read cover to cover until
+the pages were dog-eared and yellowed.
 
 However it was that night in 1980 which set the course of my life.
 
-The following year I passed my 11+ - the only time incidentally that I’ve ever aced an exam - and joined the first year intake. When two years later I received my first computer for Christmas I’d taught myself rudimentary spaghetti-code programming in out-of-hours sessions on Research Machines 380Zs, typing in program listings from home micro magazines and hobbyist-oriented books on BASIC, then hacking at them until they mostly worked.
+The following year I passed my 11+ - the only time incidentally that I’ve ever
+aced an exam - and joined the first year intake. When two years later I received
+my first computer for Christmas I’d taught myself rudimentary spaghetti-code
+programming in out-of-hours sessions on Research Machines 380Zs, typing in
+program listings from home micro magazines and hobbyist-oriented books on BASIC,
+then hacking at them until they mostly worked.
 
-When I was dependent on the school machines I was lucky if I’d get two hours of keyboard time in a week, and that competed with my growing interest in polydice and pen-and-paper RPGs. Having a computer of my own changed all that, the slim off-white Oric-1 plugged into an old disused black-and-white television in our spare room, and my relationship with code became much more nuanced, programming emerging as the steady back-beat to my teenage life, something to do when not buried in homework, hanging out with friends or working on my Elite rating. By the time I moved on to polytechnic I’d become a reasonably competent hacker, skilled in BASIC and latterly obsessed with FORTH. I’d even dabbled a little in Z80 assembler which back then was seen as a fairly natural thing for a kid into computers to mess with.
+When I was dependent on the school machines I was lucky if I’d get two hours of
+keyboard time in a week, and that competed with my growing interest in polydice
+and pen-and-paper RPGs. Having a computer of my own changed all that, the slim
+off-white Oric-1 plugged into an old disused black-and-white television in our
+spare room, and my relationship with code became much more nuanced, programming
+emerging as the steady back-beat to my teenage life, something to do when not
+buried in homework, hanging out with friends or working on my Elite rating. By
+the time I moved on to polytechnic I’d become a reasonably competent hacker,
+skilled in BASIC and latterly obsessed with FORTH. I’d even dabbled a little in
+Z80 assembler which back then was seen as a fairly natural thing for a kid into
+computers to mess with.
 
-You’d probably expect me to have gone on to a Comp Sci degree with my love for coding but from what I could see that didn’t seem to be a big part of the curriculum, and anyway Comp Sci already had a reputation for social death. Really, who doesn’t want to be invited to parties? Me apparently as instead I spent the next four years blagging my way through an Applied Physics degree during daylight hours and sitting up half the night with hacker friends, writing stupid little programs in odd languages and hanging out on machines in distant places - much to the despair of my long-suffering tutors who thought I should be putting the same effort into numeric methods, FORTRAN and Modula-2. This was the pre-Web era when words like “spam” and “worm” were first being coined and most of the fun to be had online involved MUDs, telnet, X.25 pads, pdsoft archives, sneaker-net warez, and my good old friend JANET.
+You’d probably expect me to have gone on to a Comp Sci degree with my love for
+coding but from what I could see that didn’t seem to be a big part of the
+curriculum, and anyway Comp Sci already had a reputation for social death.
+Really, who doesn’t want to be invited to parties? Me apparently as instead I
+spent the next four years blagging my way through an Applied Physics degree
+during daylight hours and sitting up half the night with hacker friends, writing
+stupid little programs in odd languages and hanging out on machines in distant
+places - much to the despair of my long-suffering tutors who thought I should be
+putting the same effort into numeric methods, FORTRAN and Modula-2. This was the
+pre-Web era when words like “spam” and “worm” were first being coined and most
+of the fun to be had online involved MUDs, telnet, X.25 pads, pdsoft archives,
+sneaker-net warez, and my good old friend JANET.
 
-I owned the obligatory mirror shades and a walkman along with an increasingly battered copy of *Neuromancer* and a “super-slim” laptop with lead-acid battery, was a regular under pseudonyms on *alt.cyberpunk* and *alt.gothic*, had an enviable arsenal of *1337* VMS hacks and various issues of *2600* and *Mondo 2000*. As I imagined a career building railguns for the *Strategic Defence Initiative* and autonomous robots I styled myself the heroine of *Timbuk3*’s the *The Future’s So Bright, I Gotta Wear Shades*, a poster-girl surfer of *The Third Wave*. Kelly le Brock would play me in the movie…
+I owned the obligatory mirror shades and a walkman along with an increasingly
+battered copy of *Neuromancer* and a “super-slim” laptop with lead-acid battery,
+was a regular under pseudonyms on *alt.cyberpunk* and *alt.gothic*, had an
+enviable arsenal of *1337* VMS hacks and various issues of *2600* and *Mondo
+2000*. As I imagined a career building railguns for the *Strategic Defence
+Initiative* and autonomous robots I styled myself the heroine of *Timbuk3*’s the
+*The Future’s So Bright, I Gotta Wear Shades*, a poster-girl surfer of *The
+Third Wave*. Kelly le Brock would play me in the movie…
 
-Don’t judge me or my generation too harshly: the late 80s were a strangely naive time as the looming shadows of the Cold War receded and *four friends electric* had yet to acquire the more sinister overtones of the mass surveillance society we live in today. It was still possible to dream of building artificial humans without immediately assuming their purpose would be violence and oppression, and Michael J Fox could rescue a multinational armed with an IBM PC and an MBA. We had C dammit. And soon we’d have Java - at least until *The Enterprise* ruined it.
+Don’t judge me or my generation too harshly: the late 80s were a strangely naive
+time as the looming shadows of the Cold War receded and *four friends electric*
+had yet to acquire the more sinister overtones of the mass surveillance society
+we live in today. It was still possible to dream of building artificial humans
+without immediately assuming their purpose would be violence and oppression, and
+Michael J Fox could rescue a multinational armed with an IBM PC and an MBA. We
+had C dammit. And soon we’d have Java - at least until *The Enterprise* ruined
+it.
 
-This book is my homage to those hacker years when PCs were still *exciting* and the anarchic culture which throve in computer labs at certain campuses across the UK and US, the Trans-Atlantic distance already dissolving under the addictive social influence of USENET and MUDs. As such it’s not a professional book in any usual sense of the term, although I certainly hope the material within will be of interest to professionals and useful to them in solving real world problems using Go. As such we won’t be concerning ourselves with idiomatic style or community standards, both of which are already treated well in other publications.
+This book is my homage to those hacker years when PCs were still *exciting* and
+the anarchic culture which throve in computer labs at certain campuses across
+the UK and US, the Trans-Atlantic distance already dissolving under the
+addictive social influence of USENET and MUDs. As such it’s not a professional
+book in any usual sense of the term, although I certainly hope the material
+within will be of interest to professionals and useful to them in solving real
+world problems using Go. As such we won’t be concerning ourselves with idiomatic
+style or community standards, both of which are already treated well in other
+publications.
 
-To reassure the more sober amongst you that this book does indeed have some intrinsic technical merit, I should probably mention that much of the material is drawn from a series of presentations and workshops I’ve delivered at well-respected software development conferences starting in 2009 and continuing to the present day.
+To reassure the more sober amongst you that this book does indeed have some
+intrinsic technical merit, I should probably mention that much of the material
+is drawn from a series of presentations and workshops I’ve delivered at
+well-respected software development conferences starting in 2009 and continuing
+to the present day.
 
-The main advantage of reworking this material in book format is that I get to explore things at a more leisurely pace than with a live audience, and I hope in doing so to also recapture some of the anarchic can-do feel of those early books and magazine articles which first inspired me as a teenager. So what I’m really looking to create here is the kind of book about programming in Go that if my untutored younger self had found a copy, it would have kept her enthralled for months or even years. In some sense it’s therefore an attempt at a “write your own adventure” programming course - inspired perhaps by that marvellous book in *Neal Stephenson’s* [The Diamond Age](https://en.wikipedia.org/wiki/The_Diamond_Age) - which takes it for granted that even the casual reader can learn the full measure of Go without any other help.
+The main advantage of reworking this material in book format is that I get to
+explore things at a more leisurely pace than with a live audience, and I hope in
+doing so to also recapture some of the anarchic can-do feel of those early books
+and magazine articles which first inspired me as a teenager. So what I’m really
+looking to create here is the kind of book about programming in Go that if my
+untutored younger self had found a copy, it would have kept her enthralled for
+months or even years. In some sense it’s therefore an attempt at a “write your
+own adventure” programming course - inspired perhaps by that marvellous book in
+*Neal Stephenson’s* [The Diamond
+Age](https://en.wikipedia.org/wiki/The_Diamond_Age) - which takes it for granted
+that even the casual reader can learn the full measure of Go without any other
+help.
 
-I mention this because there are many clever, talented people in this world who’d really enjoy programming if only they thought they were capable. But somehow they’ve been convinced that programming is difficult. Well yes, it often is. In the same way that writing a story or building with LEGO bricks can be difficult. But not for the bogus reasons propagated in media depictions of typical programmers!
+I mention this because there are many clever, talented people in this world
+who’d really enjoy programming if only they thought they were capable. But
+somehow they’ve been convinced that programming is difficult. Well yes, it often
+is. In the same way that writing a story or building with LEGO bricks can be
+difficult. But not for the bogus reasons propagated in media depictions of
+typical programmers!
 
-You don’t need to be good at maths (I flunked calculus repeatedly), a straight-A student (my report card perennially read “could do better”) or look anything like a stereotypical nerd (I’m an ex-goth turning yummy mummy). What matters is being interested in making things, and having the perseverence to keep going when things aren’t quite working how you imagine. Just like any other creative endeavour - whether that’s fixing up your house, icing a cake, repairing an engine, or writing a novel.
+You don’t need to be good at maths (I flunked calculus repeatedly), a straight-A
+student (my report card perennially read “could do better”) or look anything
+like a stereotypical nerd (I’m an ex-goth turning yummy mummy). What matters is
+being interested in making things, and having the perseverence to keep going
+when things aren’t quite working how you imagine. Just like any other creative
+endeavour - whether that’s fixing up your house, icing a cake, repairing an
+engine, or writing a novel.
 
-So even if you’re looking at this book somewhat nervously after thumbing through the sample chapter, and worrying that perhaps you’re not the kind of person it’s aimed at, please do yourself the favour of setting aside all your reservations and at least playing with Go for a few days. It may feel tough for a few days but trust me, you’re most decidedly who I’m writing for, even if I’ve been too close to the machine for so many years that I haven’t much clue **how** to write for you. I guarantee that if you’re willing to invest some time in playing with my code and reading around the various topics I introduce that you’ll get at least as much from this book as those with CS degrees - indeed possible even as much as you’d get from studying a CS degree in the first place.
+So even if you’re looking at this book somewhat nervously after thumbing through
+the sample chapter, and worrying that perhaps you’re not the kind of person it’s
+aimed at, please do yourself the favour of setting aside all your reservations
+and at least playing with Go for a few days. It may feel tough for a few days
+but trust me, you’re most decidedly who I’m writing for, even if I’ve been too
+close to the machine for so many years that I haven’t much clue **how** to write
+for you. I guarantee that if you’re willing to invest some time in playing with
+    my code and reading around the various topics I introduce that you’ll get at
+    least as much from this book as those with CS degrees - indeed possible even
+    as much as you’d get from studying a CS degree in the first place.
 
-Why have I decided to focus this book on Go, and not one of the conventionally recognised beginner-friendly languages? That’s a good question. To start with I refute the proposition that Go is a difficult language. It’s one of the smallest languages I know of for general-purpose programming and definitely the smallest in the C-like family of systems languages. Despite that it features a number of powerful concepts like *first-class functions*, *concurrency*, and *type inference* which make coding a pleasure. So using Go to teach programming seems like a pretty reasonable choice.
+Why have I decided to focus this book on Go, and not one of the conventionally
+recognised beginner-friendly languages? That’s a good question. To start with I
+refute the proposition that Go is a difficult language. It’s one of the smallest
+languages I know of for general-purpose programming and definitely the smallest
+in the C-like family of systems languages. Despite that it features a number of
+powerful concepts like *first-class functions*, *concurrency*, and *type
+inference* which make coding a pleasure. So using Go to teach programming seems
+like a pretty reasonable choice.
 
 But I’ve also made this decision for personal reasons.
 
-For years I was best known for my talks on Ruby, a dynamic language which is both a great joy to work with and also commercially much in demand. If I were writing a conventional programming book to address an established audience then that’s where I’d be most comfortable claiming expertise, but frankly there are enough good books about Ruby already (and bad ones for that matter) so I’ve nothing to add to that genre. And whilst I love Ruby to bits, that affection is tempered by the culture which has grown up around it as its become commercially successful. Design patterns; test-driven development; SCRUM; Kanban boards; continuous deployment; *best* practices. These are all useful things to know if you’re working in a large team at a major enterprise with all that entails, but that’s a different passion to the one I feel. And frankly that’s not how I believe new programmers get the bug for coding, any more than mechanics get it from reading service manuals and measuring tolerances.
+For years I was best known for my talks on Ruby, a dynamic language which is
+both a great joy to work with and also commercially much in demand. If I were
+writing a conventional programming book to address an established audience then
+that’s where I’d be most comfortable claiming expertise, but frankly there are
+enough good books about Ruby already (and bad ones for that matter) so I’ve
+nothing to add to that genre. And whilst I love Ruby to bits, that affection is
+tempered by the culture which has grown up around it as its become commercially
+successful. Design patterns; test-driven development; SCRUM; Kanban boards;
+continuous deployment; *best* practices. These are all useful things to know if
+you’re working in a large team at a major enterprise with all that entails, but
+that’s a different passion to the one I feel. And frankly that’s not how I
+believe new programmers get the bug for coding, any more than mechanics get it
+from reading service manuals and measuring tolerances.
 
-Go has been an immense source of untarnished joy since I first encoutered it, fresh off a flight from Poland in November 2009. At the time it was still a little ropey around the edges with makefiles and all kinds of odd limitations, but it was already the easiest way to write efficient concurrent programs in a C-like language and I admit I fell immediately in love.
+Go has been an immense source of untarnished joy since I first encoutered it,
+fresh off a flight from Poland in November 2009. At the time it was still a
+little ropey around the edges with makefiles and all kinds of odd limitations,
+but it was already the easiest way to write efficient concurrent programs in a
+C-like language and I admit I fell immediately in love.
 
-It’s that love that’s sustained me through more than half a decade of Go adventures and that’s led me to talk about it publicly at every opportunity, ligging my way onto the bill of some of the most prestigious software development conferences in Europe and America, and ultimately leading me to write this book.
+It’s that love that’s sustained me through more than half a decade of Go
+adventures and that’s led me to talk about it publicly at every opportunity,
+ligging my way onto the bill of some of the most prestigious software
+development conferences in Europe and America, and ultimately leading me to
+write this book.
 
-For this reason I’ve started with a large body of example code drawn from those conference sessions and very little text beyond this preface. In the coming months and years I’ll be adding additional code organically as the opportunity arises or in response to readers’ queries. There isn’t a publication scehdule, and I do my own editing.
+For this reason I’ve started with a large body of example code drawn from those
+conference sessions and very little text beyond this preface. In the coming
+months and years I’ll be adding additional code organically as the opportunity
+arises or in response to readers’ queries. There isn’t a publication scehdule,
+and I do my own editing.
 
-This dear reader is where you come in. I want this book to be interesting and quirky and packed with useful content so please let me know if there’s anything which doesn’t make sense to you, or offer any ideas you have for new directions. I can’t promise that every new idea will be used in quite the way you envisage but I’ll do my best to turn each into interesting code examples so we can all learn more about Go. And trust me, I’ll be learning just as much as you will, because programming isn’t one of those subjects where we ingest a fixed set of facts and then we’re done.
+This dear reader is where you come in. I want this book to be interesting and
+quirky and packed with useful content so please let me know if there’s anything
+which doesn’t make sense to you, or offer any ideas you have for new directions.
+I can’t promise that every new idea will be used in quite the way you envisage
+but I’ll do my best to turn each into interesting code examples so we can all
+learn more about Go. And trust me, I’ll be learning just as much as you will,
+because programming isn’t one of those subjects where we ingest a fixed set of
+facts and then we’re done.
 
-Sometimes however there’ll be long gaps where very little gets added because I’ve taken on a commercial project with all that entails: like most people in their mid-40s I have a family to feed, a mortgage to pay, and a never-ending technical library to fund. I hope you’ll bear with me when this stalls happens.
+Sometimes however there’ll be long gaps where very little gets added because
+I’ve taken on a commercial project with all that entails: like most people in
+their mid-40s I have a family to feed, a mortgage to pay, and a never-ending
+technical library to fund. I hope you’ll bear with me when this stalls happens.
 
-For those on tight budgets or who fancy an ironman challenge, I’ve designed the free tutorial chapter *Hello World* so that it should be sufficient to learn Go without any outside assistance beyond the online documentation.
+For those on tight budgets or who fancy an ironman challenge, I’ve designed the
+free tutorial chapter *Hello World* so that it should be sufficient to learn Go
+without any outside assistance beyond the online documentation.
 
-All source code is of course available [online](http://github.com/feyeleanor/GoNotebook) though I highly recommend manually typing it in as you work your way through the book. It’s easy to forget in an age of source control and GUI tools that coding is first and foremost a text-based process and there’s value in developing muscle memory whenever we get the chance. Code is also literature of a sort - a strange amalgum of poetry and contract - so there’s also great practical benefit in learning to read code. There are no short cuts to the insight that provides.
+All source code is of course available
+[online](http://github.com/feyeleanor/GoNotebook) though I highly recommend
+manually typing it in as you work your way through the book. It’s easy to forget
+in an age of source control and GUI tools that coding is first and foremost a
+text-based process and there’s value in developing muscle memory whenever we get
+the chance. Code is also literature of a sort - a strange amalgum of poetry and
+contract - so there’s also great practical benefit in learning to read code.
+There are no short cuts to the insight that provides.
 
-Now give me your hand and together lets enjoy some amazing adventures in the land of Go.
+Now give me your hand and together lets enjoy some amazing adventures in the
+land of Go.
 
 Ellie
 
@@ -80,10 +236,14 @@ London, 2016
 
 ## Hello World
 
-It’s a tradition in programming books to start with a canonical “Hello World” example and whilst I’ve never felt the usual presentation is particularly enlightening, I know we can spice things up a little to provide useful insights into how we write Go programs.
+It’s a tradition in programming books to start with a canonical “Hello World”
+example and whilst I’ve never felt the usual presentation is particularly
+enlightening, I know we can spice things up a little to provide useful insights
+into how we write Go programs.
 
 Let’s begin with the simplest Go program that will output text to the console.
-Example 1.1
+
+***Example 1.1***
 
 ```go
 package main 
@@ -93,22 +253,26 @@ func main(){
 }
 ```
 
-**The first thing to note** is that *every Go source file belongs to a package*, with the **main** package defining an executable program whilst all other packages represent libraries.
+**The first thing to note** is that *every Go source file belongs to a package*,
+with the **main** package defining an executable program whilst all other
+packages represent libraries.
 
 ```go
 package main
 ```
 
-For the **main** package to be executable it needs to include a **main()** function, which will be called following program initialisation.
+For the **main** package to be executable it needs to include a **main()**
+function, which will be called following program initialisation.
 
 ```go
 func main() {
 ```        
 
-Notice that unlike C/C++ the **main()** function neither takes parameters nor has a return value. 
-Whenever a program should interact with command-line parameters or return a value on termination 
-these tasks are handled using functions in the standard package library. 
-We’ll examine command-line parameters when developing **Echo**.
+Notice that unlike C/C++ the **main()** function neither takes parameters nor
+has a return value. Whenever a program should interact with command-line
+parameters or return a value on termination these tasks are handled using
+functions in the standard package library.  We’ll examine command-line
+parameters when developing **Echo**.
 
 Finally let’s look at our payload.
 
@@ -116,9 +280,13 @@ Finally let’s look at our payload.
 println("hello world")
 ```
 
-The **println()** function is one of a small set of builtin generic functions defined in the language specification and which in this case is usually used to assist debugging, whilst **“hello world”** is a value comprising an immutable string of characters in utf-8 format.
+The **println()** function is one of a small set of builtin generic functions
+defined in the language specification and which in this case is usually used to
+assist debugging, whilst **“hello world”** is a value comprising an immutable
+string of characters in utf-8 format.
 
-We can now run our program from the command-line (Terminal on MacOS X or Command Prompt on Windows) with the command
+We can now run our program from the command-line (Terminal on MacOS X or Command
+Prompt on Windows) with the command
 
 <pre>  <b>$ go run 01.go</b>
   hello world</pre>
@@ -126,9 +294,18 @@ We can now run our program from the command-line (Terminal on MacOS X or Command
 
 ## Packages
 
-Now we’re going to apply a technique which I plan to use throughout this book by taking this simple task and developing increasingly complex ways of expressing it in Go. This runs counter to how experienced programmers usually develop code but I feel this makes for a very effective way to introduce features of Go in rapid succession and have used it with some success during presentations and workshops.
+Now we’re going to apply a technique which I plan to use throughout this book by
+taking this simple task and developing increasingly complex ways of expressing
+it in Go. This runs counter to how experienced programmers usually develop code
+but I feel this makes for a very effective way to introduce features of Go in
+rapid succession and have used it with some success during presentations and
+workshops.
 
-There are a number of ways we can artificially complicate our **hello world** example and by the time we’ve finished I hope to have demonstrated all the features you can expect to see in the global scope of a Go package. Our first change is to remove the builtin **println()** function and replace it with something intended for production code.
+There are a number of ways we can artificially complicate our **hello world**
+example and by the time we’ve finished I hope to have demonstrated all the
+features you can expect to see in the global scope of a Go package. Our first
+change is to remove the builtin **println()** function and replace it with
+something intended for production code.
 
 ***Example 1.2***
 
@@ -141,33 +318,46 @@ funcmain(){
 }
 ```
 
-The structure of our program remains essentially the same, but we’ve introduced two new features.
+The structure of our program remains essentially the same, but we’ve introduced
+two new features.
 
 ```go
 import "fmt"
 ```
 
-The **import** statement is a reference to the fmt package, one of many packages defined in Go’s standard runtime library. A **package** is a library which provides a group of related functions and data types we can use in our programs. In this case **fmt** provides functions and types associated with formatting text for printing and displaying it on a console or in the command shell.
+The **import** statement is a reference to the fmt package, one of many packages
+defined in Go’s standard runtime library. A **package** is a library which
+provides a group of related functions and data types we can use in our programs.
+In this case **fmt** provides functions and types associated with formatting
+text for printing and displaying it on a console or in the command shell.
 
 ```go
 fmt.Println("hello world")
 ```
 
-One of the functions provided by **fmt** is **Println()** which takes one or more parameters and prints them to the console with a carriage return appended. Go assumes that any identifier starting with a capital letter is part of the public interface of a package whilst identifiers starting with any other letter or symbol are private to the package.
+One of the functions provided by **fmt** is **Println()** which takes one or
+more parameters and prints them to the console with a carriage return appended.
+Go assumes that any identifier starting with a capital letter is part of the
+public interface of a package whilst identifiers starting with any other letter
+or symbol are private to the package.
 
-In production code we might choose to simplify matters a little by importing the **fmt** namespace into the namespace of the current source file, which requires we change our import statement.
+In production code we might choose to simplify matters a little by importing the
+**fmt** namespace into the namespace of the current source file, which requires
+we change our import statement.
 
 ```go
 import ."fmt"
 ```
 
-And this consequently allows the explicit package reference to be removed from the **Println()** function call.
+And this consequently allows the explicit package reference to be removed from
+the **Println()** function call.
 
 ```go
 Println("hello world")
 ```
 
-In this case we notice little gain however in later examples we’ll use this feature extensively to keep our code legible.
+In this case we notice little gain however in later examples we’ll use this
+feature extensively to keep our code legible.
 
 ***Example 1.3***
 
@@ -180,11 +370,15 @@ func main(){
 }
 ```
 
-One aspect of imports that we’ve not yet looked at is Go’s builtin support for code hosted on a variety of popular social code-sharing sites such as GitHub and Google Code. Don’t worry, we’ll get to this in later chapters.
+One aspect of imports that we’ve not yet looked at is Go’s builtin support for
+code hosted on a variety of popular social code-sharing sites such as GitHub and
+Google Code. Don’t worry, we’ll get to this in later chapters.
 
 ## Constants
 
-A significant proportion of Go codebases feature identifiers whose values will not change during the runtime execution of a program and our **hello world** example is no different, so we’re going to factor these out.
+A significant proportion of Go codebases feature identifiers whose values will
+not change during the runtime execution of a program and our **hello world**
+example is no different, so we’re going to factor these out.
 
 ***Example 1.4***
 
@@ -200,11 +394,18 @@ func main() {
 }
 ```
 
-Here we’ve introduced two constants: **Hello** and **world**. Each identifier is assigned its value during compilation, and that value cannot be changed at runtime. As the identifier **Hello** starts with a capital letter the associated constant is visible to other packages - though this isn’t relevant in the context of a **main** package - whilst the identifier **world** starts with a lowercase letter and is only accessible within the **main** package.
+Here we’ve introduced two constants: **Hello** and **world**. Each identifier is
+assigned its value during compilation, and that value cannot be changed at
+runtime. As the identifier **Hello** starts with a capital letter the associated
+constant is visible to other packages - though this isn’t relevant in the
+context of a **main** package - whilst the identifier **world** starts with a
+lowercase letter and is only accessible within the **main** package.
 
-We don’t need to specify the type of these constants as the Go compiler identifies them both as strings.
+We don’t need to specify the type of these constants as the Go compiler
+identifies them both as strings.
 
-Another neat trick in Go’s armoury is multiple assignment so let’s see how this looks.
+Another neat trick in Go’s armoury is multiple assignment so let’s see how this
+looks.
 
 ***Example 1.5***
 
@@ -219,7 +420,8 @@ func main() {
 }
 ``` 
 
-This is compact, but I personally find it too cluttered and prefer the more general form.
+This is compact, but I personally find it too cluttered and prefer the more
+general form.
 
 ***Example 1.6***
 
@@ -237,15 +439,25 @@ func main() {
 }
 ```
 
-Because the **Println()** function is **variadic** (i.e. can take a varible number of parameters) we can pass it both constants and it will print them on the same line, separate by whitespace. **fmt** also provides the **Printf()** function which gives precise control over how its parameters are displayed using a format specifier which will be familiar to seasoned C/C++ programmers.
+Because the **Println()** function is **variadic** (i.e. can take a varible
+number of parameters) we can pass it both constants and it will print them on
+the same line, separate by whitespace. **fmt** also provides the **Printf()**
+function which gives precise control over how its parameters are displayed using
+a format specifier which will be familiar to seasoned C/C++ programmers.
 
 ```go
 Printf("%v %v\n", Hello, world)
 ```
 
-**fmt** defines a number of **%** replacement terms which can be used to determine how a particular parameter will be displayed. Of these **%v** is the most generally used as it allows the formatting to be specified by the type of the parameter. We’ll discuss this in depth when we look at user-defined types, but in this case it will simply replace a **%v** with the corresponding string.
+**fmt** defines a number of **%** replacement terms which can be used to
+determine how a particular parameter will be displayed. Of these **%v** is the
+most generally used as it allows the formatting to be specified by the type of
+the parameter. We’ll discuss this in depth when we look at user-defined types,
+but in this case it will simply replace a **%v** with the corresponding string.
 
-When parsing strings the Go compiler recognises a number of **escape sequences** which are available to mark tabs, new lines and specific unicode characters. In this case we use **\n** to mark a new line.
+When parsing strings the Go compiler recognises a number of **escape sequences**
+which are available to mark tabs, new lines and specific unicode characters. In
+this case we use **\n** to mark a new line.
 
 ***Example 1.7***
 
@@ -265,7 +477,13 @@ func main() {
 
 ## Variables
 
-Constants are useful for referring to values which shouldn’t change at runtime, however most of the time when we’re referencing values in an imperative language like Go we need the freedom to change these values. We associate values which will change with variables. What follows is a simple variation of our **Hello World** program which allows the value of **world** to be changed at runtime by creating a new value and assigning it to the **world** variable.
+Constants are useful for referring to values which shouldn’t change at runtime,
+however most of the time when we’re referencing values in an imperative language
+like Go we need the freedom to change these values. We associate values which
+will change with variables. What follows is a simple variation of our **Hello
+World** program which allows the value of **world** to be changed at runtime by
+creating a new value and assigning it to the **world** variable.
+
 ***Example 1.8***
 
 ```go
@@ -281,7 +499,10 @@ func main(){
 }
 ```
 
-There are two important changes here. Firstly we’ve introduced syntax for declaring a variable and assigning a value to it. Once more Go’s ability to infer type allows us assign a **string** value to the variable **world** without explicitly specifying the type.
+There are two important changes here. Firstly we’ve introduced syntax for
+declaring a variable and assigning a value to it. Once more Go’s ability to
+infer type allows us assign a **string** value to the variable **world** without
+explicitly specifying the type.
 
 ```go
 var world = "world"
@@ -293,15 +514,26 @@ However if we wish to be more explicit we can be.
 var world string = "world"
 ```
 
-Having defined **world** as a variable in the global scope we can modify its value in **main()**, and in this case we choose to append an exclamation mark. Strings in Go are immutable values so following the assignment **world** will reference a new value.
+Having defined **world** as a variable in the global scope we can modify its
+value in **main()**, and in this case we choose to append an exclamation mark.
+Strings in Go are immutable values so following the assignment **world** will
+reference a new value.
 
 ```go
 world += "!"
 ```
 
-To add some extra interest I’ve chosen to use an **augmented assignment** operator. These are a syntactic convenience popular in many languages which allow the value contained in a variable to be modified and the resulting value then assigned to the same variable.
+To add some extra interest I’ve chosen to use an **augmented assignment**
+operator. These are a syntactic convenience popular in many languages which
+allow the value contained in a variable to be modified and the resulting value
+then assigned to the same variable.
 
-I don’t intend to expend much effort discussing scope in Go. The point of this book is to experiment and learn by playing with code, referring to the [comprehensive language specification](http://http://golang.org/ref/spec) available from Google when you need to know the technicalities of a given point. However to illustrate the difference between **global** and **local** scope we’ll modify this program further.
+I don’t intend to expend much effort discussing scope in Go. The point of this
+book is to experiment and learn by playing with code, referring to the
+[comprehensive language specification](http://http://golang.org/ref/spec)
+available from Google when you need to know the technicalities of a given point.
+However to illustrate the difference between **global** and **local** scope
+we’ll modify this program further.
 
 ***Example 1.9***
 
@@ -318,9 +550,16 @@ func main() {
 }
 ```
 
-Here we’ve introduced a new *local* variable **world** within **main()** which takes its value from an operation concatenating the value of the *global* **world** variable with an exclamation mark. Within **main()** any subsequent reference to **world** will always access the *local* version of the variable without affecting the *global***world** variable. The is known as **shadowing**.
+Here we’ve introduced a new *local* variable **world** within **main()** which
+takes its value from an operation concatenating the value of the *global*
+**world** variable with an exclamation mark. Within **main()** any subsequent
+reference to **world** will always access the *local* version of the variable
+without affecting the *global***world** variable. The is known as **shadowing**.
 
-The **:=** operator marks an assignment declaration in which the type of the expression is inferred from the type of the value being assigned. If we chose to declare the local variable separately from the assignment we’d have to give it a different name to avoid a compilation error.
+The **:=** operator marks an assignment declaration in which the type of the
+expression is inferred from the type of the value being assigned. If we chose to
+declare the local variable separately from the assignment we’d have to give it a
+different name to avoid a compilation error.
 
 ***Example 1.10***
 
@@ -338,13 +577,22 @@ func main() {
 }
 ```
 
-Another thing to note in this example is that when *w* is declared it’s also initialised to the zero value, which in the case of *string* happens to be *”“*. This is a *string* containing no characters.
+Another thing to note in this example is that when *w* is declared it’s also
+initialised to the zero value, which in the case of *string* happens to be *”“*.
+This is a *string* containing no characters.
 
-In fact all variables in Go are initialised to the zero value for their type when they’re declared and this eliminates an entire category of initialisation bugs which could otherwise be difficult to identify.
+In fact all variables in Go are initialised to the zero value for their type
+when they’re declared and this eliminates an entire category of initialisation
+bugs which could otherwise be difficult to identify.
 
 ## Functions
 
-Having looked at how to reference values in Go and how to use the **Println()** function to display them, it’s only natural to wonder how we can implement our own functions. Obviously we’ve already implemented **main()** which hints at what’s involved, but **main()** is something of a special case as it exist to allow a Go program to execute and it neither requires any parameters nor produces any values to be used elsewhere in the program.
+Having looked at how to reference values in Go and how to use the **Println()**
+function to display them, it’s only natural to wonder how we can implement our
+own functions. Obviously we’ve already implemented **main()** which hints at
+what’s involved, but **main()** is something of a special case as it exist to
+allow a Go program to execute and it neither requires any parameters nor
+produces any values to be used elsewhere in the program.
 
 ***Example 1.11***
 
@@ -363,11 +611,22 @@ func world() string {
 }
 ```
 
-In this example we’ve introduced **world()**, a function which to the outside world has the same operational purpose as the variable of the same name that we used in the previous section.
+In this example we’ve introduced **world()**, a function which to the outside
+world has the same operational purpose as the variable of the same name that we
+used in the previous section.
 
-The empty brackets **()** indicate that there are no parameters passed into the function when it’s called, whilst **string** tells us that a single value is returned and it’s of type **string**. Anywhere that a valid Go program would expect a **string** value we can instead place a call to **world()** and the value returned will satisfy the compiler. The use of **return** is required by the language specification whenever a function specifies return values, and in this case it tells the compiler that the value of **world()** is the string **“world”**.
+The empty brackets **()** indicate that there are no parameters passed into the
+function when it’s called, whilst **string** tells us that a single value is
+returned and it’s of type **string**. Anywhere that a valid Go program would
+expect a **string** value we can instead place a call to **world()** and the
+value returned will satisfy the compiler. The use of **return** is required by
+the language specification whenever a function specifies return values, and in
+this case it tells the compiler that the value of **world()** is the string
+**“world”**.
 
-Go is unusual in that its syntax allows a function to return more than one value and as such each function takes two sets of **()**, the first for parameters and the second for results. We could therefore write our function in long form as
+Go is unusual in that its syntax allows a function to return more than one value
+and as such each function takes two sets of **()**, the first for parameters and
+the second for results. We could therefore write our function in long form as
 
 ```go
 func world() (string) {
@@ -375,7 +634,10 @@ func world() (string) {
 }
 ```    
 
-In this next example we use a somewhat richer function signature, passing the parameter **name** which is a string value into the function **message()**, and assigning the function’s return value to **message** which is a variable declared and available throughout the function.
+In this next example we use a somewhat richer function signature, passing the
+parameter **name** which is a string value into the function **message()**, and
+assigning the function’s return value to **message** which is a variable
+declared and available throughout the function.
 
 ***Example 1.12***
 
@@ -393,11 +655,18 @@ func message(name string) (message string) {
 }
 ```    
 
-As with **world()** the **message()** function can be used anywhere that the Go compiler expects to find a string value. However where **world()** simply returned a predetermined value, **message()** performs a calculation using the **Sprintf()** function and returns its result.
+As with **world()** the **message()** function can be used anywhere that the Go
+compiler expects to find a string value. However where **world()** simply
+returned a predetermined value, **message()** performs a calculation using the
+**Sprintf()** function and returns its result.
 
-**Sprintf()** is similar to **Printf()** which we met when discussing constants, only rather than create a string according to a format and displaying it in the terminal it instead returns this string as a value which we can assign to a variable or use as a parameter in another function call such as **Println()**.
+**Sprintf()** is similar to **Printf()** which we met when discussing constants,
+only rather than create a string according to a format and displaying it in the
+terminal it instead returns this string as a value which we can assign to a
+variable or use as a parameter in another function call such as **Println()**.
 
-Because we’ve explicitly named the return value we don’t need to reference it in the return statement as each of the named return values is implied.
+Because we’ve explicitly named the return value we don’t need to reference it in
+the return statement as each of the named return values is implied.
 
 ***Example 1.13***
 
@@ -415,7 +684,12 @@ func message(name string) (message string) {
 }
 ```    
 
-If we compare the **main()** and **message()** functions, we notice that **main()** doesn’t have a **return** statement. Likewise if we define our own functions without return values we can omit the **return** statement though later we’ll meet examples where we’d still use a **return** statement to prematurely exit a function.
+If we compare the **main()** and **message()** functions, we notice that
+**main()** doesn’t have a **return** statement. Likewise if we define our own
+functions without return values we can omit the **return** statement though
+later we’ll meet examples where we’d still use a **return** statement to
+prematurely exit a function.
+
 ***Example 1.14***
 
 ```go
@@ -431,16 +705,31 @@ func greet(name string) {
 }
 ```    
 
-In the next example we’ll see what a function which uses multiple return values looks like.
+In the next example we’ll see what a function which uses multiple return values
+looks like.
+
 ***Example 1.15***
 
 ```go
-     1 packagemain 2 import."fmt" 3  4 funcmain(){ 5 Println(message()) 6 } 7  8 funcmessage()(string,string){ 9 return"hello","world"10 }
+package main 
+import . "fmt" 
+ 
+func main(){ 
+    Println(message()) 
+} 
+ 
+func message() (string, string) { 
+    return "hello", "world"
+}
 ```    
 
-Because **message()** returns two values we can use it in any context where at least two parameters can be consumed. **Println()** happens to be a **variadic** function, which we’ll explain in a moment, and takes zero or more parameters so it happily consumes both of the values **message()** returns.
+Because **message()** returns two values we can use it in any context where at
+least two parameters can be consumed. **Println()** happens to be a **variadic**
+function, which we’ll explain in a moment, and takes zero or more parameters so
+it happily consumes both of the values **message()** returns.
 
 For our final example we’re going to implement our own **variadic** function.
+
 ***Example 1.16***
 
 ```go
@@ -2670,9 +2959,24 @@ func Launch(address string, f func(*UDPConn)) {
 }
 ```
 
-So, the first thing to note is that we’ve refactored connection management into **Serve()** to make the server code easier to follow, and then we’re passing a **function literal** into this with the tasks to be performed each time a client connects. For now this is a quick hack so we’re not launching **Serve()** in its own **goroutine** with all the extra boilerplate for **sync.WaitGroup** which we’ve seen in previous examples. However we are spawning a separate **goroutine** for each packet received so that the server doesn’t block, and as an added bonus each time data is written to a client the number of bytes transferred is logged.
+So, the first thing to note is that we’ve refactored connection management into
+**Serve()** to make the server code easier to follow, and then we’re passing a
+**function literal** into this with the tasks to be performed each time a client
+connects. For now this is a quick hack so we’re not launching **Serve()** in its
+own **goroutine** with all the extra boilerplate for **sync.WaitGroup** which
+we’ve seen in previous examples. However we are spawning a separate
+**goroutine** for each packet received so that the server doesn’t block, and as
+an added bonus each time data is written to a client the number of bytes
+transferred is logged.
 
-For each connection we read the client’s message which we know should be a valid public key in **gob** format. To decode this we create a **gob.Decoder** with the message as its base, then **Decode()** this to get a valid **rsa.PublicKey** which we then use to encrypt our message with **rsa.EncryptOAEP()**. The main thing to note here is that **RSA_LABEL** is a parameter which must be set the same for both **rsa.EncryptOAEP()** and **rsa.DecryptOAEP()** for the message to be correctly read by the latter. There’s no reason why this couldn’t be configured on a per-connection basis.
+For each connection we read the client’s message which we know should be a valid
+public key in **gob** format. To decode this we create a **gob.Decoder** with
+the message as its base, then **Decode()** this to get a valid **rsa.PublicKey**
+which we then use to encrypt our message with **rsa.EncryptOAEP()**. The main
+thing to note here is that **RSA_LABEL** is a parameter which must be set the
+same for both **rsa.EncryptOAEP()** and **rsa.DecryptOAEP()** for the message to
+be correctly read by the latter. There’s no reason why this couldn’t be
+configured on a per-connection basis.
 
 Now, let’s take a look at our client application
 
@@ -2694,24 +2998,53 @@ Example 1.57 RSA-enabled UDP client
     Hello World
     
 
-The most obvious thing about this code is the heavy use of **function literals**, giving it a clean compositional feel. This is an aesthetic I picked up working with Ruby and which I always missed when dipping back into C or other low-level languages, so expect to variations on this style in later chapters.
+The most obvious thing about this code is the heavy use of **function
+literals**, giving it a clean compositional feel. This is an aesthetic I picked
+up working with Ruby and which I always missed when dipping back into C or other
+low-level languages, so expect to variations on this style in later chapters.
 
-**Connect()** is the client version of **Serve()**, abstracting away the details of contacting a UDP server, and the meat of our program’s interaction is a simple **Read()** of an encrypted message from the server which is then decrypted using **rsa.DecryptOAEP()** and displayed. Before our code initiates the connection though we need it to load an RSA key-pair so we can transmit our public key to the server. We do this in **LoadPrivateKey()** which uses **ioutil.ReadFile()** to load a pem-encoded file into memory and ensure it contains a private key before invoking a function passed to it as a parameter. In this case the passed function sets up the connection, sends the public key to the server and then invokes the function passed to **Connect()** in **SendKey()**.
+**Connect()** is the client version of **Serve()**, abstracting away the details
+of contacting a UDP server, and the meat of our program’s interaction is a
+simple **Read()** of an encrypted message from the server which is then
+decrypted using **rsa.DecryptOAEP()** and displayed. Before our code initiates
+the connection though we need it to load an RSA key-pair so we can transmit our
+public key to the server. We do this in **LoadPrivateKey()** which uses
+**ioutil.ReadFile()** to load a pem-encoded file into memory and ensure it
+contains a private key before invoking a function passed to it as a parameter.
+In this case the passed function sets up the connection, sends the public key to
+the server and then invokes the function passed to **Connect()** in
+**SendKey()**.
 
-To keep **SendKey()** as generic as possible it takes a parameterless function which is basically just a closure into the caller’s environment. In the case of **Connect()** the closure we pass to **SendKey()** binds to the **server** and **private_key** variables.
+To keep **SendKey()** as generic as possible it takes a parameterless function
+which is basically just a closure into the caller’s environment. In the case of
+**Connect()** the closure we pass to **SendKey()** binds to the **server** and
+**private_key** variables.
 
 ## Error Handling
 
-The examples in this chapter are for the most part designed to follow the *happy* path as our interest is in seeing some simple **Go** code that we can later build upon. The one obvious exception was when we explored signal handling and used the presence of an error as an excuse to send a **SIGABRT** to terminate the server. However error-handling is a large part of most real-world programming - especially in a system level language.
+The examples in this chapter are for the most part designed to follow the
+*happy* path as our interest is in seeing some simple **Go** code that we can
+later build upon. The one obvious exception was when we explored signal handling
+and used the presence of an error as an excuse to send a **SIGABRT** to
+terminate the server. However error-handling is a large part of most real-world
+programming - especially in a system level language.
 
-**Go** takes a typically pragmatic approach to error handling, the language specification defining the **error** type as a predeclared interface
+**Go** takes a typically pragmatic approach to error handling, the language
+specification defining the **error** type as a predeclared interface
 
     typeerrorinterface{Error()string}
 
-In the following example we’re going to rewrite our encrypted UDP server from example 1.56 so that start-up errors cause the server to terminate and signal an error to the shell whilst client errors will log an appropriate message for later analysis using the **log** package. The default behaviour of the **log** package is to write its output to **stderr** so it integrates well with traditional ***nix** tools and infrastructure.
+In the following example we’re going to rewrite our encrypted UDP server from
+example 1.56 so that start-up errors cause the server to terminate and signal an
+error to the shell whilst client errors will log an appropriate message for
+later analysis using the **log** package. The default behaviour of the **log**
+package is to write its output to **stderr** so it integrates well with
+traditional <b>*nix</b> tools and infrastructure.
 
-Whilst our program is still trivial in purpose, we now have all the basic conveniences for running a scalable server and integrating it with third-party monitoring and logging tools at deployment.
-Example 1.58
+Whilst our program is still trivial in purpose, we now have all the basic
+conveniences for running a scalable server and integrating it with third-party
+
+monitoring and logging tools at deployment.  Example 1.58
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "log"10 ."net"11 )12 13 varHELLO_WORLD=[]byte("Hello World")14 varRSA_LABEL=[]byte("served")15 16 funcmain(){17 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){18 vareerror19 varkeyrsa.PublicKey20 varresponse[]byte21 22 ife=gob.NewDecoder(packet).Decode(&key);e!=nil{23 log.Println("unable to decode wrapper:",c)24 }25 26 ifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,RSA_LA\
     27 BEL);e!=nil{28 log.Println("unable to encrypt server response")29 }30 31 ifn,e=connection.WriteToUDP(response,c);e!=nil{32 log.Println("unable to write response to client:",c)33 }34 return35 })36 }37 38 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){39 Launch(address,func(connection*UDPConn){40 for{41 buffer:=make([]byte,1024)42 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{43 gofunc(c*UDPAddr,b[]byte){44 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{45 log.Println(n,"bytes written to",c)46 }47 }(client,buffer[:n])48 }else{49 log.Println(address,e.Error())50 }51 }52 })53 }54 55 funcLaunch(addressstring,ffunc(*UDPConn)){56 vareerror57 vara*UDPAddr58 varserver*UDPConn59 60 ifa,e=ResolveUDPAddr("udp",address);e!=nil{61 log.Fatalln("unable to resolve UDP address:",e.Error())62 }63 64 ifserver,e=ListenUDP("udp",a);e!=nil{65 log.Fatalln("can't open socket for listening:",e.Error())66 }67 68 f(server)69 }
@@ -2727,7 +3060,10 @@ Example 1.58
     exit status 1
     
 
-This is the only error condition that’s likely to occur in our shell-based test environment but if we forceably corrupt the gob encoding of our client’s response key by modifying its **SendKey** function to drop the first byte we can emulate key corruption in transit
+This is the only error condition that’s likely to occur in our shell-based test
+environment but if we forceably corrupt the gob encoding of our client’s
+response key by modifying its **SendKey** function to drop the first byte we can
+emulate key corruption in transit
 
     55 func SendKey(server *UDPConn, public_key rsa.PublicKey, f func()) {
     56   var encoded_key bytes.Buffer
@@ -2746,57 +3082,111 @@ This is the only error condition that’s likely to occur in our shell-based tes
     2016/07/13 09:24:44 unable to encrypt server response
     
 
-One of the cool things about interfaces is that they’re reference types, something we’ll routinely use to decide whether an error has occured or not. If it has then the interface will contain an **error** value, and if not the interface itself will be a **nil** value. This leads to the common code pattern
+One of the cool things about interfaces is that they’re reference types,
+something we’ll routinely use to decide whether an error has occured or not. If
+it has then the interface will contain an **error** value, and if not the
+interface itself will be a **nil** value. This leads to the common code pattern
 
     if_,e:=SomeCall();e!=nil{log.Println("some error",e)// this is our sad path}else{// perform desired actions}
 
-Our *sad* path will generally either return it’s own error to the calling function or terminate the program with a call to **log.Fatalln()** or **os.Exit()**. Because **Go** functions allow for multiple return values, their use is accompanied by the convention that the last value returned will be of type **error**. This convention encourages us to handle errors where they occur rather than bubbling **exceptions** up the call stack, as would be the case in many languages. As there are rare occasions when exceptions might prove a useful idiom we’ll look at how we can achieve a similar outcome in the next section.
+Our *sad* path will generally either return it’s own error to the calling
+function or terminate the program with a call to **log.Fatalln()** or
+**os.Exit()**. Because **Go** functions allow for multiple return values, their
+use is accompanied by the convention that the last value returned will be of
+type **error**. This convention encourages us to handle errors where they occur
+rather than bubbling **exceptions** up the call stack, as would be the case in
+many languages. As there are rare occasions when exceptions might prove a useful
+idiom we’ll look at how we can achieve a similar outcome in the next section.
 
-For now though we’re going to tidy this code up a little by using the **if…{}…else if {}…** construct which thanks to **if**’s ability to combine an assignment with a test leads to very succinct code.
-Example 1.59
+For now though we’re going to tidy this code up a little by using the
+**if…{}…else if {}…** construct which thanks to **if**’s ability to combine an
+assignment with a test leads to very succinct code.  
+
+***Example 1.59***
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "log"10 ."net"11 )12 13 varHELLO_WORLD=[]byte("Hello World")14 varRSA_LABEL=[]byte("served")15 16 funcmain(){17 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){18 varkeyrsa.PublicKey19 varresponse[]byte20 21 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{22 log.Println("unable to decode wrapper:",c)23 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
     24 RSA_LABEL);e!=nil{25 log.Println("unable to encrypt server response")26 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{27 log.Println("unable to write response to client:",c)28 }29 return30 })31 }32 33 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){34 Launch(address,func(connection*UDPConn){35 for{36 buffer:=make([]byte,1024)37 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{38 gofunc(c*UDPAddr,b[]byte){39 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{40 log.Println(n,"bytes written to",c)41 }42 }(client,buffer[:n])43 }else{44 log.Println(address,e.Error())45 }46 }47 })48 }49 50 funcLaunch(addressstring,ffunc(*UDPConn)){51 varconnection*UDPConn52 53 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{54 log.Fatalln("unable to resolve UDP address:",e.Error())55 }elseifconnection,e=ListenUDP("udp",a);e!=nil{56 log.Fatalln("can't open socket for listening:",e.Error())57 }58 f(connection)59 }
 
-Whilst I personally find this easier on the eye in many cases, it’s a less common idiom than successive **if** statements. It’s also important to remember **Go**’s scoping rules when using this construction as these allow each assignment to introduce new variables local to that **if** statement’s scope. As such some care should be taken in variable naming to avoid accidental **shadowing**.
+Whilst I personally find this easier on the eye in many cases, it’s a less
+common idiom than successive **if** statements. It’s also important to remember
+**Go**’s scoping rules when using this construction as these allow each
+assignment to introduce new variables local to that **if** statement’s scope. As
+such some care should be taken in variable naming to avoid accidental
+**shadowing**.
 
-Because **error** is defined as an interface rather than a concrete type we can declare our own types for error handling and then check for them to specialise error handling behaviour. In the next example we introduce the **LaunchError** type which complies with the predeclared **error** interface by implementing its own **Error()** method.
-Example 1.60
+Because **error** is defined as an interface rather than a concrete type we can
+declare our own types for error handling and then check for them to specialise
+error handling behaviour. In the next example we introduce the **LaunchError**
+type which complies with the predeclared **error** interface by implementing its
+own **Error()** method.  
+
+***Example 1.60***
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "fmt"10 "log"11 ."net"12 )13 14 varHELLO_WORLD=[]byte("Hello World")15 varRSA_LABEL=[]byte("served")16 17 typeLaunchError[]interface{}18 19 func(lLaunchError)Error()(rstring){20 iflen(l)>0{21 r=fmt.Sprintf(l[0].(string),l[1:]...)22 }23 return24 }25 26 funcNewLaunchError(formatstring,v...interface{})(lLaunchError){27 returnLaunchError(append([]interface{}{format},v))28 }29 30 funcmain(){31 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){32 varkeyrsa.PublicKey33 varresponse[]byte34 35 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{36 log.Println("unable to decode wrapper:",c)37 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
     38 RSA_LABEL);e!=nil{39 log.Println("unable to encrypt server response")40 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{41 log.Println("unable to write response to client:",c)42 }43 return44 })45 }46 47 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){48 e:=Launch(address,func(connection*UDPConn)(eerror){49 deferfunc(){50 ifx:=recover();x!=nil{51 e=LaunchError{"serve failure %v",x}52 }53 }()54 for{55 buffer:=make([]byte,1024)56 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{57 gofunc(c*UDPAddr,b[]byte){58 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{59 log.Println(n,"bytes written to",c)60 }61 }(client,buffer[:n])62 }else{63 log.Println(address,e.Error())64 }65 }66 return67 })68 69 ife,ok:=e.(LaunchError);ok{70 log.Fatalln(e.Error())71 }72 }73 74 funcLaunch(addressstring,ffunc(*UDPConn)error)error{75 varconnection*UDPConn76 77 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{78 returnNewLaunchError("unable to resolve UDP address:",e.Error())79 }elseifconnection,e=ListenUDP("udp",a);e!=nil{80 returnLaunchError{"can't open socket for listening:",e.Error()}81 }82 returnf(connection)83 }
 
-This is quite a complicated example, so let’s take a look at the various changes we’ve made in detail.
+This is quite a complicated example, so let’s take a look at the various changes
+we’ve made in detail.
 
     17 typeLaunchError[]interface{}18 19 func(lLaunchError)Error()(rstring){20 iflen(l)>0{21 r=fmt.Sprintf(l[0].(string),l[1:]...)22 }23 return24 }25 26 funcNewLaunchError(formatstring,v...interface{})(lLaunchError){27 returnLaunchError(append([]interface{}{format},v))28 }
 
-For simplicity we’ve made **LaunchError** a slice of **interface{}** values and declared an **Error()** method which uses the first element in the slice as a format string and successive elements as parameters for **fmt.Sprintf()**. The **NewLaunchError()** function is a typical example of a value constructor which we’d export from a package, and later in the code we show both construction this way and using a **LaunchError{}** literal.
+For simplicity we’ve made **LaunchError** a slice of **interface{}** values and
+declared an **Error()** method which uses the first element in the slice as a
+format string and successive elements as parameters for **fmt.Sprintf()**. The
+**NewLaunchError()** function is a typical example of a value constructor which
+we’d export from a package, and later in the code we show both construction this
+way and using a **LaunchError{}** literal.
 
     73 funcLaunch(addressstring,ffunc(*UDPConn)error)error{74 varconnection*UDPConn75 76 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{77 returnNewLaunchError("unable to resolve UDP address:",e.Error())78 }elseifconnection,e=ListenUDP("udp",a);e!=nil{79 returnLaunchError{"can't open socket for listening:",e.Error()}80 }81 returnf(connection)82 }
 
-We’ve made another change to **Launch()** related to our new approach to error handling, which is to propogate these errors back to the caller via a return value - and just for completeness we’re allowing errors to bubble up from the function parameter **f** as well. This leads to changes in **Serve** as well.
+We’ve made another change to **Launch()** related to our new approach to error
+handling, which is to propogate these errors back to the caller via a return
+value - and just for completeness we’re allowing errors to bubble up from the
+function parameter **f** as well. This leads to changes in **Serve** as well.
 
     46 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){47 e:=Launch(address,func(connection*UDPConn)(eerror){48 deferfunc(){49 ifx:=recover();x!=nil{50 e=LaunchError{"serve failure %v",e}51 }52 }()
 
-Here we set a value for **e** from the **error** returned by **Launch()** as well as intercepting any **panic** raised by the associated closure with **defer** and instead returning a **LaunchError** rather than crashing the program. As **defer** takes a closure the **e** referenced inside it is the same **e** as that declared by the function literal **func(connection *UDPConn) (e error)**, a pattern encountered in many existing **Go** codebases. We then use the returned error value before exiting **Serve()**.
+Here we set a value for **e** from the **error** returned by **Launch()** as
+well as intercepting any **panic** raised by the associated closure with
+**defer** and instead returning a **LaunchError** rather than crashing the
+program. As **defer** takes a closure the **e** referenced inside it is the same
+**e** as that declared by the function literal **func(connection *UDPConn) (e
+error)**, a pattern encountered in many existing **Go** codebases. We then use
+the returned error value before exiting **Serve()**.
 
     68 ife,ok:=e.(LaunchError);ok{69 log.Fatalln(e.Error())70 }
 
-It should come as no surprise that **Go** provides support for creating **error** values without our having to define **error** types, in the form of **errors.New** and **fmt.Errorf**. Using these we can remove the **LaunchError** type and rewrite our program.
-Example 1.61
+It should come as no surprise that **Go** provides support for creating
+**error** values without our having to define **error** types, in the form of
+**errors.New** and **fmt.Errorf**. Using these we can remove the **LaunchError**
+type and rewrite our program.
+
+***Example 1.61***
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "errors"10 "fmt"11 "log"12 ."net"13 )14 15 varHELLO_WORLD=[]byte("Hello World")16 varRSA_LABEL=[]byte("served")17 18 funcmain(){19 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){20 varkeyrsa.PublicKey21 varresponse[]byte22 23 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{24 log.Println("unable to decode wrapper:",c)25 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORLD,\
     26 RSA_LABEL);e!=nil{27 log.Println("unable to encrypt server response")28 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{29 log.Println("unable to write response to client:",c)30 }31 return32 })33 }34 35 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){36 e:=Launch(address,func(connection*UDPConn)(eerror){37 deferfunc(){38 ifx:=recover();x!=nil{39 e=fmt.Errorf("serve failure %v",x)40 }41 }()42 for{43 buffer:=make([]byte,1024)44 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{45 gofunc(c*UDPAddr,b[]byte){46 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{47 log.Println(n,"bytes written to",c)48 }49 }(client,buffer[:n])50 }else{51 log.Println(address,e.Error())52 }53 }54 return55 })56 57 ife!=nil{58 log.Fatalln(e.Error())59 }60 }61 62 funcLaunch(addressstring,ffunc(*UDPConn)error)error{63 varconnection*UDPConn64 65 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{66 returnfmt.Errorf("unable to resolve UDP address: %v",e)67 }elseifconnection,e=ListenUDP("udp",a);e!=nil{68 returnerrors.New(fmt.Sprintf("can't open socket for listening: %v",e.Error()))69 }70 returnf(connection)71 }
 
 ## Exceptions
 
-If we consider these programs for a minute or two it becomes apparent that propagating our errors this way works very well when we wish to deal with an error immediately, which is usually the case. However there are occasions when an error will need to be propagated through several layers of function calls, and when this is the case there’s a lot of boilerplate involved in intermediate functions in the call stack.
+If we consider these programs for a minute or two it becomes apparent that
+propagating our errors this way works very well when we wish to deal with an
+error immediately, which is usually the case. However there are occasions when
+an error will need to be propagated through several layers of function calls,
+and when this is the case there’s a lot of boilerplate involved in intermediate
+functions in the call stack.
 
-We can do away with much of this by rolling our own lightweight equivalent of **exceptions** using **defer** and the **panic()** and **recover()** calls. In the next example we’ll do just this, introducing the **Exception** type which is an **interface** with **error** embedded within it. This means that any **error** value will also be useable as an **Exception** value.
+We can do away with much of this by rolling our own lightweight equivalent of
+**exceptions** using **defer** and the **panic()** and **recover()** calls. In
+the next example we’ll do just this, introducing the **Exception** type which is
+an **interface** with **error** embedded within it. This means that any
+**error** value will also be useable as an **Exception** value.
 
 ## Why doesn’t Go have native exceptions?
 
-A common criticism of **Go** is its use of inline error handling rather than the kind of exception-handling mechanism we’re developing here. The [language FAQ](https://golang.org/doc/faq#exceptions) has a coherent explanation which is worth quoting in full:
+A common criticism of **Go** is its use of inline error handling rather than the
+kind of exception-handling mechanism we’re developing here. The [language
+FAQ](https://golang.org/doc/faq#exceptions) has a coherent explanation which is
+worth quoting in full:
 
 > #### *Why does Go not have exceptions?*
 > 
@@ -2810,17 +3200,30 @@ A common criticism of **Go** is its use of inline error handling rather than the
 
 **Go** is a conservative language with a minimal set of features chosen primarily to avoid unnecessary *magic* in code, with all the maintenance problems that can bring. As you’ll find by the end of this chapter, exception handling is most decidedly *magical* if it’s to be elegant, potentially introducing several layers of source-code abstraction between the logic for performing an operation and the error recovery code which cleans up when it goes wrong.
 
-That’s not to say that exception-style mechanisms aren’t useful for certain tasks, and as I hope the following examples will demonstrate (as well as those in later chapters) it’s perfectly reasonable to implement variants which suit your purpose when the need arises.
-Example 1.62
+That’s not to say that exception-style mechanisms aren’t useful for certain
+tasks, and as I hope the following examples will demonstrate (as well as those
+in later chapters) it’s perfectly reasonable to implement variants which suit
+your purpose when the need arises.
+
+***Example 1.62***
 
      1 packagemain 2  3 import( 4 "bytes" 5 "crypto/rand" 6 "crypto/rsa" 7 "crypto/sha1" 8 "encoding/gob" 9 "fmt"10 "log"11 ."net"12 "os"13 )14 15 varHELLO_WORLD=[]byte("Hello World")16 varRSA_LABEL=[]byte("served")17 18 typeExceptioninterface{19 error20 }21 22 funcRaise(messagestring,parameters...interface{}){23 panic(fmt.Errorf(message,parameters...))24 }25 26 funcRescue(ffunc()){27 deferfunc(){28 ife:=recover();e!=nil{29 ife,ok:=e.(Exception);ok{30 log.Println("Exception:",e.Error())31 os.Exit(1)32 }else{33 panic(e)34 }35 }36 }()37 38 f()39 }40 41 funcmain(){42 Serve(":1025",func(connection*UDPConn,c*UDPAddr,packet*bytes.Buffer)(nint){43 varkeyrsa.PublicKey44 varresponse[]byte45 46 Rescue(func(){47 ife:=gob.NewDecoder(packet).Decode(&key);e!=nil{48 Raise("unable to decode wrapper: %v",c)49 }elseifresponse,e=rsa.EncryptOAEP(sha1.New(),rand.Reader,&key,HELLO_WORL\
     50 D,RSA_LABEL);e!=nil{51 Raise("unable to encrypt server response")52 }elseifn,e=connection.WriteToUDP(response,c);e!=nil{53 Raise("unable to write response to client: %v",c)54 }55 })56 return57 })58 }59 60 funcServe(addressstring,ffunc(*UDPConn,*UDPAddr,*bytes.Buffer)int){61 Rescue(func(){62 e:=Launch(address,func(connection*UDPConn)(eerror){63 for{64 buffer:=make([]byte,1024)65 ifn,client,e:=connection.ReadFromUDP(buffer);e==nil{66 gofunc(c*UDPAddr,b[]byte){67 ifn:=f(connection,c,bytes.NewBuffer(b));n!=0{68 log.Println(n,"bytes written to",c)69 }70 }(client,buffer[:n])71 }else{72 log.Println(address,e.Error())73 }74 }75 return76 })77 78 ife!=nil{79 log.Fatalln(e.Error())80 }81 })82 }83 84 funcLaunch(addressstring,ffunc(*UDPConn)error)error{85 varconnection*UDPConn86 87 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{88 Raise("unable to resolve UDP address: %v",e)89 }elseifconnection,e=ListenUDP("udp",a);e!=nil{90 Raise("can't open socket for listening: %v",e.Error())91 }92 returnf(connection)93 }
 
-Our updated code looks surprisingly similar to that of **Example 1.60** with a set of type declarations replacing **LaunchError** with **Exception** and **NewLaunchError()** with **Raise()**, which as its name suggests generates a **panic** to propagate the **Exception** value back up the calling stack. We’ve also introduced **Rescue()**
+Our updated code looks surprisingly similar to that of **Example 1.60** with a
+set of type declarations replacing **LaunchError** with **Exception** and
+**NewLaunchError()** with **Raise()**, which as its name suggests generates a
+**panic** to propagate the **Exception** value back up the calling stack. We’ve
+also introduced **Rescue()**
 
     22 funcRaise(messagestring,parameters...interface{}){23 panic(fmt.Errorf(message,parameters...))24 }
 
-To intercept this **panic** we need a **defer** statement somewhere up the call stack which can handle it, otherwise it will bubble up through **main()** and the program will terminate with a stack trace. In our implementation of **Rescue()** we set up a deferred function which will check **panic** values with a type assertion and where these match the **Exception** interface the program will be terminated cleanly.
+To intercept this **panic** we need a **defer** statement somewhere up the call
+stack which can handle it, otherwise it will bubble up through **main()** and
+the program will terminate with a stack trace. In our implementation of
+**Rescue()** we set up a deferred function which will check **panic** values
+with a type assertion and where these match the **Exception** interface the
+program will be terminated cleanly.
 
     26 funcRescue(ffunc()){27 deferfunc(){28 ife:=recover();e!=nil{29 ife,ok:=e.(Exception);ok{30 log.Println("Exception:",e.Error())31 os.Exit(1)32 }else{33 panic(e)34 }35 }36 }()37 38 f()39 }
 
@@ -2837,8 +3240,15 @@ To intercept this **panic** we need a **defer** statement somewhere up the call 
     [1]+  Exit 1                  go run 62.go
     
 
-The semantics here are subtly different to our previous example and any error in the server will cause it to terminate. Instead we want launch errors to terminate the server whilst connection errors from talking with a particular client should log the error and return to listening for another connection. The easiest way to do this is to parameterize **Rescue()** so that it receives both the function to guard and a function with signature **func(Exception)** to respond according to the **Exception** value generated.
-[Example 1.63a] Rescue() function definition
+The semantics here are subtly different to our previous example and any error in
+the server will cause it to terminate. Instead we want launch errors to
+terminate the server whilst connection errors from talking with a particular
+client should log the error and return to listening for another connection. The
+easiest way to do this is to parameterize **Rescue()** so that it receives both
+the function to guard and a function with signature **func(Exception)** to
+respond according to the **Exception** value generated.
+
+***[Example 1.63a] Rescue() function definition***
 
     26func Rescue(f func(), r func(Exception)) {
     27   defer func() {
@@ -2854,7 +3264,7 @@ The semantics here are subtly different to our previous example and any error in
     38 }
     
 
-[Example 1.63b] Rescue() function in use
+***[Example 1.63b] Rescue() function in use***
 
     67       Rescue(
     68         func() {
@@ -2875,14 +3285,23 @@ The semantics here are subtly different to our previous example and any error in
     83       )
     
 
-[Example 1.63c] Launch() rewritten to use Rescue()
+***[Example 1.63c] Launch() rewritten to use Rescue()***
 
     67 funcLaunch(addressstring,ffunc(*UDPConn)error){68 varconnection*UDPConn69 70 Rescue(71 func(){72 ifa,e:=ResolveUDPAddr("udp",address);e!=nil{73 Raise("unable to resolve UDP address: %v",e)74 }elseifconnection,e=ListenUDP("udp",a);e!=nil{75 Raise("can't open socket for listening: %v",e)76 }elseife=f(connection);e!=nil{77 Raise("connection error: %v",e)78 }79 },80 func(eException){81 log.Println(e.Error())82 os.Exit(1)83 },84 )85 }
 
-This now gives us a primitive *domain specific language* for exceptions using **Rescue()** blocks to guard behaviour and **Raise()** to trigger them. Unfortunately an **Exception** is essentially *untyped* in the context where it’s dealt with and this places all the burden for exception handling into a single closure. However generally languages which support exception handling allow exceptions to be differentiated by subtype, so let’s see what we can do to achieve a similar effect.
+This now gives us a primitive *domain specific language* for exceptions using
+**Rescue()** blocks to guard behaviour and **Raise()** to trigger them.
+Unfortunately an **Exception** is essentially *untyped* in the context where
+it’s dealt with and this places all the burden for exception handling into a
+single closure. However generally languages which support exception handling
+allow exceptions to be differentiated by subtype, so let’s see what we can do to
+achieve a similar effect.
 
-The obvious first step is to introduce a new type which implements the **Exception** interface and then use a **type switch** in an exception handler to specialise its behaviour
-[Example 1.64a] defining an Exception type
+The obvious first step is to introduce a new type which implements the
+**Exception** interface and then use a **type switch** in an exception handler
+to specialise its behaviour
+
+***[Example 1.64a] defining an Exception type***
 
     26type LaunchException error
     2728func RaiseLaunchException(message string, parameters ...interface{}) {
@@ -2917,7 +3336,9 @@ The obvious first step is to introduce a new type which implements the **Excepti
     117 }
     
 
-The **type** switch allows us to select different courses of action depending on the **concrete type** of the value contained in the **Exception**, and we can also specify a **default** case to handle unknown values.
+The **type** switch allows us to select different courses of action depending on
+the **concrete type** of the value contained in the **Exception**, and we can
+also specify a **default** case to handle unknown values.
 
     $ go run 64.go &
     [1] 90620
@@ -2936,20 +3357,47 @@ The **type** switch allows us to select different courses of action depending on
     Hello World
     
 
-The use of type switches in this manner is a common idiom in **go** and I quite like this solution as the only magic at work here is our abuse of the **panic()**/**recover()** mechanism. However I’d really prefer to split exception handling into several different functions, each keyed to a particular exception type. This is relatively easy to do but requires that we pop open **go**’s hood at runtime using **type reflection**.
+The use of type switches in this manner is a common idiom in **go** and I quite
+like this solution as the only magic at work here is our abuse of the
+**panic()**/**recover()** mechanism. However I’d really prefer to split
+exception handling into several different functions, each keyed to a particular
+exception type. This is relatively easy to do but requires that we pop open
+**go**’s hood at runtime using **type reflection**.
 
 ## Dynamism comes at a price
 
-Reflection in **Go** rests on two powerful packages: **reflect** and **unsafe**. With **reflect** you can find out pretty much anything about a value at runtime and write code based on that knowledge, whilst with **unsafe** you can bypass runtime type guarantees to repurpose memory. The cases when **reflect** is useful are much more numerous than those for **unsafe**, but neither is essential to day-to-day programming so many **Go** programmers will never use either in anger. However it’s still worth knowing a little both.
+Reflection in **Go** rests on two powerful packages: **reflect** and **unsafe**.
+With **reflect** you can find out pretty much anything about a value at runtime
+and write code based on that knowledge, whilst with **unsafe** you can bypass
+runtime type guarantees to repurpose memory. The cases when **reflect** is
+useful are much more numerous than those for **unsafe**, but neither is
+essential to day-to-day programming so many **Go** programmers will never use
+either in anger. However it’s still worth knowing a little both.
 
-The most common use for **reflect** is to develop generic functions as **Go** lacks generic types, however there’s a substantial performance cost associated with this. Performance hits of 10x or even 100x execution cost are not unusual with reflection, especially if dealing generically with containers of generic values. In general if you can frame such problems in terms of **interfaces** and **type switches** it pays to do so.
+The most common use for **reflect** is to develop generic functions as **Go**
+lacks generic types, however there’s a substantial performance cost associated
+with this. Performance hits of 10x or even 100x execution cost are not unusual
+with reflection, especially if dealing generically with containers of generic
+values. In general if you can frame such problems in terms of **interfaces** and
+**type switches** it pays to do so.
 
-The appropriately-named **unsafe** package should be approached with caution. This mechanism exists because sometimes a programmer really does know better than the compiler how a value can be used, however bypassing type system guarantees at runtime can result in bugs which are very difficult - or impossible - to track down.
+The appropriately-named **unsafe** package should be approached with caution.
+This mechanism exists because sometimes a programmer really does know better
+than the compiler how a value can be used, however bypassing type system
+guarantees at runtime can result in bugs which are very difficult - or
+impossible - to track down.
 
-The insights gained from playing with these packages will make you a better **Go** coder so don’t be put off experimenting. I can’t guarantee you won’t destroy a computer with these kinds of tricks but I’ve yet to brick any of mine that way.
+The insights gained from playing with these packages will make you a better
+**Go** coder so don’t be put off experimenting. I can’t guarantee you won’t
+destroy a computer with these kinds of tricks but I’ve yet to brick any of mine
+that way.
 
-Like many modern languages **Go** has an extensive **reflection** system which allows us to introspect any value at runtime - including the closures which our **Rescue()** function accepts - and then attempt to use that information to control the execution of our program.
-[Example 1.65] checking for a specific exception
+Like many modern languages **Go** has an extensive **reflection** system which
+allows us to introspect any value at runtime - including the closures which our
+**Rescue()** function accepts - and then attempt to use that information to
+control the execution of our program.
+
+***[Example 1.65] checking for a specific exception***
 
     45func Rescue(f func(), r ...interface{}) {
     46   defer func() {
@@ -2976,7 +3424,9 @@ Like many modern languages **Go** has an extensive **reflection** system which a
     68 }
     
 
-This seems like a pretty gnarly piece of code on first inspection so let’s rephrase it in English to get a better understanding for what’s it’s doing before looking at the details of the **reflect** API
+This seems like a pretty gnarly piece of code on first inspection so let’s
+rephrase it in English to get a better understanding for what’s it’s doing
+before looking at the details of the **reflect** API
 
     47 given that we've recovered from a panic()
     48   if we're handling any value whose type fulfils the Exception interface
@@ -2992,9 +3442,17 @@ This seems like a pretty gnarly piece of code on first inspection so let’s rep
     58     propagate the value received by recover() up the unwinding call stack
     
 
-This essentially boils down to finding out the runtime types of the values our function encounters and then making choices about how to proceed. To achieve this we’ve used two functions central to working with reflection. Firstly there’s **reflect.TypeOf()** which takes any value and returns a **reflect.Type** value, then there’s **reflect.ValueOf()** which also takes any **concrete value** and returns a **reflect.Value**.
+This essentially boils down to finding out the runtime types of the values our
+function encounters and then making choices about how to proceed. To achieve
+this we’ve used two functions central to working with reflection. Firstly
+there’s **reflect.TypeOf()** which takes any value and returns a
+**reflect.Type** value, then there’s **reflect.ValueOf()** which also takes any
+**concrete value** and returns a **reflect.Value**.
 
-Both **Type** and **Value** expose large APIs designed to operate on all runtime types and as a consequence many of these methods are prone to generating runtime panics if used incorrectly. Both types implement a **Kind()** method which can be used to provide basic safeguards
+Both **Type** and **Value** expose large APIs designed to operate on all runtime
+types and as a consequence many of these methods are prone to generating runtime
+panics if used incorrectly. Both types implement a **Kind()** method which can
+be used to provide basic safeguards
 
     51          if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn(\
     52) == 1 {
@@ -3008,13 +3466,22 @@ Both **Type** and **Value** expose large APIs designed to operate on all runtime
     60           }
     
 
-With type safety guarantees in place we can easily figure out whether or not we’re dealing with a recognisable exception handler (i.e. a function taking a parameter compatible with the **Exception** interface) and if we are the next question is how do we invoke this function? The **reflect.Value** type defines a method **Call()** which executes a function and takes as its parameter a **[]reflect.Value** containing the actual parameters for the function, each wrapped as a **reflect.Value**
+With type safety guarantees in place we can easily figure out whether or not
+we’re dealing with a recognisable exception handler (i.e. a function taking a
+parameter compatible with the **Exception** interface) and if we are the next
+question is how do we invoke this function? The **reflect.Value** type defines a
+method **Call()** which executes a function and takes as its parameter a
+**[]reflect.Value** containing the actual parameters for the function, each
+wrapped as a **reflect.Value**
 
     56              h.Call([]reflect.Value{ reflect.ValueOf(e) })
     
 
-For completeness we’re going to refactor **Rescue()** by separating out the code for attempting an exception handling function call, making this easier to maintain
-[Example 1.66] calling an exception handler via reflection
+For completeness we’re going to refactor **Rescue()** by separating out the code
+for attempting an exception handling function call, making this easier to
+maintain
+
+***[Example 1.66] calling an exception handler via reflection***
 
     33func attemptCall(e Exception, handler interface{}) (ok bool) {
     34  if h := reflect.ValueOf(handler); h.Kind() == reflect.Func {
