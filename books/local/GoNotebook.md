@@ -3975,58 +3975,194 @@ to specialise its behaviour
 
 ***[Example 1.64a] defining an Exception type***
 
-    26type LaunchException error
-    2728func RaiseLaunchException(message string, parameters ...interface{}) {
-    29  panic(LaunchException(fmt.Errorf(message, parameters...)))
-    30}
-    
+<pre>
+<b>type LaunchException error
 
-[Example 1.64b] checking for a specific exception
+func RaiseLaunchException(message string, parameters ...interface{}) {
+    panic(LaunchException(fmt.Errorf(message, parameters...)))
+}</b>
+</pre>
 
-     94 func Launch(address string, f func(*UDPConn) error) {
-     95   var connection *UDPConn
-     96 97   Rescue(
-     98     func() {
-     99       if a, e := ResolveUDPAddr("udp", address); e != nil {
-    100        RaiseLaunchException("unable to resolve UDP address: %v", e)
-    101       } else if connection, e = ListenUDP("udp", a); e != nil {
-    102        RaiseLaunchException("can't open socket for listening: %v", e)
-    103       } else if e = f(connection); e != nil {
-    104         Raise("connection error: %v", e)
-    105       }
-    106     },
-    107     func(e Exception) {
-    108      switch e := e.(type) {
-    109      case LaunchException:
-    110        log.Println("Launch Exception:", e.Error())
-    111      default:
-    112        log.Println(e.Error())
-    113      }
-    114       os.Exit(1)
-    115     },
-    116   )
-    117 }
+***[Example 1.64b] checking for a specific exception***
+
+<pre>
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                <b>RaiseLaunchException("unable to resolve UDP address: %v", e)</b>
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                <b>RaiseLaunchException("can't open socket for listening: %v", e)</b>
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            <b>switch e := e.(type) {
+            case LaunchException:
+                log.Println("Launch Exception:", e.Error())
+            default:
+                log.Println("Exception:", e.Error())
+            }
+            os.Exit(1)</b>
+        },
+    )
+}
+</pre>
     
+***Example 1.64***
+
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+    "os"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+type Exception interface {
+    error
+}
+
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
+
+type LaunchException error
+
+func RaiseLaunchException(message string, parameters ...interface{}) {
+    panic(LaunchException(fmt.Errorf(message, parameters...)))
+}
+
+func Rescue(f func(), r func(Exception)) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                r(e)
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        Rescue(
+            func() {
+                if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+                    Raise("unable to decode wrapper: %v", c)
+                } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+                    Raise("unable to encrypt server response")
+                } else if n, e = connection.WriteToUDP(response, c); e != nil {
+                    Raise("unable to write response to client: %v", c)
+                }
+            },
+            func(e Exception) {
+                log.Println("Exception", e.Error())
+            },
+        )
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                //e = fmt.Errorf("Server failure %v", x)
+                log.Println("Server failure %v", x)
+            }
+        }()
+
+        for {
+            Rescue(
+                func() {
+                    buffer := make([]byte, 1024)
+                    if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                        go func(c *UDPAddr, b []byte) {
+                            if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                                log.Println(n, "bytes written to", c)
+                            }
+                        }(client, buffer[:n])
+                    } else {
+                        Raise("%v: %v", address, e.Error())
+                    }
+                },
+                func(e Exception) {
+                    log.Println("Exception:", e.Error())
+                },
+            )
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                RaiseLaunchException("unable to resolve UDP address: %v", e)
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                RaiseLaunchException("can't open socket for listening: %v", e)
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            switch e := e.(type) {
+            case LaunchException:
+                log.Println("Launch Exception:", e.Error())
+            default:
+                log.Println("Exception:", e.Error())
+            }
+            os.Exit(1)
+        },
+    )
+}
+```
 
 The **type** switch allows us to select different courses of action depending on
 the **concrete type** of the value contained in the **Exception**, and we can
 also specify a **default** case to handle unknown values.
 
-    $ go run 64.go &
-    [1] 90620
-    $ go run 64.go
-    2016/07/16 00:03:17 Launch Exception can't open socket for listening: listen udp :1025:\
-     bind: address already in use
-    exit status 1
-    $ go run 57.go
-    2016/07/16 01:00:53 256 bytes written to 127.0.0.1:63574
-    Hello World
-    $ go run 57_corrupt_key.go 
-    2016/07/16 01:00:58 Exception: unable to decode wrapper: 127.0.0.1:54657
-    ^Csignal: interrupt
-    $ go run 57.go
-    2016/07/16 01:02:09 256 bytes written to 127.0.0.1:52033
-    Hello World
+<pre>  <b>$ go run 64.go &</b>
+  [1] 90620
+  <b>$ go run 64.go</b>
+  2016/07/16 00:03:17 Launch Exception can't open socket for listening: listen udp :1025:\
+   bind: address already in use
+  exit status 1
+  <b>$ go run 57.go</b>
+  2016/07/16 01:00:53 256 bytes written to 127.0.0.1:63574
+  Hello World
+  <b>$ go run 57_corrupt_key.go</b> 
+  2016/07/16 01:00:58 Exception: unable to decode wrapper: 127.0.0.1:54657
+  ^Csignal: interrupt
+  <b>$ go run 57.go</b>
+  2016/07/16 01:02:09 256 bytes written to 127.0.0.1:52033
+  Hello World</pre>
     
 
 The use of type switches in this manner is a common idiom in **go** and I quite
@@ -4071,47 +4207,52 @@ control the execution of our program.
 
 ***[Example 1.65] checking for a specific exception***
 
-    45func Rescue(f func(), r ...interface{}) {
-    46   defer func() {
-    47     if e := recover(); e != nil {
-    48       if e, ok := e.(Exception); ok {
-    49        et := reflect.TypeOf(e)
-    50        for _, handler := range r {
-    51          if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn(\
-    52) == 1 {
-    53            switch hpt := h.Type().In(0); {
-    54            case et == hpt:
-    55              fallthrough
-    56            case hpt.Kind() == reflect.Interface && et.Implements(hpt):
-    57              h.Call([]reflect.Value{ reflect.ValueOf(e) })
-    58              return
-    59            }
-    60          }
-    61        }
-    62       }
-    63      panic(e)
-    64     }
-    65   }()
-    6667   f()
-    68 }
-    
+<pre>
+<b>func Rescue(f func(), r ...interface{}) {</b>
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                <b>et := reflect.TypeOf(e)
+                for _, handler := range r {
+                if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn(\
+                ) == 1 {
+                        switch hpt := h.Type().In(0); {
+                        case et == hpt:
+                            fallthrough
+                        case hpt.Kind() == reflect.Interface && et.Implements(hpt):
+                            h.Call([]reflect.Value{reflect.ValueOf(e)})
+                            return
+                        }
+                    }
+                }
+            } else {
+                panic(e)</b>
+            }
+        }
+    }()
+
+    f()
+}</pre>
+
 
 This seems like a pretty gnarly piece of code on first inspection so let’s
 rephrase it in English to get a better understanding for what’s it’s doing
 before looking at the details of the **reflect** API
 
-    47 given that we've recovered from a panic()
-    48   if we're handling any value whose type fulfils the Exception interface
-    49     determine the concrete type of the Exception value
-    50     step through the list of handlers specified in the Rescue() call
-    51       if the handler is a function and accepts exactly one parameter
-    52         find out what the type of its parameter is
-    53         if the parameter is the same type as our exception's concrete type
-    54         or the parameter is an interface which the exception implements
-    55           call the handler with the exception as its parameter
-    56           return from the defered function, continuing execution normally
-    57   in all other cases
-    58     propagate the value received by recover() up the unwinding call stack
+```
+47 given that we've recovered from a panic()
+48   if we're handling any value whose type fulfils the Exception interface
+49     determine the concrete type of the Exception value
+50     step through the list of handlers specified in the Rescue() call
+51       if the handler is a function and accepts exactly one parameter
+52         find out what the type of its parameter is
+53         if the parameter is the same type as our exception's concrete type
+54         or the parameter is an interface which the exception implements
+55           call the handler with the exception as its parameter
+56           return from the defered function, continuing execution normally
+57   in all other cases
+58     propagate the value received by recover() up the unwinding call stack
+```
     
 
 This essentially boils down to finding out the runtime types of the values our
@@ -4126,17 +4267,18 @@ types and as a consequence many of these methods are prone to generating runtime
 panics if used incorrectly. Both types implement a **Kind()** method which can
 be used to provide basic safeguards
 
-    51          if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn(\
-    52) == 1 {
-    53             switch hpt := h.Type().In(0); {
-    54             case et == hpt:
-    55               fallthrough
-    56            case hpt.Kind() == reflect.Interface && et.Implements(hpt):
-    57               h.Call([]reflect.Value{ reflect.ValueOf(e) })
-    58               return
-    59             }
-    60           }
-    
+<pre>
+51          <b>if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn(\
+52) == 1 {</b>
+53             switch hpt := h.Type().In(0); {
+54             case et == hpt:
+55               fallthrough
+56             <b>case hpt.Kind() == reflect.Interface && et.Implements(hpt):</b>
+57               h.Call([]reflect.Value{ reflect.ValueOf(e) })
+58               return
+59             }
+60           }
+</pre>
 
 With type safety guarantees in place we can easily figure out whether or not
 we’re dealing with a recognisable exception handler (i.e. a function taking a
@@ -4146,8 +4288,151 @@ method **Call()** which executes a function and takes as its parameter a
 **[]reflect.Value** containing the actual parameters for the function, each
 wrapped as a **reflect.Value**
 
-    56              h.Call([]reflect.Value{ reflect.ValueOf(e) })
+<pre>
+56              <b>h.Call([]reflect.Value{ reflect.ValueOf(e) })</b>
+</pre>
     
+***Example 1.65***
+
+```go
+package main
+
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+    "os"
+    "reflect"
+)
+
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
+
+type Exception interface {
+    error
+}
+
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
+
+type LaunchException error
+
+func RaiseLaunchException(message string, parameters ...interface{}) {
+    panic(LaunchException(fmt.Errorf(message, parameters...)))
+}
+
+func Rescue(f func(), r ...interface{}) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                et := reflect.TypeOf(e)
+                for _, handler := range r {
+                    if h := reflect.ValueOf(handler); h.Kind() == reflect.Func && h.Type().NumIn() == 1 {
+                        switch hpt := h.Type().In(0); {
+                        case et == hpt:
+                            fallthrough
+                        case hpt.Kind() == reflect.Interface && et.Implements(hpt):
+                            h.Call([]reflect.Value{reflect.ValueOf(e)})
+                            return
+                        }
+                    }
+                }
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        Rescue(
+            func() {
+                if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+                    Raise("unable to decode wrapper: %v", c)
+                } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+                    Raise("unable to encrypt server response")
+                } else if n, e = connection.WriteToUDP(response, c); e != nil {
+                    Raise("unable to write response to client: %v", c)
+                }
+            },
+            func(e Exception) {
+                log.Println("Exception", e.Error())
+            },
+        )
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                //e = fmt.Errorf("Server failure %v", x)
+                log.Println("Server failure %v", x)
+            }
+        }()
+
+        for {
+            Rescue(
+                func() {
+                    buffer := make([]byte, 1024)
+                    if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                        go func(c *UDPAddr, b []byte) {
+                            if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                                log.Println(n, "bytes written to", c)
+                            }
+                        }(client, buffer[:n])
+                    } else {
+                        Raise("%v: %v", address, e.Error())
+                    }
+                },
+                func(e Exception) {
+                    log.Println("Exception:", e.Error())
+                },
+            )
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                RaiseLaunchException("unable to resolve UDP address: %v", e)
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                RaiseLaunchException("can't open socket for listening: %v", e)
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            switch e := e.(type) {
+            case LaunchException:
+                log.Println("Launch Exception:", e.Error())
+            default:
+                log.Println("Exception:", e.Error())
+            }
+            os.Exit(1)
+        },
+    )
+}
+```
 
 For completeness we’re going to refactor **Rescue()** by separating out the code
 for attempting an exception handling function call, making this easier to
@@ -4155,101 +4440,179 @@ maintain
 
 ***[Example 1.66] calling an exception handler via reflection***
 
-    33func attemptCall(e Exception, handler interface{}) (ok bool) {
-    34  if h := reflect.ValueOf(handler); h.Kind() == reflect.Func {
-    35    et := reflect.TypeOf(e)
-    36    if hpt := h.Type().In(0); et == hpt || et.Implements(hpt) {
-    37      h.Call([]reflect.Value{reflect.ValueOf(e)})
-    38      return true
-    39    }
-    40  }
-    41  return
-    42}
-    4344 func Rescue(f func(), r ...interface{}) {
-    45   defer func() {
-    46     if e := recover(); e != nil {
-    47       if e, ok := e.(Exception); ok {
-    48         for _, h := range r {
-    49          if attemptCall(e, h) {
-    50            return
-    51          }
-    52         }
-    53       }
-    54       panic(e)
-    55     }
-    56   }()
-    5758   f()
-    59 }
-    
-
-  Leanpub requires cookies in order to provide you the best experience.
-  [Dismiss](Dismiss)
-
-  window.addEventListener('load', function() {
-    var shouldShowCookies = document.cookie.indexOf('should_show_cookies') !== -1
-
-    if (shouldShowCookies) {
-      var banner = document.querySelector('.cookies-banner')
-      // IE < 9 check
-      if (banner.style.removeProperty) {
-        banner.style.removeProperty('display');
-      } else {
-        banner.style.removeAttribute('display');
-      }
-      document.querySelector('.cookies-banner').classList.add('shown')
-      // Note that we have to use vanilla JS here because ujs (remote links) code doesn't live in the react app, and i don't
-      // want to have to write this shit twice.
-      document.querySelector('.cookies-banner .dismiss').addEventListener('click', function() {
-        document.querySelector('.cookies-banner').remove()
-        var xhr = new XMLHttpRequest()
-        xhr.open("POST", "/api/v1/accepted_terms/dismiss_cookies", true);
-        xhr.send()
-      })
+<pre>
+<b>func attemptCall(e Exception, handler interface{}) (ok bool) {
+    if h := reflect.ValueOf(handler); h.Kind() == reflect.Func {
+        et := reflect.TypeOf(e)
+        if hpt := h.Type().In(0); et == hpt || et.Implements(hpt) {
+            h.Call([]reflect.Value{reflect.ValueOf(e)})
+            return true
+        }
     }
-  })
+    return
+}</b>
 
-# [![Logo white 96 67 2x](/assets/logos/logo-white-96-67-2x-a3a744fb5a67756826fc4903e144e54d.png)](https://leanpub.com/)
+func Rescue(f func(), r ...interface{}) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                for _, h := range r {
+                    <b>if attemptCall(e, h) {
+                        return
+                    }</b>
+                }
+            } else {
+                panic(e)
+            }
+        }
+    }()
 
-- 
-##### About
+    f()
+}
+</pre>
 
-- [About Leanpub](/about)
-- [Blog](https://medium.com/@leanpub)
-- [Team](/team)
-- [Podcast](https://itunes.apple.com/ca/podcast/leanpub-podcast/id517117137)
-- [Press](/press)
+***Example 1.66***
 
-- 
-##### Authors
+```go
+package main
 
-- [Why Leanpub](/authors)
-- [Testimonials](/testimonials)
-- [Grandfathering](/grandfathering)
-- [Freemium](/freemium)
-- [A New Course](/anewcourse)
-- [Manifesto](/manifesto)
+import (
+    "bytes"
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/sha1"
+    "encoding/gob"
+    "fmt"
+    "log"
+    . "net"
+    "os"
+    "reflect"
+)
 
-- 
-##### Author Support
+var HELLO_WORLD = ([]byte)("Hello world")
+var RSA_LABEL = ([]byte)("served")
 
-- [Author Help](http://help.leanpub.com/author-help)
-- [Getting Started](/help)
-- [Manual](/help/manual)
-- [API Docs](/help/api)
+type Exception interface {
+    error
+}
 
-- 
-##### More
+func Raise(message string, parameters ...interface{}) {
+    panic(fmt.Errorf(message, parameters...))
+}
 
-- [Redeem a Token](/redeem)
-- [Reader Help](http://help.leanpub.com/reader-help)
-- [Publishers](/p)
-- [Causes](/causes)
+type LaunchException error
 
-- 
-##### Legal
+func RaiseLaunchException(message string, parameters ...interface{}) {
+    panic(LaunchException(fmt.Errorf(message, parameters...)))
+}
 
-- [Terms of Service](/terms)
-- [Copyright Policy](/takedown)
-- [Privacy Policy](/privacy)
+func attemptCall(e Exception, handler interface{}) (ok bool) {
+    if h := reflect.ValueOf(handler); h.Kind() == reflect.Func {
+        et := reflect.TypeOf(e)
+        if hpt := h.Type().In(0); et == hpt || et.Implements(hpt) {
+            h.Call([]reflect.Value{reflect.ValueOf(e)})
+            return true
+        }
+    }
+    return
+}
 
-Leanpub is copyright &copy; 2010-2018 [Ruboss Technology Corp.](http://ruboss.com) All rights reserved.
+func Rescue(f func(), r ...interface{}) {
+    defer func() {
+        if e := recover(); e != nil {
+            if e, ok := e.(Exception); ok {
+                for _, h := range r {
+                    if attemptCall(e, h) {
+                        return
+                    }
+                }
+            } else {
+                panic(e)
+            }
+        }
+    }()
+
+    f()
+}
+
+func main() {
+    Serve(":1025", func(connection *UDPConn, c *UDPAddr, packet *bytes.Buffer) (n int) {
+        var key rsa.PublicKey
+        var response []byte
+
+        Rescue(
+            func() {
+                if e := gob.NewDecoder(packet).Decode(&key); e != nil {
+                    Raise("unable to decode wrapper: %v", c)
+                } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
+                    Raise("unable to encrypt server response")
+                } else if n, e = connection.WriteToUDP(response, c); e != nil {
+                    Raise("unable to write response to client: %v", c)
+                }
+            },
+            func(e Exception) {
+                log.Println("Exception", e.Error())
+            },
+        )
+        return
+    })
+}
+
+func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
+    Launch(address, func(connection *UDPConn) (e error) {
+        defer func() {
+            if x := recover(); x != nil {
+                //e = fmt.Errorf("Server failure %v", x)
+                log.Println("Server failure %v", x)
+            }
+        }()
+
+        for {
+            Rescue(
+                func() {
+                    buffer := make([]byte, 1024)
+                    if n, client, e := connection.ReadFromUDP(buffer); e == nil {
+                        go func(c *UDPAddr, b []byte) {
+                            if n := f(connection, c, bytes.NewBuffer(b)); n != 0 {
+                                log.Println(n, "bytes written to", c)
+                            }
+                        }(client, buffer[:n])
+                    } else {
+                        Raise("%v: %v", address, e.Error())
+                    }
+                },
+                func(e Exception) {
+                    log.Println("Exception:", e.Error())
+                },
+            )
+        }
+    })
+}
+
+func Launch(address string, f func(*UDPConn) error) {
+    var connection *UDPConn
+
+    Rescue(
+        func() {
+            if a, e := ResolveUDPAddr("udp", address); e != nil {
+                RaiseLaunchException("unable to resolve UDP address: %v", e)
+            } else if connection, e = ListenUDP("udp", a); e != nil {
+                RaiseLaunchException("can't open socket for listening: %v", e)
+            } else if e = f(connection); e != nil {
+                Raise("connection error: %v", e)
+            }
+
+            f(connection)
+        },
+        func(e Exception) {
+            switch e := e.(type) {
+            case LaunchException:
+                log.Println("Launch Exception:", e.Error())
+            default:
+                log.Println("Exception:", e.Error())
+            }
+            os.Exit(1)
+        },
+    )
+}
+```
