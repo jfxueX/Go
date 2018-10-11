@@ -4076,6 +4076,7 @@ func main() {
                 } else if n, e = connection.WriteToUDP(response, c); e != nil {
                     Raise("unable to write response to client: %v", c)
                 }
+                return
             },
             func(e Exception) {
                 log.Println("Exception", e.Error())
@@ -4310,21 +4311,33 @@ import (
     "reflect"
 )
 
-var HELLO_WORLD = ([]byte)("Hello world")
-var RSA_LABEL = ([]byte)("served")
+var HELLO_WORLD = []byte("Hello World")
+var RSA_LABEL = []byte("served")
 
 type Exception interface {
     error
 }
 
 func Raise(message string, parameters ...interface{}) {
-    panic(fmt.Errorf(message, parameters...))
+    panic(Exception(fmt.Errorf(message, parameters...)))
 }
 
 type LaunchException error
 
 func RaiseLaunchException(message string, parameters ...interface{}) {
     panic(LaunchException(fmt.Errorf(message, parameters...)))
+}
+
+type KeyException error
+
+func RaiseKeyException(message string, parameters ...interface{}) {
+    panic(KeyException(fmt.Errorf(message, parameters...)))
+}
+
+type CryptoException error
+
+func RaiseCryptoException(message string, parameters ...interface{}) {
+    panic(CryptoException(fmt.Errorf(message, parameters...)))
 }
 
 func Rescue(f func(), r ...interface{}) {
@@ -4343,9 +4356,8 @@ func Rescue(f func(), r ...interface{}) {
                         }
                     }
                 }
-            } else {
-                panic(e)
             }
+            panic(e)
         }
     }()
 
@@ -4360,15 +4372,19 @@ func main() {
         Rescue(
             func() {
                 if e := gob.NewDecoder(packet).Decode(&key); e != nil {
-                    Raise("unable to decode wrapper: %v", c)
+                    RaiseKeyException("unable to decode wrapper: %v", c)
                 } else if response, e = rsa.EncryptOAEP(sha1.New(), rand.Reader, &key, HELLO_WORLD, RSA_LABEL); e != nil {
-                    Raise("unable to encrypt server response")
+                    RaiseCryptoException("unable to encrypt server response")
                 } else if n, e = connection.WriteToUDP(response, c); e != nil {
                     Raise("unable to write response to client: %v", c)
                 }
+                return
+            },
+            func(k KeyException) {
+                log.Println("KeyException:", k.Error())
             },
             func(e Exception) {
-                log.Println("Exception", e.Error())
+                log.Println("Exception:", e.Error())
             },
         )
         return
@@ -4377,13 +4393,6 @@ func main() {
 
 func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
     Launch(address, func(connection *UDPConn) (e error) {
-        defer func() {
-            if x := recover(); x != nil {
-                //e = fmt.Errorf("Server failure %v", x)
-                log.Println("Server failure %v", x)
-            }
-        }()
-
         for {
             Rescue(
                 func() {
@@ -4399,7 +4408,7 @@ func Serve(address string, f func(*UDPConn, *UDPAddr, *bytes.Buffer) int) {
                     }
                 },
                 func(e Exception) {
-                    log.Println("Exception:", e.Error())
+                    log.Println(e.Error())
                 },
             )
         }
@@ -4418,16 +4427,13 @@ func Launch(address string, f func(*UDPConn) error) {
             } else if e = f(connection); e != nil {
                 Raise("connection error: %v", e)
             }
-
-            f(connection)
+        },
+        func(l LaunchException) {
+            log.Println("LaunchException:", l.Error())
+            os.Exit(1)
         },
         func(e Exception) {
-            switch e := e.(type) {
-            case LaunchException:
-                log.Println("Launch Exception:", e.Error())
-            default:
-                log.Println("Exception:", e.Error())
-            }
+            log.Println(e.Error())
             os.Exit(1)
         },
     )
