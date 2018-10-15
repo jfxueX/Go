@@ -6,34 +6,34 @@
 
 ### new 分配
 
-Go has two allocation primitives, the built-in functions new and make. They do different things and 
-apply to different types, which can be confusing, but the rules are simple. Let's talk about new 
-first. It's a built-in function that allocates memory, but unlike its namesakes in some other 
-languages it does not initialize the memory, it only zeros it. That is, new(T) allocates zeroed 
-storage for a new item of type T and returns its address, a value of type `*T`. In Go terminology, 
-it returns a pointer to a newly allocated zero value of type T.
+> Go has two allocation primitives, the built-in functions new and make. They do different things and 
+> apply to different types, which can be confusing, but the rules are simple. Let's talk about new 
+> first. It's a built-in function that allocates memory, but unlike its namesakes in some other 
+> languages it does not initialize the memory, it only zeros it. That is, new(T) allocates zeroed 
+> storage for a new item of type T and returns its address, a value of type `*T`. In Go terminology, 
+> it returns a pointer to a newly allocated zero value of type T.
 
-Go 提供了两种分配原语，即内建函数 new 和 make。 它们所做的事情不同，所应用的类型也不同。它们可能会引
-起混淆，但规则却很简单。 让我们先来看看 new。这是个用来分配内存的内建函数， 但与其它语言中的同名函数
-不同，它不会初始化内存，只会将内存置零。 也就是说，new(T) 会为类型为 T 的新项分配已置零的内存空间， 
-并返回它的地址，也就是一个类型为 `*T` 的值。用 Go 的术语来说，它返回一个指针， 该指针指向新分配的，
-类型为 T 的零值。
+Go 提供了两种分配原语，即内建函数 new 和 make。它们所做的事情不同，所应用的类型也不同。它们可能会引
+起混淆，但规则却很简单。让我们先来看看 new。这是个用来分配内存的内建函数，但与其它语言中的同名函数不
+同，它不会初始化内存，只会将内存置零。也就是说，new(T) 会为类型为 T 的新项分配已置零的内存空间，并返
+回它的地址，也就是一个类型为 `*T` 的值。用 Go 的术语来说，它返回一个指针，该指针指向新分配的，类型为 
+T 的零值。
 
-Since the memory returned by new is zeroed, it's helpful to arrange when designing your data 
-structures that the zero value of each type can be used without further initialization. This means a 
-user of the data structure can create one with new and get right to work. For example, the 
-documentation for bytes.Buffer states that "the zero value for Buffer is an empty buffer ready to 
-use." Similarly, sync.Mutex does not have an explicit constructor or Init method. Instead, the zero 
-value for a sync.Mutex is defined to be an unlocked mutex.
+> Since the memory returned by new is zeroed, it's helpful to arrange when designing your data 
+> structures that the zero value of each type can be used without further initialization. This means a 
+> user of the data structure can create one with new and get right to work. For example, the 
+> documentation for bytes.Buffer states that "the zero value for Buffer is an empty buffer ready to 
+> use." Similarly, sync.Mutex does not have an explicit constructor or Init method. Instead, the zero 
+> value for a sync.Mutex is defined to be an unlocked mutex.
 
-既然 new 返回的内存已置零，那么当你设计数据结构时， 每种类型的零值就不必进一步初始化了，这意味着该数
-据结构的使用者只需用 new 创建一个新的对象就能正常工作。例如，bytes.Buffer 的文档中提到 “零值的 
-Buffer 就是已准备就绪的缓冲区。" 同样，sync.Mutex 并没有显式的构造函数或 Init 方法， 而是零值的 
-sync.Mutex 就已经被定义为已解锁的互斥锁了。
+既然 new 返回的内存已置零，那么当你设计数据结构时，每种类型的零值就不必进一步初始化了，这意味着该数
+据结构的使用者只需用 new 创建一个新的对象就能正常工作。例如，bytes.Buffer 的文档中提到“零值的 Buffer 
+就是已准备就绪的缓冲区。”同样，sync.Mutex 并没有显式的构造函数或 Init 方法，而是零值的 sync.Mutex 就
+已经被定义为已解锁的互斥锁了。
 
-The zero-value-is-useful property works transitively. Consider this type declaration.
+> The zero-value-is-useful property works transitively. Consider this type declaration.
 
-“零值属性” 是传递性的。考虑以下类型声明。
+“零值属性”是传递性的。考虑以下类型声明。
 
 ```go
 type SyncedBuffer struct {
@@ -41,10 +41,11 @@ type SyncedBuffer struct {
 	buffer  bytes.Buffer
 }
 ```
-Values of type SyncedBuffer are also ready to use immediately upon allocation or just declaration. 
-In the next snippet, both p and v will work correctly without further arrangement.
 
-SyncedBuffer 类型的值也是在声明时就分配好内存就绪了。后续代码中， p 和 v 无需进一步处理即可正确工
+> Values of type SyncedBuffer are also ready to use immediately upon allocation or just declaration. 
+> In the next snippet, both p and v will work correctly without further arrangement.
+
+SyncedBuffer 类型的值也是在分配时或仅声明时就准备就绪了。后续代码中，p 和 v 无需进一步处理即可正确工
 作。
 
 ```go
@@ -55,10 +56,10 @@ var v SyncedBuffer      // type  SyncedBuffer
 
 ### 构造函数与复合字面量
 
-Sometimes the zero value isn't good enough and an initializing constructor is necessary, as in this 
-example derived from package os.
+> Sometimes the zero value isn't good enough and an initializing constructor is necessary, as in this 
+> example derived from package os.
 
-有时零值还不够好，这时就需要一个初始化构造函数，如来自 os 包中的这段代码所示。
+有时零值还不够好，这时就需要一个初始化构造函数，如下面派生自 os 包的这段代码所示。
 
 ```go
 func NewFile(fd int, name string) *File {
@@ -73,10 +74,10 @@ func NewFile(fd int, name string) *File {
 	return f
 }
 ```
-There's a lot of boiler plate in there. We can simplify it using a composite literal, which is an 
-expression that creates a new instance each time it is evaluated.
+> There's a lot of boiler plate in there. We can simplify it using a composite literal, which is an 
+> expression that creates a new instance each time it is evaluated.
 
-这里显得代码过于冗长。我们可通过复合字面量来简化它， 该表达式在每次求值时都会创建新的实例。
+这里显得代码过于冗长。我们可通过复合字面量来简化它，该表达式在每次求值时都会创建新的实例。
 
 ```go
 func NewFile(fd int, name string) *File {
@@ -87,38 +88,39 @@ func NewFile(fd int, name string) *File {
 	return &f
 }
 ```
-Note that, unlike in C, it's perfectly OK to return the address of a local variable; the storage 
-associated with the variable survives after the function returns. In fact, taking the address of a 
-composite literal allocates a fresh instance each time it is evaluated, so we can combine these last 
-two lines.
 
-请注意，返回一个局部变量的地址完全没有问题，这点与 C 不同。该局部变量对应的数据 在函数返回后依然有
-效。实际上，每当获取一个复合字面量的地址时，都将为一个新的实例分配内存， 因此我们可以将上面的最后两
-行代码合并：
+> Note that, unlike in C, it's perfectly OK to return the address of a local variable; the storage 
+> associated with the variable survives after the function returns. In fact, taking the address of a 
+> composite literal allocates a fresh instance each time it is evaluated, so we can combine these last 
+> two lines.
+
+请注意，返回一个局部变量的地址完全没有问题，这点与 C 不同。该局部变量对应的数据在函数返回后依然有
+效。实际上，每当获取一个复合字面量的地址时，都将为一个新的实例分配内存，因此我们可以将上面的最后两行
+代码合并：
 
 ```go
 	return &File{fd, name, nil, 0}
 ```
-The fields of a composite literal are laid out in order and must all be present. However, by 
-labeling the elements explicitly as field:value pairs, the initializers can appear in any order, 
-with the missing ones left as their respective zero values. Thus we could say
+> The fields of a <b>composite literal</b> are laid out in order and must all be present. However, by 
+> labeling the elements explicitly as field:value pairs, the initializers can appear in any order, 
+> with the missing ones left as their respective zero values. Thus we could say
 
-复合字面量的字段必须按顺序全部列出。但如果以 字段: 值 对的形式明确地标出元素，初始化字段时就可以按任
-何顺序出现，未给出的字段值将赋予零值。 因此，我们可以用如下形式：
+复合字面量的字段必须按顺序全部列出。但如果以`字段: 值`对的形式明确地标出元素，初始化字段时就可以按任
+何顺序出现，未给出的字段值将赋予零值。因此，我们可以用如下形式：
 
 ```go
 	return &File{fd: fd, name: name}
 ```
-As a limiting case, if a composite literal contains no fields at all, it creates a zero value for 
-the type. The expressions new(File) and &File{} are equivalent.
+> As a limiting case, if a composite literal contains no fields at all, it creates a zero value for 
+> the type. The expressions new(File) and &File{} are equivalent.
 
 少数情况下，若复合字面量不包括任何字段，它将创建该类型的零值。表达式 new(File) 和 &File{} 是等价的。
 
-Composite literals can also be created for arrays, slices, and maps, with the field labels being 
-indices or map keys as appropriate. In these examples, the initializations work regardless of the 
-values of Enone, Eio, and Einval, as long as they are distinct.
+> Composite literals can also be created for arrays, slices, and maps, with the field labels being 
+> indices or map keys as appropriate. In these examples, the initializations work regardless of the 
+> values of Enone, Eio, and Einval, as long as they are distinct.
 
-复合字面量同样可用于创建数组、切片以及映射，字段标签是索引还是映射键则视情况而定。 在下例初始化过程
+复合字面量同样可用于创建数组、切片以及映射，字段标签是索引还是映射键则视情况而定。在下例初始化过程
 中，无论 Enone、Eio 和 Einval 的值是什么，只要它们的标签不同就行。
 
 ```go
@@ -130,47 +132,49 @@ m := map[int]string{Enone: "no error", Eio: "Eio", Einval: "invalid argument"}
 
 ### make 分配
 
-Back to allocation. The built-in function make(T, args) serves a purpose different from new(T). It 
-creates slices, maps, and channels only, and it returns an initialized (not zeroed) value of type T 
-(not `*T`). The reason for the distinction is that these three types represent, under the covers, 
-references to data structures that must be initialized before use. A slice, for example, is a three-
-item descriptor containing a pointer to the data (inside an array), the length, and the capacity, 
-and until those items are initialized, the slice is nil. For slices, maps, and channels, make 
-initializes the internal data structure and prepares the value for use. For instance,
+> Back to allocation. The built-in function make(T, args) serves a purpose different from new(T). It 
+> creates slices, maps, and channels only, and it returns an initialized (not zeroed) value of type T 
+> (not `*T`). The reason for the distinction is that these three types represent, under the covers, 
+> references to data structures that must be initialized before use. A slice, for example, is a three-
+> item descriptor containing a pointer to the data (inside an array), the length, and the capacity, 
+> and until those items are initialized, the slice is nil. For slices, maps, and channels, make 
+> initializes the internal data structure and prepares the value for use. For instance,
 
 再回到内存分配上来。内建函数 make(T, args) 的目的不同于 new(T)。它只用于创建切片、映射和信道，并返回
-类型为 T（而非 `*T`）的一个已初始化 （而非置零）的值。 出现这种用差异的原因在于，这三种类型本质上为
-引用数据类型，它们在使用前必须初始化。 例如，切片是一个具有三项内容的描述符，包含一个指向（数组内
-部）数据的指针、长度以及容量， 在这三项被初始化之前，该切片为 nil。对于切片、映射和信道，make 用于初
-始化其内部的数据结构并准备好将要使用的值。例如，
+类型为 T（而非 `*T`）的一个已初始化（而非置零）的值。出现这种用差异的原因在于，这三种类型本质上为引
+用数据类型，它们在使用前必须初始化。例如，切片是一个具有三项内容的描述符，包含一个指向（数组内部）数
+据的指针、长度以及容量，在这三项被初始化之前，该切片为 nil。对于切片、映射和信道，make 用于初始化其
+内部的数据结构并准备好将要使用的值。例如， 
 
 ```go
 make([]int, 10, 100)
 ```
-allocates an array of 100 ints and then creates a slice structure with length 10 and a capacity of 
-100 pointing at the first 10 elements of the array. (When making a slice, the capacity can be 
-omitted; see the section on slices for more information.) In contrast, new([]int) returns a pointer 
-to a newly allocated, zeroed slice structure, that is, a pointer to a nil slice value.
 
-会分配一个具有 100 个 int 的数组空间，接着创建一个长度为 10， 容量为 100 并指向该数组中前 10 个元素
-的切片结构。（生成切片时，其容量可以省略，更多信息见切片一节。） 与此相反，new([]int) 会返回一个指向
-新分配的，已置零的切片结构， 即一个指向 nil 切片值的指针。
+> allocates an array of 100 ints and then creates a slice structure with length 10 and a capacity of 
+> 100 pointing at the first 10 elements of the array. (When making a slice, the capacity can be 
+> omitted; see the section on slices for more information.) In contrast, new([]int) returns a pointer 
+> to a newly allocated, zeroed slice structure, that is, a pointer to a nil slice value.
 
-These examples illustrate the difference between new and make.
+会分配一个具有 100 个 int 的数组空间，接着创建一个长度为 10，容量为 100 并指向该数组中前 10 个元素的
+切片结构。（生成切片时，其容量可以省略，更多信息见切片一节。）与此相反，new([]int) 会返回一个指向新
+分配的，已置零的切片结构，即一个指向 nil 切片值的指针。
+
+> These examples illustrate the difference between new and make.
 
 下面的例子阐明了 new 和 make 之间的区别：
 
-```go
-var p *[]int = new([]int)       // allocates slice structure; *p == nil; rarely useful
-var v  []int = make([]int, 100) // the slice v now refers to a new array of 100 ints
+> ```go
+> var p *[]int = new([]int)       // allocates slice structure; *p == nil; rarely useful
+> var v  []int = make([]int, 100) // the slice v now refers to a new array of 100 ints
+> 
+> // Unnecessarily complex:
+> var p *[]int = new([]int)
+> *p = make([]int, 100, 100)
+> 
+> // Idiomatic:
+> v := make([]int, 100)
+> ```
 
-// Unnecessarily complex:
-var p *[]int = new([]int)
-*p = make([]int, 100, 100)
-
-// Idiomatic:
-v := make([]int, 100)
-```
 ```go
 var p *[]int = new([]int)       // 分配切片结构；*p == nil；基本没用
 var v  []int = make([]int, 100) // 切片 v 现在引用了一个具有 100 个 int 元素的新数组
@@ -182,29 +186,29 @@ var p *[]int = new([]int)
 // 习惯用法：
 v := make([]int, 100)
 ```
-Remember that make applies only to maps, slices and channels and does not return a pointer. To 
-obtain an explicit pointer allocate with new or take the address of a variable explicitly.
+> Remember that make applies only to maps, slices and channels and does not return a pointer. To 
+> obtain an explicit pointer allocate with new or take the address of a variable explicitly.
 
-请记住，make 只适用于映射、切片和信道且不返回指针。若要获得明确的指针， 请使用 new 分配内存或显式地
+请记住，make 只适用于映射、切片和信道且不返回指针。若要获得明确的指针，请使用 new 分配内存或显式地
 获取一个变量的地址。
 
 ### Arrays
 
 ### 数组
 
-Arrays are useful when planning the detailed layout of memory and sometimes can help avoid 
-allocation, but primarily they are a building block for slices, the subject of the next section. To 
-lay the foundation for that topic, here are a few words about arrays.
+> Arrays are useful when planning the detailed layout of memory and sometimes can help avoid 
+> allocation, but primarily they are a building block for slices, the subject of the next section. To 
+> lay the foundation for that topic, here are a few words about arrays.
 
-在详细规划内存布局时，数组是非常有用的，有时还能避免过多的内存分配， 但它们主要用作切片的构件。这是
+在详细规划内存布局时，数组是非常有用的，有时还能避免过多的内存分配，但它们主要用作切片的构件。这是
 下一节的主题了，不过要先说上几句来为它做铺垫。
 
-There are major differences between the ways arrays work in Go and C. In Go,
-
-+ Arrays are values. Assigning one array to another copies all the elements.
-+ In particular, if you pass an array to a function, it will receive a copy of the array, not a 
-pointer to it.
-+ The size of an array is part of its type. The types [10]int and [20]int are distinct.
+> There are major differences between the ways arrays work in Go and C. In Go,
+> 
+> + Arrays are values. Assigning one array to another copies all the elements.
+> + In particular, if you pass an array to a function, it will receive a copy of the array, not a 
+> pointer to it.
+> + The size of an array is part of its type. The types [10]int and [20]int are distinct.
 
 以下为数组在 Go 和 C 中的主要区别。在 Go 中，
 
@@ -212,22 +216,23 @@ pointer to it.
 + 特别地，若将某个数组传入某个函数，它将接收到该数组的一份副本而非指针。
 + 数组的大小是其类型的一部分。类型 [10]int 和 [20]int 是不同的。
 
-The value property can be useful but also expensive; if you want C-like behavior and efficiency, you 
-can pass a pointer to the array.
+> The value property can be useful but also expensive; if you want C-like behavior and efficiency, you 
+> can pass a pointer to the array.
 
 数组为值的属性很有用，但代价高昂；若你想要 C 那样的行为和效率，你可以传递一个指向该数组的指针。
 
-```go
-func Sum(a *[3]float64) (sum float64) {
-	for _, v := range *a {
-		sum += v
-	}
-	return
-}
+> ```go
+> func Sum(a *[3]float64) (sum float64) {
+> 	for _, v := range *a {
+> 		sum += v
+> 	}
+> 	return
+> }
+> 
+> array := [...]float64{7.0, 8.5, 9.1}
+> x := Sum(&array)  // Note the explicit address-of operator
+> ```
 
-array := [...]float64{7.0, 8.5, 9.1}
-x := Sum(&array)  // Note the explicit address-of operator
-```
 ```go
 func Sum(a *[3]float64) (sum float64) {
 	for _, v := range *a {
@@ -239,7 +244,8 @@ func Sum(a *[3]float64) (sum float64) {
 array := [...]float64{7.0, 8.5, 9.1}
 x := Sum(&array)  // 注意显式的取址操作
 ```
-But even this style isn't idiomatic Go. Use slices instead.
+
+> But even this style isn't idiomatic Go. Use slices instead.
 
 但这并不是 Go 的习惯用法，切片才是。
 
@@ -251,20 +257,20 @@ Slices wrap arrays to give a more general, powerful, and convenient interface to
 Except for items with explicit dimension such as transformation matrices, most array programming in 
 Go is done with slices rather than simple arrays.
 
-切片通过对数组进行封装，为数据序列提供了更通用、强大而方便的接口。 除了矩阵变换这类需要明确维度的情
+切片通过对数组进行封装，为数据序列提供了更通用、强大而方便的接口。除了矩阵变换这类需要明确维度的情
 况外，Go 中的大部分数组编程都是通过切片来完成的。
 
-Slices hold references to an underlying array, and if you assign one slice to another, both refer to 
-the same array. If a function takes a slice argument, changes it makes to the elements of the slice 
-will be visible to the caller, analogous to passing a pointer to the underlying array. A Read 
-function can therefore accept a slice argument rather than a pointer and a count; the length within 
-the slice sets an upper limit of how much data to read. Here is the signature of the Read method of 
-the File type in package os:
+> Slices hold references to an underlying array, and if you assign one slice to another, both refer to 
+> the same array. If a function takes a slice argument, changes it makes to the elements of the slice 
+> will be visible to the caller, analogous to passing a pointer to the underlying array. A Read 
+> function can therefore accept a slice argument rather than a pointer and a count; the length within 
+> the slice sets an upper limit of how much data to read. Here is the signature of the Read method of 
+> the File type in package os:
 
-切片保存了对底层数组的引用，若你将某个切片赋予另一个切片，它们会引用同一个数组。 若某个函数将一个切
-片作为参数传入，则它对该切片元素的修改对调用者而言同样可见， 这可以理解为传递了底层数组的指针。因
-此，Read 函数可接受一个切片实参 而非一个指针和一个计数；切片的长度决定了可读取数据的上限。以下为 os 
-包中 File 类型的 Read 方法签名:
+切片保存了对底层数组的引用，若你将某个切片赋值给另一个切片，它们会引用同一个数组。若某个函数将一个切
+片作为参数传入，则它对该切片元素的修改对调用者而言同样可见，这可以理解为传递了底层数组的指针。因此，
+Read 函数可接受一个切片实参而非一个指针和一个计数；切片的长度决定了可读取数据的上限。以下为 os 包中 
+File 类型的 Read 方法签名:
 
 ```go
 func (file *File) Read(buf []byte) (n int, err error)
@@ -278,23 +284,25 @@ bytes of a larger buffer buf, slice (here used as a verb) the buffer.
 ```go
 	n, err := f.Read(buf[0:32])
 ```
-Such slicing is common and efficient. In fact, leaving efficiency aside for the moment, the 
-following snippet would also read the first 32 bytes of the buffer.
+
+> Such slicing is common and efficient. In fact, leaving efficiency aside for the moment, the 
+> following snippet would also read the first 32 bytes of the buffer.
 
 这种切片的方法常用且高效。若不谈效率，以下片段同样能读取该缓冲区的前 32 个字节。
 
-```go
-	var n int
-	var err error
-	for i := 0; i < 32; i++ {
-		nbytes, e := f.Read(buf[i:i+1])  // Read one byte.
-		if nbytes == 0 || e != nil {
-			err = e
-			break
-		}
-		n += nbytes
-	}
-```
+> ```go
+> 	var n int
+> 	var err error
+> 	for i := 0; i < 32; i++ {
+> 		nbytes, e := f.Read(buf[i:i+1])  // Read one byte.
+> 		if nbytes == 0 || e != nil {
+> 			err = e
+> 			break
+> 		}
+> 		n += nbytes
+> 	}
+> ```
+
 ```go
 	var n int
 	var err error
@@ -307,40 +315,42 @@ following snippet would also read the first 32 bytes of the buffer.
 		n += nbytes
 	}
 ```
-The length of a slice may be changed as long as it still fits within the limits of the underlying 
-array; just assign it to a slice of itself. The capacity of a slice, accessible by the built-in 
-function cap, reports the maximum length the slice may assume. Here is a function to append data to 
-a slice. If the data exceeds the capacity, the slice is reallocated. The resulting slice is 
-returned. The function uses the fact that len and cap are legal when applied to the nil slice, and 
-return 0.
 
-只要切片不超出底层数组的限制，它的长度就是可变的，只需将它赋予其自身的切片即可。 切片的容量可通过内
-建函数 cap 获得，它将给出该切片可取得的最大长度。 以下是将数据追加到切片的函数。若数据超出其容量，则
-会重新分配该切片。返回值即为所得的切片。 该函数中所使用的 len 和 cap 在应用于 nil 切片时是合法的，它
-会返回 0.
+> The length of a slice may be changed as long as it still fits within the limits of the underlying 
+> array; just assign it to a slice of itself. The capacity of a slice, accessible by the built-in 
+> function cap, reports the maximum length the slice may assume. Here is a function to append data to 
+> a slice. If the data exceeds the capacity, the slice is reallocated. The resulting slice is 
+> returned. The function uses the fact that len and cap are legal when applied to the nil slice, and 
+> return 0.
 
-```go
-func Append(slice, data[]byte) []byte {
-	l := len(slice)
-	if l + len(data) > cap(slice) {  // reallocate
-		// Allocate double what's needed, for future growth.
-		newSlice := make([]byte, (l+len(data))*2)
-		// The copy function is predeclared and works for any slice type.
-		copy(newSlice, slice)
-		slice = newSlice
-	}
-	slice = slice[0:l+len(data)]
-	for i, c := range data {
-		slice[l+i] = c
-	}
-	return slice
-}
-```
+只要切片不超出底层数组的限制，它的长度就是可变的，只需将它赋予其自身的切片即可。切片的容量可通过内建
+函数 cap 获得，它将给出该切片可取得的最大长度。以下是将数据追加到切片的函数。若数据超出其容量，则会
+重新分配该切片。返回值即为所得的切片。该函数中所使用的 len 和 cap 在应用于 nil 切片时是合法的，它会
+返回 0.
+
+> ```go
+> func Append(slice, data[]byte) []byte {
+> 	l := len(slice)
+> 	if l + len(data) > cap(slice) {  // reallocate
+> 		// Allocate double what's needed, for future growth.
+> 		newSlice := make([]byte, (l+len(data))*2)
+> 		// The copy function is predeclared and works for any slice type.
+> 		copy(newSlice, slice)
+> 		slice = newSlice
+> 	}
+> 	slice = slice[0:l+len(data)]
+> 	for i, c := range data {
+> 		slice[l+i] = c
+> 	}
+> 	return slice
+> }
+> ```
+
 ```go
 func Append(slice, data[]byte) []byte {
 	l := len(slice)
 	if l + len(data) > cap(slice) {  // 重新分配
-		// 为了后面的增长，需分配两份。
+		// 为了以后的增长，分配双倍容量。
 		newSlice := make([]byte, (l+len(data))*2)
 		// copy 函数是预声明的，且可用于任何切片类型。
 		copy(newSlice, slice)
@@ -353,18 +363,19 @@ func Append(slice, data[]byte) []byte {
 	return slice
 }
 ```
-We must return the slice afterwards because, although Append can modify the elements of slice, the 
-slice itself (the run-time data structure holding the pointer, length, and capacity) is passed by 
-value.
+
+> We must return the slice afterwards because, although Append can modify the elements of slice, the 
+> slice itself (the run-time data structure holding the pointer, length, and capacity) is passed by 
+> value.
 
 最终我们必须返回切片，因为尽管 Append 可修改 slice 的元素，但切片自身（其运行时数据结构包含指针、长
 度和容量）是通过值传递的。
 
-The idea of appending to a slice is so useful it's captured by the append built-in function. To 
-understand that function's design, though, we need a little more information, so we'll return to it 
-later.
+> The idea of appending to a slice is so useful it's captured by the append built-in function. To 
+> understand that function's design, though, we need a little more information, so we'll return to it 
+> later.
 
-向切片追加东西的想法非常有用，因此有专门的内建函数 append。 要理解该函数的设计，我们还需要一些额外的
+向切片追加东西的想法非常有用，因此有专门的内建函数 append。要理解该函数的设计，我们还需要一些额外的
 信息，我们将稍后再介绍它。
 
 ### Two-dimensional slices
