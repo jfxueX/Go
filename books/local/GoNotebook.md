@@ -4622,3 +4622,6 @@ func Launch(address string, f func(*UDPConn) error) {
     )
 }
 ```
+
+---
+Reference: [A Go Developer's Notebook](https://leanpub.com/GoNotebook/read)
