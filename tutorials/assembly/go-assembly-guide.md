@@ -1,4 +1,4 @@
-## A Quick Guide to Go's Assembler
+# A Quick Guide to Go's Assembler
 
 This document is a quick outline of the unusual form of assembly language used by the `gc` Go compiler.
 The document is not comprehensive.
@@ -37,50 +37,53 @@ You can also examine what the compiler emits as assembly code
 (the actual output may differ from what you see here):
 
     
-    $ cat x.go
-    package main
-    
-    func main() {
-    	println(3)
-    }
-    $ GOOS=linux GOARCH=amd64 go tool compile -S x.go        # or: go build -gcflags -S x.go
-    
-    --- prog list "main" ---
-    0000 (x.go:3) TEXT    main+0(SB),$8-0
-    0001 (x.go:3) FUNCDATA $0,gcargs·0+0(SB)
-    0002 (x.go:3) FUNCDATA $1,gclocals·0+0(SB)
-    0003 (x.go:4) MOVQ    $3,(SP)
-    0004 (x.go:4) PCDATA  $0,$8
-    0005 (x.go:4) CALL    ,runtime.printint+0(SB)
-    0006 (x.go:4) PCDATA  $0,$-1
-    0007 (x.go:4) PCDATA  $0,$0
-    0008 (x.go:4) CALL    ,runtime.printnl+0(SB)
-    0009 (x.go:4) PCDATA  $0,$-1
-    0010 (x.go:5) RET     ,
-    ...
+```go
+$ cat x.go
+package main
+
+func main() {
+	println(3)
+}
+```
+<pre>
+<b>$ GOOS=linux GOARCH=amd64 go tool compile -S x.go        # or: go build -gcflags -S x.go</b>
+
+--- prog list "main" ---
+0000 (x.go:3) TEXT    main+0(SB),$8-0
+0001 (x.go:3) FUNCDATA $0,gcargs·0+0(SB)
+0002 (x.go:3) FUNCDATA $1,gclocals·0+0(SB)
+0003 (x.go:4) MOVQ    $3,(SP)
+0004 (x.go:4) PCDATA  $0,$8
+0005 (x.go:4) CALL    ,runtime.printint+0(SB)
+0006 (x.go:4) PCDATA  $0,$-1
+0007 (x.go:4) PCDATA  $0,$0
+0008 (x.go:4) CALL    ,runtime.printnl+0(SB)
+0009 (x.go:4) PCDATA  $0,$-1
+0010 (x.go:5) RET     ,
+...
+</pre>
     
 
 The `FUNCDATA` and `PCDATA` directives contain information
 for use by the garbage collector; they are introduced by the compiler.
 
-### Constants
+## Constants
 
 Although the assembler takes its guidance from the Plan 9 assemblers,
 it is a distinct program, so there are some differences.
 One is in constant evaluation.
 Constant expressions in the assembler are parsed using Go's operator
 precedence, not the C-like precedence of the original.
-Thus `3&1< is 4, not 0—it parses as `(3&1)<
-not `3&(1<.
+Thus `3&1<<2` is 4, not 0—it parses as `(3&1)<<2`
+not `3&(1<<2)`.
 Also, constants are always evaluated as 64-bit unsigned integers.
 Thus `-2` is not the integer value minus two,
 but the unsigned 64-bit integer with the same bit pattern.
 The distinction rarely matters but
 to avoid ambiguity, division or right shift where the right operand's
 high bit is set is rejected.
-```
 
-### Symbols
+## Symbols
 
 Some symbols, such as `R1` or `LR`,
 are predefined and refer to registers.
@@ -92,12 +95,8 @@ the toolchain, such as a frame pointer.
 The set of pseudo-registers is the same for all architectures:
 
 - `FP`: Frame pointer: arguments and locals.
-
-- `PC`: Program counter:
-jumps and branches.
-
+- `PC`: Program counter: jumps and branches.
 - `SB`: Static base pointer: global symbols.
-
 - `SP`: Stack pointer: top of stack.
 
 All user-defined symbols are written as offsets to the pseudo-registers
@@ -165,10 +164,11 @@ Branches and direct jumps are always written as offsets to the PC, or as
 jumps to labels:
 
     
-    label:
-    	MOVW $0, R1
-    	JMP label
-    
+```asm
+label:
+	MOVW $0, R1
+	JMP label
+```
 
 Each label is visible only within the function in which it is defined.
 It is therefore permitted for multiple functions in a file to define
@@ -203,7 +203,7 @@ the package's Int function can be referred to as `·Int`.
 This convention avoids the need to hard-code a package's import path in its
 own source code, making it easier to move the code from one location to another.
 
-### Directives
+## Directives
 
 The assembler uses various directives to bind text and data to symbol names.
 For example, here is a simple complete function definition. The `TEXT`
@@ -215,11 +215,13 @@ After the symbol, the arguments are flags (see below)
 and the frame size, a constant (but see below):
 
     
-    TEXT runtime·profileloop(SB),NOSPLIT,$8
-    	MOVQ	$runtime·profileloop1(SB), CX
-    	MOVQ	CX, 0(SP)
-    	CALL	runtime·externalthreadhandler(SB)
-    	RET
+```asm
+TEXT runtime·profileloop(SB),NOSPLIT,$8
+	MOVQ	$runtime·profileloop1(SB), CX
+	MOVQ	CX, 0(SP)
+	CALL	runtime·externalthreadhandler(SB)
+	RET
+```
     
 
 In the general case, the frame size is followed by an argument size, separated by a minus sign.
@@ -244,7 +246,9 @@ The memory not explicitly initialized is zeroed.
 The general form of the `DATA` directive is
 
     
-    DATA	symbol+offset(SB)/width, value
+```asm
+DATA	symbol+offset(SB)/width, value
+```
     
 
 which initializes the symbol memory at the given offset and width with the given value.
@@ -259,13 +263,15 @@ The `GLOBL` directive must follow any corresponding `DATA` directives.
 For example,
 
     
-    DATA divtab<>+0x00(SB)/4, $0xf4f8fcff
-    DATA divtab<>+0x04(SB)/4, $0xe6eaedf0
-    ...
-    DATA divtab<>+0x3c(SB)/4, $0x81828384
-    GLOBL divtab<>(SB), RODATA, $64
-    
-    GLOBL runtime·tlsoffset(SB), NOPTR, $4
+```asm
+DATA divtab<>+0x00(SB)/4, $0xf4f8fcff
+DATA divtab<>+0x04(SB)/4, $0xe6eaedf0
+...
+DATA divtab<>+0x3c(SB)/4, $0x81828384
+GLOBL divtab<>(SB), RODATA, $64
+
+GLOBL runtime·tlsoffset(SB), NOPTR, $4
+```
     
 
 declares and initializes `divtab<>`, a read-only 64-byte table of 4-byte integer values,
@@ -278,10 +284,8 @@ which can be written as numeric expressions, added or or-ed together,
 or can be set symbolically for easier absorption by a human.
 Their values, defined in the standard `#include`  file `textflag.h`, are:
 
-- `NOPROF` = 1
-
-(For `TEXT` items.)
-Don't profile the marked function.  This flag is deprecated.
+<li><code><b>NOPROF</b></code> = 1
+(For `TEXT` items.) Don't profile the marked function.  This flag is deprecated.</li>
 
 - `DUPOK` = 2
 
