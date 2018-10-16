@@ -126,7 +126,7 @@ It is worth stressing that `FP` is always a
 pseudo-register, not a hardware
 register, even on architectures with a hardware frame pointer.
 
-For assembly functions with Go prototypes, `go``vet` will check that the argument names
+For assembly functions with Go prototypes, `go` `vet` will check that the argument names
 and offsets match.
 On 32-bit systems, the low and high 32 bits of a 64-bit value are distinguished by adding
 a `_lo` or `_hi` suffix to the name, as in `arg_lo+0(FP)` or `arg_hi+4(FP)`.
@@ -230,7 +230,7 @@ The frame size `$24-8` states that the function has a 24-byte frame
 and is called with 8 bytes of argument, which live on the caller's frame.
 If `NOSPLIT` is not specified for the `TEXT`,
 the argument size must be provided.
-For assembly functions with Go prototypes, `go``vet` will check that the
+For assembly functions with Go prototypes, `go` `vet` will check that the
 argument size is correct.
 
 Note that the symbol name uses a middle dot to separate the components and is specified as an offset from the
@@ -284,44 +284,38 @@ which can be written as numeric expressions, added or or-ed together,
 or can be set symbolically for easier absorption by a human.
 Their values, defined in the standard `#include`  file `textflag.h`, are:
 
-<li><code><b>NOPROF</b></code> = 1
+<li><code><b>NOPROF</b></code> = 1<br>
 (For `TEXT` items.) Don't profile the marked function.  This flag is deprecated.</li>
 
-- `DUPOK` = 2
-
+<li><code><b>DUPOK</b></code> = 2<br>
 It is legal to have multiple instances of this symbol in a single binary.
-The linker will choose one of the duplicates to use.
+The linker will choose one of the duplicates to use.</li>
 
-- `NOSPLIT` = 4
-
+<li><code><b>NOSPLIT</b></code> = 4<br>
 (For `TEXT` items.)
 Don't insert the preamble to check if the stack must be split.
 The frame for the routine, plus anything it calls, must fit in the
 spare space at the top of the stack segment.
-Used to protect routines such as the stack splitting code itself.
+Used to protect routines such as the stack splitting code itself.</li>
 
-- `RODATA` = 8
-
+<li><code><b>RODATA</b></code> = 8<br>
 (For `DATA` and `GLOBL` items.)
-Put this data in a read-only section.
+Put this data in a read-only section.</li>
 
-- `NOPTR` = 16
-
+<li><code><b>NOPTR</b></code> = 16<br>
 (For `DATA` and `GLOBL` items.)
 This data contains no pointers and therefore does not need to be
-scanned by the garbage collector.
+scanned by the garbage collector.</li>
 
-- `WRAPPER` = 32
-
+<li><code><b>WRAPPER</b></code> = 32<br>
 (For `TEXT` items.)
-This is a wrapper function and should not count as disabling `recover`.
+This is a wrapper function and should not count as disabling `recover`.</li>
 
-- `NEEDCTXT` = 64
-
+<li><code><b>NEEDCTXT</b></code> = 64<br>
 (For `TEXT` items.)
-This function is a closure so it uses its incoming context register.
+This function is a closure so it uses its incoming context register.</li>
 
-### Runtime Coordination
+## Runtime Coordination
 
 For garbage collection to run correctly, the runtime must know the
 location of pointers in all global data and in most stack frames.
@@ -363,7 +357,7 @@ on the `TEXT` instruction.
 Otherwise, pointer information must be provided by
 a Go prototype for the function in a Go source file,
 even for assembly functions not called directly from Go.
-(The prototype will also let `go``vet` check the argument references.)
+(The prototype will also let `go` `vet` check the argument references.)
 At the start of the function, the arguments are assumed
 to be initialized but the results are assumed uninitialized.
 If the results will hold live pointers during a call instruction,
@@ -391,7 +385,7 @@ even pointers to stack data must not be kept in local variables.
 
 Assembly functions should always be given Go prototypes,
 both to provide pointer information for the arguments and results
-and to let `go``vet` check that
+and to let `go` `vet` check that
 the offsets being used to access them are correct.
 
 ## Architecture-specific details
@@ -404,14 +398,16 @@ In that directory is a file `a.out.go`; it contains
 a long list of constants starting with `A`, like this:
 
     
-    const (
-    	AAND = obj.ABaseARM + obj.A_ARCHSPECIFIC + iota
-    	AEOR
-    	ASUB
-    	ARSB
-    	AADD
-    	...
-    
+```asm
+const (
+	AAND = obj.ABaseARM + obj.A_ARCHSPECIFIC + iota
+	AEOR
+	ASUB
+	ARSB
+	AADD
+	...
+```
+
 
 This is the list of instructions and their spellings as known to the assembler and linker for that architecture.
 Each instruction begins with an initial capital `A` in this list, so `AAND`
@@ -443,7 +439,7 @@ This rule applies even on architectures where the conventional notation uses the
 
 Here follow some descriptions of key Go-specific details for the supported architectures.
 
-### 32-bit Intel 386
+## 32-bit Intel 386
 
 The runtime pointer to the `g` structure is maintained
 through the value of an otherwise unused (as far as Go is concerned) register in the MMU.
@@ -451,7 +447,9 @@ A OS-dependent macro `get_tls` is defined for the assembler if the source includ
 a special header, `go_asm.h`:
 
     
-    #include "go_asm.h"
+```asm
+#include "go_asm.h"
+```
     
 
 Within the runtime, the `get_tls` macro loads its argument register
@@ -460,15 +458,16 @@ contains the `m` pointer.
 The sequence to load `g` and `m` using `CX` looks like this:
 
     
-    get_tls(CX)
-    MOVL	g(CX), AX     // Move g into AX.
-    MOVL	g_m(AX), BX   // Move g.m into BX.
+```asm
+get_tls(CX)
+MOVL	g(CX), AX     // Move g into AX.
+MOVL	g_m(AX), BX   // Move g.m into BX.
+```
     
 
 Addressing modes:
 
 - `(DI)(BX*2)`: The location at address `DI` plus `BX*2`.
-
 - `64(DI)(BX*2)`: The location at address `DI` plus `BX*2` plus 64.
 These modes accept only 1, 2, 4, and 8 as scale factors.
 
@@ -479,7 +478,7 @@ must be assumed to overwrite `CX`.
 Therefore, to be safe for use with these modes,
 assembly sources should typically avoid CX except between memory references.
 
-### 64-bit Intel 386 (a.k.a. amd64)
+## 64-bit Intel 386 (a.k.a. amd64)
 
 The two architectures behave largely the same at the assembler level.
 Assembly code to access the `m` and `g`
@@ -487,12 +486,14 @@ pointers on the 64-bit version is the same as on the 32-bit 386,
 except it uses `MOVQ` rather than `MOVL`:
 
     
-    get_tls(CX)
-    MOVQ	g(CX), AX     // Move g into AX.
-    MOVQ	g_m(AX), BX   // Move g.m into BX.
+```asm
+get_tls(CX)
+MOVQ	g(CX), AX     // Move g into AX.
+MOVQ	g_m(AX), BX   // Move g.m into BX.
+```
     
 
-### ARM
+## ARM
 
 The registers `R10` and `R11`
 are reserved by the compiler and linker.
@@ -523,30 +524,30 @@ The order of the code modifiers is irrelevant.
 
 Addressing modes:
 
-- `R0->16`
-`R0>>16`
-`R0<<16`
-`R0@>16`:
-For `<<`, left shift `R0` by 16 bits.
-The other codes are `->` (arithmetic right shift),
-`>>` (logical right shift), and
-`@>` (rotate right).
+<li><code>R0->16</code><br>
+<code>R0>>16</code><br>
+<code>R0<<16</code><br>
+<code>R0@>16</code>:
+For <code><<</code>, left shift <code>R0</code> by 16 bits.
+The other codes are <code>-></code> (arithmetic right shift),
+<code>>></code> (logical right shift), and
+<code>@></code> (rotate right).</li>
 
-- `R0->R1`
-`R0>>R1`
-`R0<<R1`
-`R0@>R1`:
-For `<<`, left shift `R0` by the count in `R1`.
-The other codes are `->` (arithmetic right shift),
-`>>` (logical right shift), and
-`@>` (rotate right).
+<li><code>R0->R1</code><br>
+<code>R0>>R1</code><br>
+<code>R0<<R1</code><br>
+<code>R0@>R1</code>:
+For <code><<</code>, left shift <code>R0</code> by the count in <code>R1</code>.
+The other codes are <code>-></code> (arithmetic right shift),
+<code>>></code> (logical right shift), and
+<code>@></code> (rotate right).</li>
 
-- `[R0,g,R12-R15]`: For multi-register instructions, the set comprising
-`R0`, `g`, and `R12` through `R15` inclusive.
+<li><code>[R0,g,R12-R15]</code>: For multi-register instructions, the set comprising
+<code>R0</code>, <code>g</code>, and <code>R12</code> through <code>R15</code> inclusive.</li>
 
-- `(R5, R6)`: Destination register pair.
+<li><code>(R5, R6)</code>: Destination register pair.</li>
 
-### ARM64
+## ARM64
 
 The ARM64 port is in an experimental state.
 
@@ -562,40 +563,38 @@ The only modifiers are `P` (postincrement) and `W`
 
 Addressing modes:
 
-- `R0->16`
-`R0>>16`
-`R0<<16`
-`R0@>16`:
-These are the same as on the 32-bit ARM.
+<li><code>R0->16</code><br>
+<code>R0>>16</code><br>
+<code>R0<<16</code><br>
+<code>R0@>16</code>:
+These are the same as on the 32-bit ARM.</li>
 
-- `$(8<<12)`:
-Left shift the immediate value `8` by `12` bits.
+<li><code>$(8<<12)</code>:
+Left shift the immediate value <code>8</code> by <code>12</code> bits.</li>
 
-- `8(R0)`:
-Add the value of `R0` and `8`.
+<li><code>8(R0)</code>:
+Add the value of <code>R0</code> and <code>8</code>.</li>
 
-- `(R2)(R0)`:
-The location at `R0` plus `R2`.
+<li><code>(R2)(R0)</code>:
+The location at <code>R0</code> plus <code>R2</code>.</li>
 
-- `R0.UXTB`
-`R0.UXTB<<imm`:
-`UXTB`: extract an 8-bit value from the low-order bits of `R0` and zero-extend it to the size of `R0`.
-`R0.UXTB<<imm`: left shift the result of `R0.UXTB` by `imm` bits.
-The `imm` value can be 0, 1, 2, 3, or 4.
-The other extensions include `UXTH` (16-bit), `UXTW` (32-bit), and `UXTX` (64-bit).
+<code>R0.UXTB</code><br>
+<code>R0.UXTB<<imm</code>: <code>UXTB</code>: extract an 8-bit value from the low-order bits of <code>R0</code> and zero-extend it to the size of <code>R0</code>.<br>
+<code>R0.UXTB<<imm</code>: left shift the result of <code>R0.UXTB</code> by <code>imm</code> bits.
+The <code>imm</code> value can be 0, 1, 2, 3, or 4.
+The other extensions include <code>UXTH</code> (16-bit), <code>UXTW</code> (32-bit), and <code>UXTX</code> (64-bit).
 
-- `R0.SXTB`
-`R0.SXTB<<imm`:
-`SXTB`: extract an 8-bit value from the low-order bits of `R0` and sign-extend it to the size of `R0`.
-`R0.SXTB<<imm`: left shift the result of `R0.SXTB` by `imm` bits.
-The `imm` value can be 0, 1, 2, 3, or 4.
-The other extensions include `SXTH` (16-bit), `SXTW` (32-bit), and `SXTX` (64-bit).
+<li><code>R0.SXTB</code><br>
+<code>R0.SXTB<<imm</code>: <code>SXTB</code>: extract an 8-bit value from the low-order bits of <code>R0</code> and sign-extend it to the size of <code>R0</code>.<br>
+<code>R0.SXTB<<imm</code>: left shift the result of <code>R0.SXTB</code> by <code>imm</code> bits.
+The <code>imm</code> value can be 0, 1, 2, 3, or 4.
+The other extensions include <code>SXTH</code> (16-bit), <code>SXTW</code> (32-bit), and <code>SXTX</code> (64-bit).</li>
 
-- `(R5, R6)`: Register pair for `LDAXP`/`LDP`/`LDXP`/`STLXP`/`STP`/`STP`.
+<li><code>(R5, R6)</code>: Register pair for <code>LDAXP</code>/<code>LDP</code>/<code>LDXP</code>/<code>STLXP</code>/<code>STP</code>/<code>STP</code>.</li>
 
 Reference: [Go ARM64 Assembly Instructions Reference Manual](/pkg/cmd/internal/obj/arm64)
 
-### 64-bit PowerPC, a.k.a. ppc64
+## 64-bit PowerPC, a.k.a. ppc64
 
 The 64-bit PowerPC port is in an experimental state.
 
@@ -603,10 +602,9 @@ Addressing modes:
 
 - `(R5)(R6*1)`: The location at `R5` plus `R6`. It is a scaled
 mode as on the x86, but the only scale allowed is `1`.
+- `(R5+R6)`: Alias for (R5)(R6\*1)
 
-- `(R5+R6)`: Alias for (R5)(R6*1)
-
-### IBM z/Architecture, a.k.a. s390x
+## IBM z/Architecture, a.k.a. s390x
 
 The registers `R10` and `R11` are reserved.
 The assembler uses them to hold temporary values when assembling some instructions.
@@ -644,7 +642,7 @@ Addressing modes:
 - `(R5)(R6*1)`: The location at `R5` plus `R6`.
 It is a scaled mode as on the x86, but the only scale allowed is `1`.
 
-### MIPS, MIPS64
+## MIPS, MIPS64
 
 General purpose registers are named `R0` through `R31`,
 floating point registers are `F0` through `F31`.
@@ -661,7 +659,6 @@ For the hardware register, use `R29`.
 Addressing modes:
 
 - `16(R1)`: The location at `R1` plus 16.
-
 - `(R1)`: Alias for `0(R1)`.
 
 The value of `GOMIPS` environment variable (`hardfloat` or
@@ -672,7 +669,7 @@ The value of `GOMIPS64` environment variable (`hardfloat` or
 `softfloat`) is made available to assembly code by predefining either
 `GOMIPS64_hardfloat` or `GOMIPS64_softfloat`.
 
-### Unsupported opcodes
+## Unsupported opcodes
 
 The assemblers are designed to support the compiler so not all hardware instructions
 are defined for all architectures: if the compiler doesn't generate it, it might not be there.
@@ -685,22 +682,24 @@ to lay down explicit data into the instruction stream within a `TEXT`.
 Here's how the 386 runtime defines the 64-bit atomic load function.
 
     
-    // uint64 atomicload64(uint64 volatile* addr);
-    // so actually
-    // void atomicload64(uint64 *res, uint64 volatile *addr);
-    TEXT runtime·atomicload64(SB), NOSPLIT, $0-12
-    	MOVL	ptr+0(FP), AX
-    	TESTL	$7, AX
-    	JZ	2(PC)
-    	MOVL	0, AX // crash with nil ptr deref
-    	LEAL	ret_lo+4(FP), BX
-    	// MOVQ (%EAX), %MM0
-    	BYTE $0x0f; BYTE $0x6f; BYTE $0x00
-    	// MOVQ %MM0, 0(%EBX)
-    	BYTE $0x0f; BYTE $0x7f; BYTE $0x03
-    	// EMMS
-    	BYTE $0x0F; BYTE $0x77
-    	RET
+```asm
+// uint64 atomicload64(uint64 volatile* addr);
+// so actually
+// void atomicload64(uint64 *res, uint64 volatile *addr);
+TEXT runtime·atomicload64(SB), NOSPLIT, $0-12
+	MOVL	ptr+0(FP), AX
+	TESTL	$7, AX
+	JZ	2(PC)
+	MOVL	0, AX // crash with nil ptr deref
+	LEAL	ret_lo+4(FP), BX
+	// MOVQ (%EAX), %MM0
+	BYTE $0x0f; BYTE $0x6f; BYTE $0x00
+	// MOVQ %MM0, 0(%EBX)
+	BYTE $0x0f; BYTE $0x7f; BYTE $0x03
+	// EMMS
+	BYTE $0x0F; BYTE $0x77
+	RET
+```
     
 
 Build version go1.11.1.
