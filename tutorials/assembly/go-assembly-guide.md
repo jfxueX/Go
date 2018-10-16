@@ -525,18 +525,18 @@ The order of the code modifiers is irrelevant.
 Addressing modes:
 
 <li><code>R0->16</code><br>
-<code>R0>>16</code><br>
-<code>R0<<16</code><br>
-<code>R0@>16</code>:
+  <code>R0>>16</code><br>
+  <code>R0<<16</code><br>
+  <code>R0@>16</code>:
 For <code><<</code>, left shift <code>R0</code> by 16 bits.
 The other codes are <code>-></code> (arithmetic right shift),
 <code>>></code> (logical right shift), and
 <code>@></code> (rotate right).</li>
 
 <li><code>R0->R1</code><br>
-<code>R0>>R1</code><br>
-<code>R0\<\<R1</code><br>
-<code>R0@>R1</code>:
+  <code>R0>>R1</code><br>
+  <code>R0<<R1</code><br>
+  <code>R0@\>R1</code>:
 For <code><<</code>, left shift <code>R0</code> by the count in <code>R1</code>.
 The other codes are <code>-></code> (arithmetic right shift),
 <code>>></code> (logical right shift), and
