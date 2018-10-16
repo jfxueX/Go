@@ -525,9 +525,9 @@ The order of the code modifiers is irrelevant.
 Addressing modes:
 
 <li><code>R0->16</code><br>
-  <code>R0>>16</code><br>
-  <code>R0<<16</code><br>
-  <code>R0@>16</code>:
+&#32;&#32;<code>R0>>16</code><br>
+&#32;&#32;<code>R0<<16</code><br>
+&#32;&#32;<code>R0@>16</code>:
 For <code><<</code>, left shift <code>R0</code> by 16 bits.
 The other codes are <code>-></code> (arithmetic right shift),
 <code>>></code> (logical right shift), and
@@ -585,8 +585,8 @@ The <code>imm</code> value can be 0, 1, 2, 3, or 4.
 The other extensions include <code>UXTH</code> (16-bit), <code>UXTW</code> (32-bit), and <code>UXTX</code> (64-bit).
 
 <li><code>R0.SXTB</code><br>
-<code>R0.SXTB<<imm</code>: <code>SXTB</code>: extract an 8-bit value from the low-order bits of <code>R0</code> and sign-extend it to the size of <code>R0</code>.<br>
-<code>R0.SXTB<<imm</code>: left shift the result of <code>R0.SXTB</code> by <code>imm</code> bits.
+<code>R0.SXTB&lt;&lt;imm</code>: <code>SXTB</code>: extract an 8-bit value from the low-order bits of <code>R0</code> and sign-extend it to the size of <code>R0</code>.<br>
+<code>R0.SXTB&lt;&lt;imm</code>: left shift the result of <code>R0.SXTB</code> by <code>imm</code> bits.
 The <code>imm</code> value can be 0, 1, 2, 3, or 4.
 The other extensions include <code>SXTH</code> (16-bit), <code>SXTW</code> (32-bit), and <code>SXTX</code> (64-bit).</li>
 
