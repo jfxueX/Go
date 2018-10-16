@@ -535,7 +535,7 @@ The other codes are <code>-></code> (arithmetic right shift),
 
 <li><code>R0->R1</code><br>
 <code>R0>>R1</code><br>
-<code>R0<<R1</code><br>
+<code>R0\<\<R1</code><br>
 <code>R0@>R1</code>:
 For <code><<</code>, left shift <code>R0</code> by the count in <code>R1</code>.
 The other codes are <code>-></code> (arithmetic right shift),
