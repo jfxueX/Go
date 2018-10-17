@@ -25,7 +25,7 @@ func main() {
 
 第一步改写依然是使用 Go 语言，只不过是用汇编的思维改写：
 
-```
+```go
 func main() {
 	var a, b int
 
@@ -102,7 +102,7 @@ main 函数马上就返回了，因此不再需要恢复 AX、BX 等寄存器了
 重新分析汇编改写后的整个函数会发现里面很多的冗余代码。我们并不需要 a、b 两个临时变量分配两个内存空
 间，而且也不需要在每个寄存器变化之后都要写入内存。下面是经过优化的汇编函数：
 
-```
+```asm
 TEXT ·main(SB), $16-0
 	// var temp int
 
@@ -248,7 +248,7 @@ LOOP_END:
 
 下面用汇编语言重新实现 LoopAdd 函数
 
-```
+```asm
 // func LoopAdd(cnt, v0, step int) int
 TEXT ·LoopAdd(SB), NOSPLIT, $0-32
 	MOVQ cnt+0(FP), AX   // cnt
