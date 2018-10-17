@@ -6,7 +6,7 @@ $ go version
 go version go1.10 linux/amd64
 ```
 
-# Chapter I: A Primer on Go Assembly
+> # Chapter I: A Primer on Go Assembly
 # 第一章: Go 汇编入门
 
 > Developing some familiarity with Go's abstract assembly language is a must before we can start 
@@ -43,49 +43,73 @@ go version go1.10 linux/amd64
 > - *Quoted text and/or comments always come from the official documentation and/or codebase, unless 
 > stated otherwise.*
 
-- *本章假设你已经对某一种汇编器的基础知识有所了解*
-- *涉及到架构相关的情况时，请假设我们是运行在 `linux/amd64` 平台上*
+- *本章假设你已经对某一种汇编器的基础知识有所了解。*
+- *涉及到架构相关的情况时，请假设我们是运行在 `linux/amd64` 平台上。*
 - *学习过程中编译器优化会**打开**。*
+- *本章中的引用段落/注释都引用自官方文档或者 Go 的代码库，除非另外注明。*
 
-## "Pseudo-assembly"
+> ## "Pseudo-assembly"
 ## "伪汇编"
 
-The Go compiler outputs an abstract, portable form of assembly that doesn't actually map to any real 
-hardware. The Go assembler then uses this pseudo-assembly output in order to generate concrete, 
-machine-specific instructions for the targeted hardware.  
-This extra layer has many benefits, the main one being how easy it makes porting Go to new 
-architectures. For more information, have a look at Rob Pike's *The Design of the Go Assembler*, 
-listed in the links at the end of this chapter.
+> The Go compiler outputs an abstract, portable form of assembly that doesn't actually map to any real 
+> hardware. The Go assembler then uses this pseudo-assembly output in order to generate concrete, 
+> machine-specific instructions for the targeted hardware.  
+> This extra layer has many benefits, the main one being how easy it makes porting Go to new 
+> architectures. For more information, have a look at Rob Pike's *The Design of the Go Assembler*, 
+> listed in the links at the end of this chapter.
 
-> The most important thing to know about Go's assembler is that it is not a direct representation of 
-the underlying machine. Some of the details map precisely to the machine, but some do not. This is 
-because the compiler suite needs no assembler pass in the usual pipeline. Instead, the compiler 
-operates on a kind of semi-abstract instruction set, and instruction selection occurs partly after 
-code generation. The assembler works on the semi-abstract form, so when you see an instruction like 
-MOV what the toolchain actually generates for that operation might not be a move instruction at all, 
-perhaps a clear or load. Or it might correspond exactly to the machine instruction with that name. 
-In general, machine-specific operations tend to appear as themselves, while more general concepts 
-like memory move and subroutine call and return are more abstract. The details vary with 
-architecture, and we apologize for the imprecision; the situation is not well-defined.
+Go 编译器会输出一种抽象的，可移植的汇编代码，它实际上并不映射到任何真正的硬件。然后, Go 汇编器使用这
+种伪汇编输出，以便为目标硬件生成具体的，机器特定的指令。
+这一额外层有很多好处，最主要的一点是使得 Go 移植到新的机器架构很容器。更多相关信息可以参考 Rob Pike 
+的 *The Design of the Go Assembler*，它列在本章末尾的连接中。
 
-> The assembler program is a way to parse a description of that semi-abstract instruction set and 
-turn it into instructions to be input to the linker.
+> > The most important thing to know about Go's assembler is that it is not a direct representation of 
+> > the underlying machine. Some of the details map precisely to the machine, but some do not. This is 
+> > because the compiler suite needs no assembler pass in the usual pipeline. Instead, the compiler 
+> > operates on a kind of semi-abstract instruction set, and instruction selection occurs partly after 
+> > code generation. The assembler works on the semi-abstract form, so when you see an instruction like 
+> > MOV what the toolchain actually generates for that operation might not be a move instruction at all, 
+> > perhaps a clear or load. Or it might correspond exactly to the machine instruction with that name. 
+> > In general, machine-specific operations tend to appear as themselves, while more general concepts 
+> > like memory move and subroutine call and return are more abstract. The details vary with 
+> > architecture, and we apologize for the imprecision; the situation is not well-defined.
+> > 
+> > The assembler program is a way to parse a description of that semi-abstract instruction set and 
+> > turn it into instructions to be input to the linker.
+
+> 要了解 Go 汇编器最重要的一点是它不是对底层机器的直接表示。一些细节精确映射到机器，但还有一些不是。这
+> 是因为编译器套件在常规编译过程中不需要汇编器参与。相反，编译器操作一种半抽象的指令集，并且部分指令是
+> 在代码生成之后才被选择的。汇编器以半抽象的形式工作，因此当你看到像 MOV 这样的指令时，工具链实际为该
+> 操作生成的内容可能根本不是 move 指令，可能是清除指令或加载指令。或者它也可能与该名称的机器指令完全对
+> 应。通常，特定于机器的操作会以本尊现身，而更通用的概念，如内存移动，子程序调用及其返回则更抽象。细节
+> 因架构而异，我们为这种不精确而表示歉意，情况没有明确定义。
+> 
+> 汇编程序是一种解析半抽象指令集的描述并将其转换为输入到链接器的指令的途径。
+
 
 ## Decomposing a simple program
+## 剖析一个简单的程序
 
-Consider the following Go code ([direct_topfunc_call.go](./direct_topfunc_call.go)):
+> Consider the following Go code ([direct_topfunc_call.go](./direct_topfunc_call.go)):
+请思考以下 Go 代码 ([direct_topfunc_call.go](./direct_topfunc_call.go)):
+
 ```Go
 //go:noinline
 func add(a, b int32) (int32, bool) { return a + b, true }
 
 func main() { add(10, 32) }
 ```
-*(Note the `//go:noinline` compiler-directive here... Don't get bitten.)*
+
+> *(Note the `//go:noinline` compiler-directive here... Don't get bitten.)*
+*（注意这里的 `//go:noinline` 编译器指令... 不要省略掉这部分。）*
 
 Let's compile this down to assembly:
-```
-$ GOOS=linux GOARCH=amd64 go tool compile -S direct_topfunc_call.go
-```
+让我们把它编译成汇编代码：
+
+<pre>
+<b>$ GOOS=linux GOARCH=amd64 go tool compile -S direct_topfunc_call.go</b>
+</pre>
+
 ```Assembly
 0x0000 TEXT		"".add(SB), NOSPLIT, $0-16
   0x0000 FUNCDATA	$0, gclocals·f207267fbf96a0178e8758c6e3e0ce28(SB)
@@ -114,10 +138,12 @@ $ GOOS=linux GOARCH=amd64 go tool compile -S direct_topfunc_call.go
   ;; ...omitted stack-split epilogue...
 ```
 
-We'll dissect those 2 functions line-by-line in order to get a better understanding of what the 
+> We'll dissect those 2 functions line-by-line in order to get a better understanding of what the 
 compiler is doing.
+我们将逐行剖析这两个函数，以便更好地理解编译器正在做什么．
 
-### Dissecting `add`
+> ### Dissecting `add`
+### 剖析 `add`
 
 ```Assembly
 0x0000 TEXT "".add(SB), NOSPLIT, $0-16
