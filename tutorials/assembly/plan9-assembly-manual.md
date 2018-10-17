@@ -4,7 +4,7 @@ Rob Pike
 
 rob@plan9.bell-labs.com
 
-Machines
+## Machines
 
 There is an assembler for each of the <code>MIPS</code>, <code>SPARC</code>, <code>Intel 386</code>, <code>AMD64</code>, <code>Power PC</code>, and <code>ARM</code>. The <code>68020</code> 
 assembler, <code>2a</code>, (no longer distributed) is the oldest and in many ways the prototype. The assemblers 
@@ -124,6 +124,8 @@ and <code>127</code> inclusive. Many of the modes listed have the same name; scr
 what default is being applied. For instance, indexed mode with no address register supplied operates 
 as though a zero-valued register were used. For "offset" read "displacement." For "<code>.s</code>" read one 
 of <code>.L</code>, or <code>.W</code> followed by <code>*1</code>, <code>*2</code>, <code>*4</code>, or <code>*8</code> to indicate the size and scaling of the data.
+
+![](https://9p.io/sys/doc/asm0.png)
 
 ## Laying down data
 
