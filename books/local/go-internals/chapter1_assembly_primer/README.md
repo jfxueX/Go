@@ -13,7 +13,8 @@ go version go1.10 linux/amd64
 > delving into the implementation of the runtime & standard library.  
 > This quick guide should hopefully get you up-to-speed.
 
-在我们开始深入研究 runtime 和标准库的实现之前，必须熟悉 Go 的抽象汇编语言。这份快速指南希望能够加速你的学习进程。
+在我们开始深入研究 runtime 和标准库的实现之前，必须熟悉 Go 的抽象汇编语言。<br>
+这份快速指南希望能够加速你的学习进程。
 
 ---
 
@@ -59,9 +60,9 @@ go version go1.10 linux/amd64
 > listed in the links at the end of this chapter.
 
 Go 编译器会输出一种抽象的，可移植的汇编代码，它实际上并不映射到任何真正的硬件。然后, Go 汇编器使用这
-种伪汇编输出，以便为目标硬件生成具体的，机器特定的指令。
+种伪汇编输出，以便为目标硬件生成具体的，机器特定的指令。<br>
 这一额外层有很多好处，最主要的一点是使得 Go 移植到新的机器架构很容器。更多相关信息可以参考 Rob Pike 
-的 *The Design of the Go Assembler*，它列在本章末尾的连接中。
+的 *The Design of the Go Assembler*，它列在本章末尾的链接中。
 
 > > The most important thing to know about Go's assembler is that it is not a direct representation of 
 > > the underlying machine. Some of the details map precisely to the machine, but some do not. This is 
@@ -87,10 +88,11 @@ Go 编译器会输出一种抽象的，可移植的汇编代码，它实际上�
 > 汇编程序是一种解析半抽象指令集的描述并将其转换为输入到链接器的指令的途径。
 
 
-## Decomposing a simple program
+> ## Decomposing a simple program
 ## 剖析一个简单的程序
 
 > Consider the following Go code ([direct_topfunc_call.go](./direct_topfunc_call.go)):
+
 请思考以下 Go 代码 ([direct_topfunc_call.go](./direct_topfunc_call.go)):
 
 ```Go
@@ -101,9 +103,11 @@ func main() { add(10, 32) }
 ```
 
 > *(Note the `//go:noinline` compiler-directive here... Don't get bitten.)*
+
 *（注意这里的 `//go:noinline` 编译器指令... 不要省略掉这部分。）*
 
 Let's compile this down to assembly:
+
 让我们把它编译成汇编代码：
 
 <pre>
