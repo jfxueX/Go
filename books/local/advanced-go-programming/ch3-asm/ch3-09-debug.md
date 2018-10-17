@@ -1,10 +1,14 @@
-# 3.9 Delve调试器
+# 3.9 Delve 调试器
 
-目前Go语言支持GDB、LLDB和Delve几种调试器。其中GDB是最早支持的调试工具，LLDB是macOS系统推荐的标准调试工具。但是GDB和LLDB对Go语言的专有特性都缺乏很大支持，而只有Delve是专门为Go语言设计开发的调试工具。而且Delve本身也是采用Go语言开发，对Windows平台也提供了一样的支持。本节我们基于Delve简单解释如何调试Go汇编程序。
+目前 Go 语言支持GDB、LLDB和Delve几种调试器。其中GDB是最早支持的调试工具，LLDB是macOS系统推荐的标准调
+试工具。但是GDB和LLDB对 Go 语言的专有特性都缺乏很大支持，而只有Delve是专门为 Go 语言设计开发的调试工
+具。而且Delve本身也是采用 Go 语言开发，对Windows平台也提供了一样的支持。本节我们基于Delve简单解释如
+何调试 Go 汇编程序。
 
 ## 3.9.1 Delve入门
 
-首先根据官方的文档正确安装Delve调试器。我们会先构造一个简单的Go语言代码，用于熟悉下Delve的简单用法。
+首先根据官方的文档正确安装Delve调试器。我们会先构造一个简单的 Go 语言代码，用于熟悉下Delve的简单用
+法。
 
 创建main.go文件，main函数先通过循初始化一个切片，然后输出切片的内容：
 
@@ -78,7 +82,7 @@ Type help followed by a command for full documentation.
 (dlv)
 ```
 
-每个Go程序的入口是main.main函数，我们可以用break在此设置一个断点：
+每个 Go 程序的入口是main.main函数，我们可以用break在此设置一个断点：
 
 ```
 (dlv) break main.main
@@ -97,7 +101,8 @@ Breakpoint 1 at 0x10ae9b8 for main.main() ./main.go:7 (0)
 
 我们发现除了我们自己设置的main.main函数断点外，Delve内部已经为panic异常函数设置了一个断点。
 
-通过vars命令可以查看全部包级的变量。因为最终的目标程序可能含有大量的全局变量，我们可以通过一个正则参数选择想查看的全局变量：
+通过vars命令可以查看全部包级的变量。因为最终的目标程序可能含有大量的全局变量，我们可以通过一个正则参
+数选择想查看的全局变量：
 
 ```
 (dlv) vars main
@@ -154,7 +159,8 @@ runtime.mainStarted = true
 nums = []int len: 842350763880, cap: 17491881, nil
 ```
 
-因为main函数没有参数，因此args命令没有任何输出。而locals命令则输出了局部变量nums切片的值：此时切片还未完成初始化，切片的底层指针为nil，长度和容量都是一个随机数值。
+因为main函数没有参数，因此args命令没有任何输出。而locals命令则输出了局部变量nums切片的值：此时切片还
+未完成初始化，切片的底层指针为nil，长度和容量都是一个随机数值。
 
 再次输入next命令单步执行后就可以查看到nums切片初始化之后的结果了：
 
@@ -225,22 +231,22 @@ i = 3
 (dlv)
 ```
 
-或者通过goroutine和goroutines命令查看当前Goroutine相关的信息：
+或者通过goroutine和goroutines命令查看当前 Go routine相关的信息：
 
 ```
 (dlv) goroutine
 Thread 101686 at ./main.go:10
-Goroutine 1:
+Go routine 1:
         Runtime: ./main.go:10 main.main (0x10aea33)
         User: ./main.go:10 main.main (0x10aea33)
-        Go: /usr/local/go/src/runtime/asm_amd64.s:258 runtime.rt0_go (0x1051643)
+         Go : /usr/local/go/src/runtime/asm_amd64.s:258 runtime.rt0_go (0x1051643)
         Start: /usr/local/go/src/runtime/proc.go:109 runtime.main (0x102bb90)
 (dlv) goroutines
 [4 goroutines]
-* Goroutine 1 - User: ./main.go:10 main.main (0x10aea33) (thread 101686)
-  Goroutine 2 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
-  Goroutine 3 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
-  Goroutine 4 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
+*  Go routine 1 - User: ./main.go:10 main.main (0x10aea33) (thread 101686)
+   Go routine 2 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
+   Go routine 3 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
+   Go routine 4 - User: /usr/local/go/src/runtime/proc.go:292 runtime.gopark (0x102c189)
 (dlv)
 ```
 
@@ -248,7 +254,8 @@ Goroutine 1:
 
 ## 3.9.2 调试汇编程序
 
-用Delve调试Go汇编程序的过程比调试Go语言程序更加简单。调试汇编程序时，我们需要时刻关注寄存器的状态，如果涉及函数调用或局部变量或参数还需要重点关注栈寄存器SP的状态。
+用Delve调试 Go 汇编程序的过程比调试 Go 语言程序更加简单。调试汇编程序时，我们需要时刻关注寄存器的状
+态，如果涉及函数调用或局部变量或参数还需要重点关注栈寄存器SP的状态。
 
 为了编译演示，我们重新实现一个更简单的main函数：
 
@@ -312,9 +319,14 @@ TEXT main.main(SB) /path/to/pkg/main.go
 (dlv)
 ```
 
-虽然main函数内部只有一行函数调用语句，但是却生成了很多汇编指令。在函数的开头通过比较rsp寄存器判断栈空间是否不足，如果不足则跳转到0x1050139地址调用runtime.morestack函数进行栈扩容，然后跳回到main函数开始位置重新进行栈空间测试。而在asmSayHello函数调用之前，先扩展rsp空间用于临时存储rbp寄存器的状态，在函数返回后通过栈恢复rbp的值并回收临时栈空间。通过对比Go语言代码和对应的汇编代码，我们可以加深对Go汇编语言的理解。
+虽然main函数内部只有一行函数调用语句，但是却生成了很多汇编指令。在函数的开头通过比较rsp寄存器判断栈
+空间是否不足，如果不足则跳转到0x1050139地址调用runtime.morestack函数进行栈扩容，然后跳回到main函数开
+始位置重新进行栈空间测试。而在asmSayHello函数调用之前，先扩展rsp空间用于临时存储rbp寄存器的状态，在
+函数返回后通过栈恢复rbp的值并回收临时栈空间。通过对比 Go 语言代码和对应的汇编代码，我们可以加深对 Go 
+汇编语言的理解。
 
-从汇编语言角度深刻Go语言各种特性的工作机制对调试工作也是一个很大的帮助。如果希望在汇编指令层面调试Go代码，Delve还提供了一个step-instruction单步执行汇编指令的命令。
+从汇编语言角度深刻 Go 语言各种特性的工作机制对调试工作也是一个很大的帮助。如果希望在汇编指令层面调试 
+Go 代码，Delve还提供了一个step-instruction单步执行汇编指令的命令。
 
 现在我们依然用break命令在asmSayHello函数设置断点，并且输入continue命令让调试器执行到断点位置停下：
 
@@ -363,7 +375,8 @@ Breakpoint 2 set at 0x10501bf for main.asmSayHello() ./main_amd64.s:10
 (dlv)
 ```
 
-因为AMD64的各种寄存器非常多，项目的信息中刻意省略了非通用的寄存器。如果再单步执行到13行时，可以发现AX寄存器值的变化。
+因为AMD64的各种寄存器非常多，项目的信息中刻意省略了非通用的寄存器。如果再单步执行到13行时，可以发现
+AX寄存器值的变化。
 
 ```
 (dlv) regs
@@ -374,7 +387,8 @@ Breakpoint 2 set at 0x10501bf for main.asmSayHello() ./main_amd64.s:10
 (dlv)
 ```
 
-因此我们可以推断汇编程序内部定义的`text<>`数据的地址为0x00000000010a4060。我们可以用过print命令来查看该内存内的数据：
+因此我们可以推断汇编程序内部定义的`text<>`数据的地址为0x00000000010a4060。我们可以用过print命令来查
+看该内存内的数据：
 
 ```
 (dlv) print *(*[5]byte)(uintptr(0x00000000010a4060))
@@ -382,6 +396,7 @@ Breakpoint 2 set at 0x10501bf for main.asmSayHello() ./main_amd64.s:10
 (dlv)
 ```
 
-我们可以发现输出的`[5]uint8 [72,101,108,108,111]`刚好是对应“Hello”字符串。通过类似的方法，我们可以通过查看SP对应的栈指针位置，然后查看栈中局部变量的值。
+我们可以发现输出的`[5]uint8 [72,101,108,108,111]`刚好是对应“Hello”字符串。通过类似的方法，我们可以通
+过查看SP对应的栈指针位置，然后查看栈中局部变量的值。
 
-至此我们就掌握了Go汇编程序的简单调试技术。
+至此我们就掌握了 Go 汇编程序的简单调试技术。

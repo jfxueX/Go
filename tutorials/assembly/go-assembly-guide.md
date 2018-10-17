@@ -285,34 +285,34 @@ or can be set symbolically for easier absorption by a human.
 Their values, defined in the standard `#include`  file `textflag.h`, are:
 
 <li><code><b>NOPROF</b></code> = 1<br>
-(For `TEXT` items.) Don't profile the marked function.  This flag is deprecated.</li>
+(For <code>TEXT</code> items.) Don't profile the marked function.  This flag is deprecated.</li>
 
 <li><code><b>DUPOK</b></code> = 2<br>
 It is legal to have multiple instances of this symbol in a single binary.
 The linker will choose one of the duplicates to use.</li>
 
 <li><code><b>NOSPLIT</b></code> = 4<br>
-(For `TEXT` items.)
+(For <code>TEXT</code> items.)
 Don't insert the preamble to check if the stack must be split.
 The frame for the routine, plus anything it calls, must fit in the
 spare space at the top of the stack segment.
 Used to protect routines such as the stack splitting code itself.</li>
 
 <li><code><b>RODATA</b></code> = 8<br>
-(For `DATA` and `GLOBL` items.)
+(For <code>DATA</code> and <code>GLOBL</code> items.)
 Put this data in a read-only section.</li>
 
 <li><code><b>NOPTR</b></code> = 16<br>
-(For `DATA` and `GLOBL` items.)
+(For <code>DATA</code> and <code>GLOBL</code> items.)
 This data contains no pointers and therefore does not need to be
 scanned by the garbage collector.</li>
 
 <li><code><b>WRAPPER</b></code> = 32<br>
-(For `TEXT` items.)
-This is a wrapper function and should not count as disabling `recover`.</li>
+(For <code>TEXT</code> items.)
+This is a wrapper function and should not count as disabling <code>recover</code>.</li>
 
 <li><code><b>NEEDCTXT</b></code> = 64<br>
-(For `TEXT` items.)
+(For <code>TEXT</code> items.)
 This function is a closure so it uses its incoming context register.</li>
 
 ## Runtime Coordination
@@ -329,20 +329,20 @@ is allocated in read-only memory and is therefore treated
 as implicitly marked `NOPTR`.
 A data symbol with a total size smaller than a pointer
 is also treated as implicitly marked `NOPTR`.
-It is not possible to define a symbol containing pointers in an assembly source file;
-such a symbol must be defined in a Go source file instead.
+<i>It is not possible to define a symbol containing pointers in an assembly source file;
+such a symbol must be defined in a Go source file instead.</i>
 Assembly source can still refer to the symbol by name
 even without `DATA` and `GLOBL` directives.
-A good general rule of thumb is to define all non-`RODATA`
-symbols in Go instead of in assembly.
+<b>A good general rule of thumb is to define all non-`RODATA`
+symbols in Go instead of in assembly.</b>
 
 Each function also needs annotations giving the location of
 live pointers in its arguments, results, and local stack frame.
 For an assembly function with no pointer results and
 either no local stack frame or no function calls,
 the only requirement is to define a Go prototype for the function
-in a Go source file in the same package. The name of the assembly
-function must not contain the package name component (for example,
+in a Go source file in the same package. <i>The name of the assembly
+function must not contain the package name component</i> (for example,
 function `Syscall` in package `syscall` should
 use the name `·Syscall` instead of the equivalent name
 `syscall·Syscall` in its `TEXT` directive).
