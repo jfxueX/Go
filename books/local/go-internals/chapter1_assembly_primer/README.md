@@ -233,8 +233,7 @@ arguments can be passed to the callee, and potential return-values passed back t
 
 The Go compiler never generates instructions from the PUSH/POP family: the stack is grown or shrunk 
 by respectively decrementing or incrementing the ~virtual~ hardware stack pointer <code>SP</code>.  
-*[UPDATE: We've discussed about this matter in [issue #21: about SP register](https://github.com/
-teh-cmc/go-internals/issues/21).]*  
+*[UPDATE: We've discussed about this matter in [issue #21: about SP register](https://github.com/teh-cmc/go-internals/issues/21).]*  
 > The SP pseudo-register is a virtual stack pointer used to refer to frame-local variables and the 
 arguments being prepared for function calls. It points to the top of the local stack frame, so 
 references should use negative offsets in the range &#91;−framesize, 0): x-8(SP), y-4(SP), and so on.
@@ -246,8 +245,7 @@ from the stack-pointer directly in the code it generates. This allows for the fr
 used as an extra general-purpose register on platform with fewer registers (e.g. x86).  
 Have a look at <i>Stack frame layout on x86-64</i> in the links at the end of this chapter if you enjoy 
 this kind of nitty gritty details.  
-<i>[UPDATE: We've discussed about this matter in [issue #2: Frame pointer](https://github.com/teh-cmc/
-go-internals/issues/2).]</i>
+<i>[UPDATE: We've discussed about this matter in [issue #2: Frame pointer](https://github.com/teh-cmc/go-internals/issues/2).]</i>
 
 <code>"".b+12(SP)</code> and <code>"".a+8(SP)</code> respectively refer to the addresses 12 bytes and 8 bytes below the 
 top of the stack (remember: it grows downwards!).  
@@ -567,8 +565,7 @@ the prologue).
 The `NOP` instruction just before the `CALL` exists so that the prologue doesn't jump directly onto 
 a `CALL` instruction. On some platforms, doing so can lead to very dark places; it's a common 
 pratice to set-up a noop instruction right before the actual call and land on this `NOP` instead.  
-*[UPDATE: We've discussed about this matter in [issue #4: Clarify "nop before call" paragraph]
-(https://github.com/teh-cmc/go-internals/issues/4).]*
+*[UPDATE: We've discussed about this matter in [issue #4: Clarify "nop before call" paragraph](https://github.com/teh-cmc/go-internals/issues/4).]*
 
 ### Minus some subtleties
 
