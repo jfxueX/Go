@@ -155,10 +155,14 @@ compiler is doing.
 <ul>
 <li><code>0x0000</code>: Offset of the current instruction, relative to the start of the function.</li>
 
+<p>
+
 <li><code>TEXT "".add</code>: The <code>TEXT</code> directive declares the <code>"".add</code> symbol as part of the <code>.text</code> section 
 (i.e. runnable code) and indicates that the instructions that follow are the body of the function.  
 The empty string <code>""</code> will be replaced by the name of the current package at link-time: i.e., 
 <code>"".add</code> will become <code>main.add</code> once linked into our final binary.</li>
+
+<p>
 
 <li><code>(SB)</code>: <code>SB</code> is the virtual register that holds the "static-base" pointer, i.e. the address of the 
 beginning of the address-space of our program.  
@@ -166,14 +170,18 @@ beginning of the address-space of our program.
 from the start of our address-space. Put differently, it has an absolute, direct address: it's a 
 global function symbol.  
 Good ol' <code>objdump</code> will confirm all of that for us:
-```
+
+<pre>
 $ objdump -j .text -t direct_topfunc_call | grep 'main.add'
 000000000044d980 g     F .text	000000000000000f main.add
-```
-> All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals) 
-and SB (globals).  
-> The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the 
-name foo as an address in memory.</li>
+</pre>
+
+<blockquote>All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals) 
+and SB (globals).</blockquote>  
+<blockquote>The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the 
+name foo as an address in memory.</blockquote></li>
+
+<p>
 
 <li><code>NOSPLIT</code>: Indicates to the compiler that it should <i>not</i> insert the <i>stack-split</i> preamble, which 
 checks whether the current stack needs to be grown.  
@@ -181,18 +189,21 @@ In the case of our <code>add</code> function, the compiler has set the flag by i
 figure that, since <code>add</code> has no local variables and no stack-frame of its own, it simply cannot 
 outgrow the current stack; thus it'd be a complete waste of CPU cycles to run these checks at each 
 call site.  
-> "NOSPLIT": Don't insert the preamble to check if the stack must be split. The frame for the 
+
+<blockquote>"NOSPLIT": Don't insert the preamble to check if the stack must be split. The frame for the 
 routine, plus anything it calls, must fit in the spare space at the top of the stack segment. Used 
 to protect routines such as the stack splitting code itself.  
-We'll have a quick word about goroutines and stack-splits at the end this chapter.</li>
+We'll have a quick word about goroutines and stack-splits at the end this chapter.</blockquote></li>
+
+<p>
 
 <li><code>$0-16</code>: <code>$0</code> denotes the size in bytes of the stack-frame that will be allocated; while <code>$16</code> 
 specifies the size of the arguments passed in by the caller.  
-> In the general case, the frame size is followed by an argument size, separated by a minus sign. 
+<blockquote>In the general case, the frame size is followed by an argument size, separated by a minus sign. 
 (It's not a subtraction, just idiosyncratic syntax.) The frame size <i>$24-8</i> states that the function 
 has a 24-byte frame and is called with 8 bytes of argument, which live on the caller's frame. If 
 NOSPLIT is not specified for the TEXT, the argument size must be provided. For assembly functions 
-with Go prototypes, <b>go vet</b> will check that the argument size is correct.</li>
+with Go prototypes, <b>go vet</b> will check that the argument size is correct.</blockquote></li>
 </ul>
 
 
