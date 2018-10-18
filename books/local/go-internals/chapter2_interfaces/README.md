@@ -58,7 +58,8 @@ As we dig deeper and deeper, we'll also poke at miscellaneous low-level concerns
 - *This chapter assumes you're familiar with Go's assembler ([chapter I](../chapter1_assembly_primer/README.md)).*
 - *If and when running into architecture-specific matters, always assume `linux/amd64`.*
 - *We will always work with compiler optimizations **enabled**.*
-- *Quoted text and/or comments always come from the official documentation (including Russ Cox "Function Calls" design document) and/or codebase, unless stated otherwise.*
+- *Quoted text and/or comments always come from the official documentation (including Russ Cox 
+"Function Calls" design document) and/or codebase, unless stated otherwise.*
 
 ## Function and method calls
 
@@ -91,8 +92,10 @@ Mixed together, these make up for 10 possible combinations of function and call 
 >
 > (A slash separates what is known at compile time from what is only found out at run time.)
 
-We'll first take a few minutes to review the three kinds of direct calls, then we'll shift our focus towards interfaces and indirect method calls for the rest of this chapter.  
-We won't cover function literals in this chapter, as doing so would first require us to become familiar with the mechanics of closures.. which we'll inevitably do, in due time.
+We'll first take a few minutes to review the three kinds of direct calls, then we'll shift our focus 
+towards interfaces and indirect method calls for the rest of this chapter.  
+We won't cover function literals in this chapter, as doing so would first require us to become 
+familiar with the mechanics of closures.. which we'll inevitably do, in due time.
 
 ### Overview of direct calls
 
@@ -131,12 +134,15 @@ Looking at the assembly output for `Add(10, 32)`:
   0x002f CALL	"".Add(SB)
   ;; ...omitted everything but the actual function call...
 ```
-We see that, as we already knew from chapter I, this translates into a direct jump to a global function symbol in the `.text` section, with the arguments and return values stored on the caller's stack-frame.  
+We see that, as we already knew from chapter I, this translates into a direct jump to a global 
+function symbol in the `.text` section, with the arguments and return values stored on the caller's 
+stack-frame.  
 It's as straightforward as it gets.
 
 Russ Cox wraps it up as such in his document:
 > Direct call of top-level func:
-> A direct call of a top-level func passes all arguments on the stack, expecting results to occupy the successive stack positions.
+> A direct call of a top-level func passes all arguments on the stack, expecting results to occupy 
+the successive stack positions.
 
 **Direct call of a method with pointer receiver**
 
@@ -144,24 +150,33 @@ First things first, the receiver is initialized via `adder := Adder{id: 6754}`:
 ```Assembly
 0x0034 MOVL	$6754, "".adder+28(SP)
 ```
-*(The extra-space on our stack-frame was pre-allocated as part of the frame-pointer preamble, which we haven't shown here for conciseness.)*
+*(The extra-space on our stack-frame was pre-allocated as part of the frame-pointer preamble, which 
+we haven't shown here for conciseness.)*
 
 Then comes the actual method call to `adder.AddPtr(10, 32)`:
 ```Assembly
-0x0057 LEAQ	"".adder+28(SP), AX	;; move &adder to..
-0x005c MOVQ	AX, (SP)		;; ..the top of the stack (argument #1)
-0x0060 MOVQ	$137438953482, AX	;; move (32,10) to..
-0x006a MOVQ	AX, 8(SP)		;; ..the top of the stack (arguments #3 & #2)
+0x0057 LEAQ	"".adder+28(SP), AX     ;; move &adder to..
+0x005c MOVQ	AX, (SP)                ;; ..the top of the stack (argument #1)
+0x0060 MOVQ	$137438953482, AX       ;; move (32,10) to..
+0x006a MOVQ	AX, 8(SP)               ;; ..the top of the stack (arguments #3 & #2)
 0x006f CALL	"".(*Adder).AddPtr(SB)
 ```
 
-Looking at the assembly output, we can clearly see that a call to a method (whether it has a value or pointer receiver) is almost identical to a function call, the only difference being that the receiver is passed as first argument.  
-In this case, we do so by loading the effective address (`LEAQ`) of `"".adder+28(SP)` at the top of the frame, so that argument #1 becomes `&adder` (if you're a bit confused regarding the semantics of `LEA` vs. `MOV`, you may want to have a look at the links at the end of this chapter for some pointers).
+Looking at the assembly output, we can clearly see that a call to a method (whether it has a value 
+or pointer receiver) is almost identical to a function call, the only difference being that the 
+receiver is passed as first argument.  
+In this case, we do so by loading the effective address (`LEAQ`) of `"".adder+28(SP)` at the top of 
+the frame, so that argument #1 becomes `&adder` (if you're a bit confused regarding the semantics of 
+`LEA` vs. `MOV`, you may want to have a look at the links at the end of this chapter for some 
+pointers).
 
-Note how the compiler encodes the type of the receiver and whether it's a value or pointer directly into the name of the symbol: `"".(*Adder).AddPtr`.
+Note how the compiler encodes the type of the receiver and whether it's a value or pointer directly 
+into the name of the symbol: `"".(*Adder).AddPtr`.
 
 > Direct call of method:
-> In order to use the same generated code for both an indirect call of a func value and for a direct call, the code generated for a method (both value and pointer receivers) is chosen to have the same calling convention as a top-level function with the receiver as a leading argument.
+> In order to use the same generated code for both an indirect call of a func value and for a direct 
+call, the code generated for a method (both value and pointer receivers) is chosen to have the same 
+calling convention as a top-level function with the receiver as a leading argument.
 
 **Direct call of a method with value receiver**
 
@@ -174,28 +189,38 @@ Consider `adder.AddVal(10, 32)`:
 0x0052 CALL	"".Adder.AddVal(SB)
 ```
 
-Looks like something a bit trickier is going on here, though: the generated assembly isn't even referencing `"".adder+28(SP)` anywhere, even though that is where our receiver currently resides.  
-So what's really going on here? Well, since the receiver is a value, and since the compiler is able to statically infer that value, it doesn't bother with copying the existing value from its current location (`28(SP)`): instead, it simply creates a new, identical `Adder` value directly on the stack, and merges this operation with the creation of the second argument to save one more instruction in the process.
+Looks like something a bit trickier is going on here, though: the generated assembly isn't even 
+referencing `"".adder+28(SP)` anywhere, even though that is where our receiver currently resides.  
+So what's really going on here? Well, since the receiver is a value, and since the compiler is able 
+to statically infer that value, it doesn't bother with copying the existing value from its current 
+location (`28(SP)`): instead, it simply creates a new, identical `Adder` value directly on the 
+stack, and merges this operation with the creation of the second argument to save one more 
+instruction in the process.
 
 Once again, notice how the symbol name of the method explicitly denotes that it expects a value receiver.
 
 ### Implicit dereferencing
 
 There's one final call that we haven't looked at yet: `(&adder).AddVal(10, 32)`.  
-In that case, we're using a pointer variable to call a method that instead expects a value receiver. Somehow, Go automagically dereferences our pointer and manages to make the call. How so?
+In that case, we're using a pointer variable to call a method that instead expects a value receiver. 
+Somehow, Go automagically dereferences our pointer and manages to make the call. How so?
 
-How the compiler handles this kind of situation depends on whether or not the receiver being pointed to has escaped to the heap or not.
+How the compiler handles this kind of situation depends on whether or not the receiver being pointed 
+to has escaped to the heap or not.
 
 **Case A: The receiver is on the stack**
 
-If the receiver is still on the stack and its size is sufficiently small that it can be copied in a few instructions, as is the case here, the compiler simply copies its value over to the top of the stack then does a straightforward method call to `"".Adder.AddVal` (i.e. the one with a value receiver).
+If the receiver is still on the stack and its size is sufficiently small that it can be copied in a 
+few instructions, as is the case here, the compiler simply copies its value over to the top of the 
+stack then does a straightforward method call to `"".Adder.AddVal` (i.e. the one with a value 
+receiver).
 
 `(&adder).AddVal(10, 32)` thus looks like this in this situation:
 ```Assembly
-0x0074 MOVL	"".adder+28(SP), AX	;; move (i.e. copy) adder (note the MOV instead of a LEA) to..
-0x0078 MOVL	AX, (SP)		;; ..the top of the stack (argument #1)
-0x007b MOVQ	$137438953482, AX	;; move (32,10) to..
-0x0085 MOVQ	AX, 4(SP)		;; ..the top of the stack (arguments #3 & #2)
+0x0074 MOVL	"".adder+28(SP), AX     ;; move (i.e. copy) adder (note the MOV instead of a LEA) to..
+0x0078 MOVL	AX, (SP)                ;; ..the top of the stack (argument #1)
+0x007b MOVQ	$137438953482, AX       ;; move (32,10) to..
+0x0085 MOVQ	AX, 4(SP)               ;; ..the top of the stack (arguments #3 & #2)
 0x008a CALL	"".Adder.AddVal(SB)
 ```
 
@@ -203,8 +228,12 @@ Boring (although efficient). Let's move on to case B.
 
 **Case B: The receiver is on the heap**
 
-If the receiver has escaped to the heap then the compiler has to take a cleverer route: it generates a new method (with a pointer receiver, this time) that wraps `"".Adder.AddVal`, and replaces the original call to `"".Adder.AddVal` (the wrappee) with a call to `"".(*Adder).AddVal` (the wrapper).  
-The wrapper's sole mission, then, is to make sure that the receiver gets properly dereferenced before being passed to the wrappee, and that any arguments and return values involved are properly copied back and forth between the caller and the wrappee.
+If the receiver has escaped to the heap then the compiler has to take a cleverer route: it generates 
+a new method (with a pointer receiver, this time) that wraps `"".Adder.AddVal`, and replaces the 
+original call to `"".Adder.AddVal` (the wrappee) with a call to `"".(*Adder).AddVal` (the wrapper).  
+The wrapper's sole mission, then, is to make sure that the receiver gets properly dereferenced 
+before being passed to the wrappee, and that any arguments and return values involved are properly 
+copied back and forth between the caller and the wrappee.
 
 (*NOTE: In assembly outputs, these wrapper methods are marked as `<autogenerated>`.*)
 
@@ -213,19 +242,19 @@ Here's an annotated listing of the generated wrapper that should hopefully clear
 0x0000 TEXT	"".(*Adder).AddVal(SB), DUPOK|WRAPPER, $32-24
   ;; ...omitted preambles...
 
-  0x0026 MOVQ	""..this+40(SP), AX ;; check whether the receiver..
-  0x002b TESTQ	AX, AX		    ;; ..is nil
-  0x002e JEQ	92		    ;; if it is, jump to 0x005c (panic)
+  0x0026 MOVQ	""..this+40(SP), AX  ;; check whether the receiver..
+  0x002b TESTQ	AX, AX               ;; ..is nil
+  0x002e JEQ	92                   ;; if it is, jump to 0x005c (panic)
 
-  0x0030 MOVL	(AX), AX            ;; dereference pointer receiver..
-  0x0032 MOVL	AX, (SP)            ;; ..and move (i.e. copy) the resulting value to argument #1
+  0x0030 MOVL	(AX), AX             ;; dereference pointer receiver..
+  0x0032 MOVL	AX, (SP)             ;; ..and move (i.e. copy) the resulting value to argument #1
 
   ;; forward (copy) arguments #2 & #3 then call the wrappee
   0x0035 MOVL	"".a+48(SP), AX
   0x0039 MOVL	AX, 4(SP)
   0x003d MOVL	"".b+52(SP), AX
   0x0041 MOVL	AX, 8(SP)
-  0x0045 CALL	"".Adder.AddVal(SB) ;; call the wrapped method
+  0x0045 CALL	"".Adder.AddVal(SB)  ;; call the wrapped method
 
   ;; copy return value from wrapped method then return
   0x004a MOVL	16(SP), AX
@@ -239,13 +268,20 @@ Here's an annotated listing of the generated wrapper that should hopefully clear
   ;; ...omitted epilogues...
 ```
 
-Obviously, this kind of wrapper can induce quite a bit of overhead considering all the copying that needs to be done in order to pass the arguments back and forth; especially if the wrappee is just a few instructions.  
-Fortunately, in practice, the compiler would have inlined the wrappee directly into the wrapper to amortize these costs (when feasible, at least).
+Obviously, this kind of wrapper can induce quite a bit of overhead considering all the copying that 
+needs to be done in order to pass the arguments back and forth; especially if the wrappee is just a 
+few instructions.  
+Fortunately, in practice, the compiler would have inlined the wrappee directly into the wrapper to 
+amortize these costs (when feasible, at least).
 
-Note the `WRAPPER` directive in the definition of the symbol, which indicates that this method shouldn't appear in backtraces (so as not to confuse the end-user), nor should it be able to recover from panics that might be thrown by the wrappee.
+Note the `WRAPPER` directive in the definition of the symbol, which indicates that this method 
+shouldn't appear in backtraces (so as not to confuse the end-user), nor should it be able to recover 
+from panics that might be thrown by the wrappee.
 > WRAPPER: This is a wrapper function and should not count as disabling recover.
 
-The `runtime.panicwrap` function, which throws a panic if the wrapper's receiver is `nil`, is pretty self-explanatory; here's its complete listing for reference ([src/runtime/error.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/error.go#L132-L157)):
+The `runtime.panicwrap` function, which throws a panic if the wrapper's receiver is `nil`, is pretty 
+self-explanatory; here's its complete listing for reference ([src/runtime/error.go](https://
+github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/error.go#L132-L157)):
 ```Go
 // panicwrap generates a panic for a call to a wrapped value method
 // with a nil pointer receiver.
@@ -285,12 +321,15 @@ That's all for function and method calls, we'll now focus on the main course: in
 
 ### Overview of the datastructures
 
-Before we can understand how they work, we first need to build a mental model of the datastructures that make up interfaces and how they're laid out in memory.  
-To that end, we'll have a quick peek into the runtime package to see what an interface actually looks like from the standpoint of the Go implementation.
+Before we can understand how they work, we first need to build a mental model of the datastructures 
+that make up interfaces and how they're laid out in memory.  
+To that end, we'll have a quick peek into the runtime package to see what an interface actually 
+looks like from the standpoint of the Go implementation.
 
 **The `iface` structure**
 
-`iface` is the root type that represents an interface within the runtime ([src/runtime/runtime2.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L143-L146)).  
+`iface` is the root type that represents an interface within the runtime 
+([src/runtime/runtime2.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L143-L146)).  
 Its definition goes like this:
 ```Go
 type iface struct { // 16 bytes on a 64bit arch
@@ -300,11 +339,15 @@ type iface struct { // 16 bytes on a 64bit arch
 ```
 
 An interface is thus a very simple structure that maintains 2 pointers:
-- `tab` holds the address of an `itab` object, which embeds the datastructures that describe both the type of the interface as well as the type of the data it points to.
+- `tab` holds the address of an `itab` object, which embeds the datastructures that describe both 
+the type of the interface as well as the type of the data it points to.
 - `data` is a raw (i.e. `unsafe`) pointer to the value held by the interface.
 
-While extremely simple, this definition already gives us some valuable information: since interfaces can only hold pointers, *any concrete value that we wrap into an interface will have to have its address taken*.  
-More often than not, this will result in a heap allocation as the compiler takes the conservative route and forces the receiver to escape.  
+While extremely simple, this definition already gives us some valuable information: since interfaces 
+can only hold pointers, *any concrete value that we wrap into an interface will have to have its 
+address taken*.  
+More often than not, this will result in a heap allocation as the compiler takes the conservative 
+route and forces the receiver to escape.  
 This holds true even for scalar types!
 
 We can prove that with a few lines of code ([escape.go](./escape.go)):
@@ -355,8 +398,10 @@ BenchmarkDirect-8      	2000000000	         1.60 ns/op	       0 B/op	       0 al
 BenchmarkInterface-8   	100000000	         15.0 ns/op	       4 B/op	       1 allocs/op
 ```
 
-We can clearly see how each time we create a new `Addifier` interface and initialize it with our `adder` variable, a heap allocation of `sizeof(Adder)` actually takes place. 
-Later in this chapter, we'll see how even simple scalar types can lead to heap allocations when used with interfaces.
+We can clearly see how each time we create a new `Addifier` interface and initialize it with our 
+`adder` variable, a heap allocation of `sizeof(Adder)` actually takes place. 
+Later in this chapter, we'll see how even simple scalar types can lead to heap allocations when used 
+with interfaces.
 
 Let's turn our attention towards the next datastructure: `itab`.
 
@@ -376,15 +421,22 @@ type itab struct { // 40 bytes on a 64bit arch
 An `itab` is the heart & brain of an interface.  
 
 First, it embeds a `_type`, which is the internal representation of any Go type within the runtime.  
-A `_type` describes every facets of a type: its name, its characteristics (e.g. size, alignment...), and to some extent, even how it behaves (e.g. comparison, hashing...)!  
-In this instance, the `_type` field describes the type of the value held by the interface, i.e. the value that the `data` pointer points to.
+A `_type` describes every facets of a type: its name, its characteristics (e.g. size, alignment...), 
+and to some extent, even how it behaves (e.g. comparison, hashing...)!  
+In this instance, the `_type` field describes the type of the value held by the interface, i.e. the 
+value that the `data` pointer points to.
 
-Second, we find a pointer to an `interfacetype`, which is merely a wrapper around `_type` with some extra information that are specific to interfaces.  
+Second, we find a pointer to an `interfacetype`, which is merely a wrapper around `_type` with some 
+extra information that are specific to interfaces.  
 As you'd expect, the `inter` field describes the type of the interface itself.
 
-Finally, the `fun` array holds the function pointers that make up the virtual/dispatch table of the interface.  
-Notice the comment that says `// variable sized`, meaning that the size with which this array is declared is *irrelevant*.  
-We'll see later in this chapter that the compiler is responsible for allocating the memory that backs this array, and does so independently of the size indicated here. Likewise, the runtime always accesses this array using raw pointers, thus bounds-checking does not apply here.
+Finally, the `fun` array holds the function pointers that make up the virtual/dispatch table of the 
+interface.  
+Notice the comment that says `// variable sized`, meaning that the size with which this array is 
+declared is *irrelevant*.  
+We'll see later in this chapter that the compiler is responsible for allocating the memory that 
+backs this array, and does so independently of the size indicated here. Likewise, the runtime always 
+accesses this array using raw pointers, thus bounds-checking does not apply here.
 
 **The `_type` structure**
 
@@ -411,8 +463,13 @@ type _type struct { // 48 bytes on a 64bit arch
 
 Thankfully, most of these fields are quite self-explanatory.
 
-The `nameOff` & `typeOff` types are `int32` offsets into the metadata embedded into the final executable by the linker. This metadata is loaded into `runtime.moduledata` structures at run time ([src/runtime/symtab.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/symtab.go#L352-L393)), which should look fairly similar if you've ever had to look at the content of an ELF file.  
-The runtime provide helpers that implement the necessary logic for following these offsets through the `moduledata` structures, such as e.g. `resolveNameOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L168-L196)) and `resolveTypeOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L202-L236)):
+The `nameOff` & `typeOff` types are `int32` offsets into the metadata embedded into the final 
+executable by the linker. This metadata is loaded into `runtime.moduledata` structures at run time 
+([src/runtime/symtab.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/symtab.go#L352-L393)), 
+which should look fairly similar if you've ever had to look at the content of an ELF file.  
+The runtime provide helpers that implement the necessary logic for following these offsets through 
+the `moduledata` structures, such as e.g. `resolveNameOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L168-L196)) 
+and `resolveTypeOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L202-L236)):
 ```Go
 func resolveNameOff(ptrInModule unsafe.Pointer, off nameOff) name {}
 func resolveTypeOff(ptrInModule unsafe.Pointer, off typeOff) *_type {}
@@ -435,12 +492,15 @@ type imethod struct {
 }
 ```
 
-As mentioned, an `interfacetype` is just a wrapper around a `_type` with some extra interface-specific metadata added on top.  
-In the current implementation, this metadata is mostly composed of a list of offsets that points to the respective names and types of the methods exposed by the interface (`[]imethod`).
+As mentioned, an `interfacetype` is just a wrapper around a `_type` with some extra interface-
+specific metadata added on top.  
+In the current implementation, this metadata is mostly composed of a list of offsets that points to 
+the respective names and types of the methods exposed by the interface (`[]imethod`).
 
 **Conclusion**
 
-Here's an overview of what an `iface` looks like when represented with all of its sub-types inlined; this hopefully should help connect all the dots:
+Here's an overview of what an `iface` looks like when represented with all of its sub-types inlined; 
+this hopefully should help connect all the dots:
 ```Go
 type iface struct { // `iface`
     tab *struct { // `itab`
@@ -485,12 +545,15 @@ type iface struct { // `iface`
 }
 ```
 
-This section glossed over the different data-types that make up an interface to help us to start building a mental model of the various cogs involved in the overall machinery, and how they all work with each other.  
+This section glossed over the different data-types that make up an interface to help us to start 
+building a mental model of the various cogs involved in the overall machinery, and how they all work 
+with each other.  
 In the next section, we'll learn how these datastructures actually get computed.
 
 ### Creating an interface
 
-Now that we've had a quick look at all the datastructures involved, we'll focus on how they actually get allocated and initiliazed.
+Now that we've had a quick look at all the datastructures involved, we'll focus on how they actually 
+get allocated and initiliazed.
 
 Consider the following program ([iface.go](./iface.go)):
 ```Go
@@ -516,13 +579,15 @@ func main() {
 }
 ```
 
-*NOTE: For the remainder of this chapter, we will denote an interface `I` that holds a type `T` as `<I,T>`. E.g. `Mather(Adder{id: 6754})` instantiates an `iface<Mather, Adder>`.*
+*NOTE: For the remainder of this chapter, we will denote an interface `I` that holds a type `T` as 
+`<I,T>`. E.g. `Mather(Adder{id: 6754})` instantiates an `iface<Mather, Adder>`.*
 
 Let's zoom in on the instantiation of `iface<Mather, Adder>`:
 ```Go
 m := Mather(Adder{id: 6754})
 ```
-This single line of Go code actually sets off quite a bit of machinery, as the assembly listing generated by the compiler can attest:  
+This single line of Go code actually sets off quite a bit of machinery, as the assembly listing 
+generated by the compiler can attest:  
 ```Assembly
 ;; part 1: allocate the receiver
 0x001d MOVL	$6754, ""..autotmp_1+36(SP)
@@ -545,8 +610,10 @@ As you can see, we've splitted the output into three logical parts.
 0x001d MOVL	$6754, ""..autotmp_1+36(SP)
 ```
 
-A constant decimal value of `6754`, corresponding to the ID of our `Adder`, is stored at the beginning of the current stack-frame.  
-It's stored there so that the compiler will later be able to reference it by its address; we'll see why in part 3.
+A constant decimal value of `6754`, corresponding to the ID of our `Adder`, is stored at the 
+beginning of the current stack-frame.  
+It's stored there so that the compiler will later be able to reference it by its address; we'll see 
+why in part 3.
 
 **Part 2: Set up the itab**
 
@@ -555,9 +622,13 @@ It's stored there so that the compiler will later be able to reference it by its
 0x002c MOVQ	AX, (SP)
 ```
 
-It looks like the compiler has already created the necessary `itab` for representing our `iface<Mather, Adder>` interface, and made it available to us via a global symbol: `go.itab."".Adder,"".Mather`.  
+It looks like the compiler has already created the necessary `itab` for representing our 
+`iface<Mather, Adder>` interface, and made it available to us via a global symbol: 
+`go.itab."".Adder,"".Mather`.  
 
-We're in the process of building an `iface<Mather, Adder>` interface and, in order to do so, we're loading the effective address of this global `go.itab."".Adder,"".Mather` symbol at the top of the current stack-frame.  
+We're in the process of building an `iface<Mather, Adder>` interface and, in order to do so, we're 
+loading the effective address of this global `go.itab."".Adder,"".Mather` symbol at the top of the 
+current stack-frame.  
 Once again, we'll see why in part 3.
 
 Semantically, this gives us something along the lines of the following pseudo-code:
@@ -586,34 +657,43 @@ The first piece declares the symbol and its attributes:
 ```
 go.itab."".Adder,"".Mather SRODATA dupok size=40
 ```
-As usual, since we're looking directly at the intermediate object file generated by the compiler (i.e. the linker hasn't run yet), symbol names are still missing package names. Nothing new on that front.  
-Other than that, what we've got here is a 40-byte global object symbol that will be stored in the `.rodata` section of our binary.
+As usual, since we're looking directly at the intermediate object file generated by the compiler 
+(i.e. the linker hasn't run yet), symbol names are still missing package names. Nothing new on that 
+front.  
+Other than that, what we've got here is a 40-byte global object symbol that will be stored in the 
+`.rodata` section of our binary.
 
-Note the `dupok` directive, which tells the linker that it is legal for this symbol to appear multiple times at link-time: the linker will have to arbitrarily choose one of them over the others.  
-What makes the Go authors think that this symbol might end up duplicated, I'm not sure. Feel free to file an issue if you know more.  
+Note the `dupok` directive, which tells the linker that it is legal for this symbol to appear 
+multiple times at link-time: the linker will have to arbitrarily choose one of them over the others.  
+What makes the Go authors think that this symbol might end up duplicated, I'm not sure. Feel free to 
+file an issue if you know more.  
 *[UPDATE: We've discussed about this matter in [issue #7: How you can get duplicated go.itab interface definitions](https://github.com/teh-cmc/go-internals/issues/7).]*
 
-The second piece is a hexdump of the 40 bytes of data associated with the symbol. I.e., it's a serialized representation of an `itab` structure:
+The second piece is a hexdump of the 40 bytes of data associated with the symbol. I.e., it's a 
+serialized representation of an `itab` structure:
 ```
 0x0000 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 0x0010 8a 3d 5f 61 00 00 00 00 00 00 00 00 00 00 00 00  .=_a............
 0x0020 00 00 00 00 00 00 00 00                          ........
 ```
-As you can see, most of this data is just a bunch of zeros at this point. The linker will take care of filling them up, as we'll see in a minute.
+As you can see, most of this data is just a bunch of zeros at this point. The linker will take care 
+of filling them up, as we'll see in a minute.
 
 Notice how, among all these zeros, 4 bytes actually have been set though, at offset `0x10+4`.  
-If we take a look back at the declaration of the `itab` structure and annotate the respective offsets of its fields:
+If we take a look back at the declaration of the `itab` structure and annotate the respective 
+offsets of its fields:
 ```Go
-type itab struct { // 40 bytes on a 64bit arch
+type itab struct {       // 40 bytes on a 64bit arch
     inter *interfacetype // offset 0x00 ($00)
-    _type *_type	 // offset 0x08 ($08)
-    hash  uint32	 // offset 0x10 ($16)
-    _     [4]byte	 // offset 0x14 ($20)
+    _type *_type         // offset 0x08 ($08)
+    hash  uint32         // offset 0x10 ($16)
+    _     [4]byte        // offset 0x14 ($20)
     fun   [1]uintptr	 // offset 0x18 ($24)
-			 // offset 0x20 ($32)
+                         // offset 0x20 ($32)
 }
 ```
-We see that offset `0x10+4` matches the `hash uint32` field: i.e., the hash value that corresponds to our `main.Adder` type is already right there in our object file.
+We see that offset `0x10+4` matches the `hash uint32` field: i.e., the hash value that corresponds 
+to our `main.Adder` type is already right there in our object file.
 
 The third and final piece lists a bunch of relocation directives for the linker:
 ```
