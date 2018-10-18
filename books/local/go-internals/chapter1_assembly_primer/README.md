@@ -155,14 +155,14 @@ compiler is doing.
 <ul>
 <li><code>0x0000</code>: Offset of the current instruction, relative to the start of the function.</li>
 
-<p>
+<br>
 
 <li><code>TEXT "".add</code>: The <code>TEXT</code> directive declares the <code>"".add</code> symbol as part of the <code>.text</code> section 
 (i.e. runnable code) and indicates that the instructions that follow are the body of the function.<br> 
 The empty string <code>""</code> will be replaced by the name of the current package at link-time: i.e., 
 <code>"".add</code> will become <code>main.add</code> once linked into our final binary.</li>
 
-<p>
+<br>
 
 <li><code>(SB)</code>: <code>SB</code> is the virtual register that holds the "static-base" pointer, i.e. the address of the 
 beginning of the address-space of our program.<br> 
@@ -181,7 +181,7 @@ and SB (globals).<br>
 The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the 
 name foo as an address in memory.</blockquote></li>
 
-<p>
+<br>
 
 <li><code>NOSPLIT</code>: Indicates to the compiler that it should <i>not</i> insert the <i>stack-split</i> preamble, which 
 checks whether the current stack needs to be grown.<br>
@@ -195,7 +195,7 @@ routine, plus anything it calls, must fit in the spare space at the top of the s
 to protect routines such as the stack splitting code itself.<br>
 We'll have a quick word about goroutines and stack-splits at the end this chapter.</blockquote></li>
 
-<p>
+<br>
 
 <li><code>$0-16</code>: <code>$0</code> denotes the size in bytes of the stack-frame that will be allocated; while <code>$16</code> 
 specifies the size of the arguments passed in by the caller.  
@@ -206,7 +206,7 @@ NOSPLIT is not specified for the TEXT, the argument size must be provided. For a
 with Go prototypes, <b>go vet</b> will check that the argument size is correct.</blockquote></li>
 </ul>
 
-<p>
+<br>
 
 ```Assembly
 0x0000 FUNCDATA $0, gclocals·f207267fbf96a0178e8758c6e3e0ce28(SB)
@@ -219,7 +219,7 @@ introduced by the compiler.
 Don't worry about this for now; we'll come back to it when diving into garbage collection later in 
 the book.
 
-<p>
+<br>
 
 ```Assembly
 0x0000 MOVL "".b+12(SP), AX
@@ -270,7 +270,7 @@ caller stores its return-address in <code>0(SP)</code> via the <code>CALL</code>
 2. Arguments are passed in reverse-order; i.e. the first argument is the closest to the top of the 
 stack.
 
-<p>
+<br>
 
 ```Assembly
 0x0008 ADDL CX, AX
@@ -289,7 +289,7 @@ value.
 The mechanics at play are exactly the same as for our first return value; only the offset relative 
 to `SP` changes.
 
-<p>
+<br>
 
 ```Assembly
 0x0013 RET
@@ -378,7 +378,7 @@ like:
   ;; ...omitted stack-split epilogue...
 ```
 
-<p>
+<br>
 
 ```Assembly
 0x0000 TEXT "".main(SB), $24-0
@@ -389,7 +389,7 @@ Nothing new here:
 address is some constant offset from the beginning of our address-space.
 - It allocates a 24 bytes stack-frame and doesn't receive any argument nor does it return any value.
 
-<p>
+<br>
 
 ```Assembly
 0x000f SUBQ     $24, SP
@@ -414,7 +414,7 @@ necessary alignment on `amd64`
 Finally, following the growth of the stack, `LEAQ` computes the new address of the frame-pointer and 
 stores it in `BP`.
 
-<p>
+<br>
 
 ```Assembly
 0x001d MOVQ     $137438953482, AX
@@ -432,7 +432,7 @@ $ echo 'obase=2;137438953482' | bc
    32                              10
 ```
 
-<p>
+<br>
 
 ```Assembly
 0x002b CALL     "".add(SB)
@@ -445,7 +445,7 @@ Note that `CALL` also pushes the return-address (8-byte value) at the top of the
 references to `SP` made from within our `add` function end up being offsetted by 8 bytes!  
 E.g. `"".a` is not at `0(SP)` anymore, but at `8(SP)`.
 
-<p>
+<br>
 
 ```Assembly
 0x0030 MOVQ     16(SP), BP
@@ -591,22 +591,16 @@ prefix!
 
 ## Links
 
-- [[Official] A Quick Guide to Go's Assembler](https://golang.org/doc/asm)
-- [[Official] Go Compiler Directives](https://golang.org/cmd/compile/#hdr-Compiler_Directives)
-- [[Official] The design of the Go Assembler](https://www.youtube.com/watch?v=KINIAgRpkDA)
-- [[Official] Contiguous stacks Design Document](https://docs.google.com/document/
-d/1wAaf1rYoM4S4gtnPh0zOlGzWtrZFQ5suE8qr2sD8uWQ/pub)
-- [[Official] The `_StackMin` constant](https://github.com/golang/go/blob/
-bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/stack.go#L70-L71)
-- [[Discussion] Issue #2: *Frame pointer*](https://github.com/teh-cmc/go-internals/issues/2)
-- [[Discussion] Issue #4: *Clarify "nop before call" paragraph*](https://github.com/teh-cmc/go-
-internals/issues/4)
-- [A Foray Into Go Assembly Programming](https://blog.sgmansfield.com/2017/04/a-foray-into-go-
-assembly-programming/)
+- [&#91;Official&#93; A Quick Guide to Go's Assembler](https://golang.org/doc/asm)
+- [&#91;Official&#93; Go Compiler Directives](https://golang.org/cmd/compile/#hdr-Compiler_Directives)
+- [&#91;Official&#93; The design of the Go Assembler](https://www.youtube.com/watch?v=KINIAgRpkDA)
+- [&#91;Official&#93; Contiguous stacks Design Document](https://docs.google.com/document/d/1wAaf1rYoM4S4gtnPh0zOlGzWtrZFQ5suE8qr2sD8uWQ/pub)
+- [&#91;Official&#93; The `_StackMin` constant](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/stack.go#L70-L71)
+- [&#91;Discussion&#93; Issue #2: *Frame pointer*](https://github.com/teh-cmc/go-internals/issues/2)
+- [&#91;Discussion&#93; Issue #4: *Clarify "nop before call" paragraph*](https://github.com/teh-cmc/go-internals/issues/4)
+- [A Foray Into Go Assembly Programming](https://blog.sgmansfield.com/2017/04/a-foray-into-go-assembly-programming/)
 - [Dropping Down Go Functions in Assembly](https://www.youtube.com/watch?v=9jpnFmJr2PE)
-- [What is the purpose of the EBP frame pointer register?](https://stackoverflow.com/
-questions/579262/what-is-the-purpose-of-the-ebp-frame-pointer-register)
-- [Stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-
-x86-64)
+- [What is the purpose of the EBP frame pointer register?](https://stackoverflow.com/questions/579262/what-is-the-purpose-of-the-ebp-frame-pointer-register)
+- [Stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64)
 - [How Stacks are Handled in Go](https://blog.cloudflare.com/how-stacks-are-handled-in-go/)
 - [Why stack grows down](https://gist.github.com/cpq/8598782)
