@@ -18,7 +18,9 @@ Specifically, we'll look at:
 - How interface composition works.
 - How and at what cost do type assertions work.
 
-As we dig deeper and deeper, we'll also poke at miscellaneous low-level concerns, such as some implementation details of modern CPUs as well as various optimizations techniques used by the Go compiler.
+As we dig deeper and deeper, we'll also poke at miscellaneous low-level concerns, such as some 
+implementation details of modern CPUs as well as various optimizations techniques used by the Go 
+compiler.
 
 ---
 
@@ -703,10 +705,13 @@ rel 24+8 t=1 "".(*Adder).Add+0
 rel 32+8 t=1 "".(*Adder).Sub+0
 ```
 
-`rel 0+8 t=1 type."".Mather+0` tells the linker to fill up the first 8 bytes (`0+8`) of the contents with the address of the global object symbol `type."".Mather`.  
-`rel 8+8 t=1 type."".Adder+0` then fills the next 8 bytes with the address of `type."".Adder`, and so on and so forth.
+`rel 0+8 t=1 type."".Mather+0` tells the linker to fill up the first 8 bytes (`0+8`) of the contents 
+with the address of the global object symbol `type."".Mather`.  
+`rel 8+8 t=1 type."".Adder+0` then fills the next 8 bytes with the address of `type."".Adder`, and 
+so on and so forth.
 
-Once the linker has done its job and followed all of these directives, our 40-byte serialized `itab` will be complete.  
+Once the linker has done its job and followed all of these directives, our 40-byte serialized `itab` 
+will be complete.  
 Overall, we're now looking at something akin to the following pseudo-code:
 ```Go
 tab := getSymAddr(`go.itab.main.Adder,main.Mather`).(*itab)
@@ -723,7 +728,8 @@ tab.fun[0] = getSymAddr(`main.(*Adder).Add`).(uintptr)
 tab.fun[1] = getSymAddr(`main.(*Adder).Sub`).(uintptr)
 ```
 
-We've got ourselves a ready-to-use `itab`, now if we just had some data to along with it, that'd make for a nice, complete interface.
+We've got ourselves a ready-to-use `itab`, now if we just had some data to along with it, that'd 
+make for a nice, complete interface.
 
 **Part 3: Set up the data**
 
@@ -735,10 +741,14 @@ We've got ourselves a ready-to-use `itab`, now if we just had some data to along
 0x0044 MOVQ	24(SP), CX
 ```
 
-Remember from part 1 that the top of the stack `(SP)` currently holds the address of `go.itab."".Adder,"".Mather` (argument #1).  
-Also remember from part 2 that we had stored a `$6754` decimal constant in `""..autotmp_1+36(SP)`: we now load the effective address of this constant just below the top of the stack-frame, at 8(SP) (argument #2).
+Remember from part 1 that the top of the stack `(SP)` currently holds the address of 
+`go.itab."".Adder,"".Mather` (argument #1).  
+Also remember from part 2 that we had stored a `$6754` decimal constant in `""..autotmp_1+36(SP)`: 
+we now load the effective address of this constant just below the top of the stack-frame, at 8(SP) 
+(argument #2).
 
-These two pointers are the two arguments that we pass into `runtime.convT2I32`, which will apply the final touches of glue to create and return our complete interface.  
+These two pointers are the two arguments that we pass into `runtime.convT2I32`, which will apply the 
+final touches of glue to create and return our complete interface.  
 Let's have a closer look at it ([src/runtime/iface.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/iface.go#L433-L451)):
 ```Go
 func convT2I32(tab *itab, elem unsafe.Pointer) (i iface) {
@@ -760,10 +770,13 @@ func convT2I32(tab *itab, elem unsafe.Pointer) (i iface) {
 So `runtime.convT2I32` does 4 things:
 1. It creates a new `iface` structure `i` (to be pedantic, its caller creates it.. same difference).
 2. It assigns the `itab` pointer we just gave it to `i.tab`.
-3. It **allocates a new object of type `i.tab._type` on the heap**, then copy the value pointed to by the second argument `elem` into that new object.
+3. It **allocates a new object of type `i.tab._type` on the heap**, then copy the value pointed to 
+by the second argument `elem` into that new object.
 4. It returns the final interface.
 
-This process is quite straightforward overall, although the 3rd step does involve some tricky implementation details in this specific case, which are caused by the fact that our `Adder` type is effectively a scalar type.  
+This process is quite straightforward overall, although the 3rd step does involve some tricky 
+implementation details in this specific case, which are caused by the fact that our `Adder` type is 
+effectively a scalar type.  
 We'll look at the interactions of scalar types and interfaces in more details in the section about [the special cases of interfaces](#interface-holding-a-scalar-type).
 
 Conceptually, we've now accomplished the following (pseudo-code):
@@ -795,7 +808,9 @@ We finally got ourselves a complete, working interface.
 
 ### Reconstructing an `itab` from an executable
 
-In the previous section, we dumped the contents of `go.itab."".Adder,"".Mather` directly from the object files generated by the compiler and ended up looking at what was mostly a blob of zeros (except for the `hash` value):
+In the previous section, we dumped the contents of `go.itab."".Adder,"".Mather` directly from the 
+object files generated by the compiler and ended up looking at what was mostly a blob of zeros 
+(except for the `hash` value):
 ```
 $ GOOS=linux GOARCH=amd64 go tool compile -S iface.go | grep -A 3 '^go.itab."".Adder,"".Mather'
 go.itab."".Adder,"".Mather SRODATA dupok size=40
@@ -804,7 +819,9 @@ go.itab."".Adder,"".Mather SRODATA dupok size=40
     0x0020 00 00 00 00 00 00 00 00                          ........
 ```
 
-To get a better picture of how the data is laid out into the final executable produced by the linker, we'll walk through the generated ELF file and manually reconstruct the bytes that make up the `itab` of our `iface<Mather, Adder>`.  
+To get a better picture of how the data is laid out into the final executable produced by the 
+linker, we'll walk through the generated ELF file and manually reconstruct the bytes that make up 
+the `itab` of our `iface<Mather, Adder>`.  
 Hopefully, this'll enable us to observe what our `itab` looks like once the linker has done its job.
 
 First things first, let's build the `iface` binary: `GOOS=linux GOARCH=amd64 go build -o iface.bin iface.go`.
@@ -841,15 +858,20 @@ $ readelf -St -W iface.bin | \
 315392
 ```
 
-Which means that `fseek`-ing 315392 bytes into our binary should place us right at the start of the `.rodata` section.  
+Which means that `fseek`-ing 315392 bytes into our binary should place us right at the start of the 
+`.rodata` section.  
 Now what we need to do is map this file location to a virtual-memory address.
 
 **Step 2: Find the virtual-memory address (VMA) of `.rodata`**
 
-The VMA is the virtual address at which the section will be mapped once the binary has been loaded in memory by the OS. I.e., this is the address that we'll use to reference a symbol at runtime.
+The VMA is the virtual address at which the section will be mapped once the binary has been loaded 
+in memory by the OS. I.e., this is the address that we'll use to reference a symbol at runtime.
 
-The reason we care about the VMA in this case is that we cannot directly ask `readelf` or `objdump` for the offset of a specific symbol (AFAIK). What we can do, on the other hand, is ask for the VMA of a specific symbol.  
-Coupled with some simple maths, we should be able to build a mapping between VMAs and offsets and finally find the offsets of the symbols that we're looking for.
+The reason we care about the VMA in this case is that we cannot directly ask `readelf` or `objdump` 
+for the offset of a specific symbol (AFAIK). What we can do, on the other hand, is ask for the VMA 
+of a specific symbol.  
+Coupled with some simple maths, we should be able to build a mapping between VMAs and offsets and 
+finally find the offsets of the symbols that we're looking for.
 
 Finding the VMA of `.rodata` is no different than finding its offset, it's just a different column is all:
 ```Bash
@@ -861,7 +883,8 @@ $ readelf -St -W iface.bin | \
 4509696
 ```
 
-So here's what we know so far: the `.rodata` section is located at offset `$315392` (= `0x04d000`) into the ELF file, which will be mapped at virtual address `$4509696` (= `0x44d000`) at run time.
+So here's what we know so far: the `.rodata` section is located at offset `$315392` (= `0x04d000`) 
+into the ELF file, which will be mapped at virtual address `$4509696` (= `0x44d000`) at run time.
 
 Now we need the VMA as well as the size of the symbol we're looking for:
 - Its VMA will (indirectly) allow us to locate it within the executable.
@@ -895,7 +918,9 @@ $ objdump -t -j .rodata iface.bin | \
 40
 ```
 
-So `go.itab.main.Adder,main.Mather` will be mapped at virtual address `$4673856` (= `0x475140`) at run time, and has a size of 40 bytes (which we already knew, as it's the size of an `itab` structure).
+So `go.itab.main.Adder,main.Mather` will be mapped at virtual address `$4673856` (= `0x475140`) at 
+run time, and has a size of 40 bytes (which we already knew, as it's the size of an `itab` 
+structure).
 
 **Step 4: Find & extract `go.itab.main.Adder,main.Mather`**
 
@@ -910,10 +935,13 @@ go.itab.main.Adder,main.Mather VMA: 0x475140 == $4673856
 go.itab.main.Adder,main.Mather size: 0x24 = $40
 ```
 
-If `$315392` (`.rodata`'s offset) maps to $4509696 (`.rodata`'s VMA) and `go.itab.main.Adder,main.Mather`'s VMA is `$4673856`, then `go.itab.main.Adder,main.Mather`'s offset within the executable is:  
+If `$315392` (`.rodata`'s offset) maps to $4509696 (`.rodata`'s VMA) and 
+`go.itab.main.Adder,main.Mather`'s VMA is `$4673856`, then `go.itab.main.Adder,main.Mather`'s offset 
+within the executable is:  
 `sym.offset = sym.vma - section.vma + section.offset = $4673856 - $4509696 + $315392 = $479552`.
 
-Now that we know both the offset and size of the data, we can take out good ol' `dd` and extract the raw bytes straight out of the executable:  
+Now that we know both the offset and size of the data, we can take out good ol' `dd` and extract the 
+raw bytes straight out of the executable:  
 ```Bash
 $ dd if=iface.bin of=/dev/stdout bs=1 count=40 skip=479552 2>/dev/null | hexdump
 0000000 bd20 0045 0000 0000 ed40 0045 0000 0000
@@ -922,8 +950,10 @@ $ dd if=iface.bin of=/dev/stdout bs=1 count=40 skip=479552 2>/dev/null | hexdump
 0000028
 ```
 
-This certainly does look like a clear-cut victory.. but is it, really? Maybe we've just dumped 40 totally random, unrelated bytes? Who knows?  
-There's at least one way to be sure: let's compare the type hash found in our binary dump (at offset `0x10+4` -> `0x615f3d8a`) with the one loaded by the runtime ([iface_type_hash.go](./iface_type_hash.go)):
+This certainly does look like a clear-cut victory.. but is it, really? Maybe we've just dumped 40 
+totally random, unrelated bytes? Who knows?  
+There's at least one way to be sure: let's compare the type hash found in our binary dump (at offset 
+`0x10+4` -> `0x615f3d8a`) with the one loaded by the runtime ([iface_type_hash.go](./iface_type_hash.go)):
 ```Go
 // simplified definitions of runtime's iface & itab types
 type iface struct {
@@ -946,14 +976,20 @@ func main() {
 }
 ```
 
-It's a match! `fmt.Printf("iface.tab.hash = %#x\n", iface.tab.hash)` gives us `0x615f3d8a`, which corresponds to the value that we've extracted from the contents of the ELF file.
+It's a match! `fmt.Printf("iface.tab.hash = %#x\n", iface.tab.hash)` gives us `0x615f3d8a`, which 
+corresponds to the value that we've extracted from the contents of the ELF file.
 
 **Conclusion**
 
-We've reconstructed the complete `itab` for our `iface<Mather, Adder>` interface; it's all there in the executable, just waiting to be used, and already contains all the information that the runtime will need to make the interface behave as we expect.
+We've reconstructed the complete `itab` for our `iface<Mather, Adder>` interface; it's all there in 
+the executable, just waiting to be used, and already contains all the information that the runtime 
+will need to make the interface behave as we expect.
 
-Of course, since an `itab` is mostly composed of a bunch of pointers to other datastructures, we'd have to follow the virtual addresses present in the contents that we've extracted via `dd` in order to reconstruct the complete picture.  
-Speaking of pointers, we can now have a clear view of the virtual-table for `iface<Mather, Adder>`; here's an annotated version of the contents of `go.itab.main.Adder,main.Mather`:
+Of course, since an `itab` is mostly composed of a bunch of pointers to other datastructures, we'd 
+have to follow the virtual addresses present in the contents that we've extracted via `dd` in order 
+to reconstruct the complete picture.  
+Speaking of pointers, we can now have a clear view of the virtual-table for `iface<Mather, Adder>`; 
+here's an annotated version of the contents of `go.itab.main.Adder,main.Mather`:
 ```Bash
 $ dd if=iface.bin of=/dev/stdout bs=1 count=40 skip=479552 2>/dev/null | hexdump
 0000000 bd20 0045 0000 0000 ed40 0045 0000 0000
@@ -974,15 +1010,22 @@ $ objdump -t -j .text iface.bin | grep 000000000044c350
 000000000044c350 g     F .text	000000000000007f main.(*Adder).Sub
 ```
 
-Without surprise, the virtual table for `iface<Mather, Adder>` holds two method pointers: `main.(*Adder).add` and `main.(*Adder).sub`.  
+Without surprise, the virtual table for `iface<Mather, Adder>` holds two method pointers: `main.
+(*Adder).add` and `main.(*Adder).sub`.  
 Well, actually, this *is* a bit surprising: we've never defined these two methods to have pointer receivers.  
-The compiler has generated these wrapper methods on our behalf (as we've described in the ["Implicit dereferencing" section](#implicit-dereferencing)) because it knows that we're going to need them: since an interface can only hold pointers, and since our `Adder` implementation of said interface only provides methods with value-receivers, we'll have to go through a wrapper at some point if we're going to call either of these methods via the virtual table of the interface.
+The compiler has generated these wrapper methods on our behalf (as we've described in the 
+["Implicit dereferencing" section](#implicit-dereferencing)) because it knows that we're going to need them: 
+since an interface can only hold pointers, and since our `Adder` implementation of said interface 
+only provides methods with value-receivers, we'll have to go through a wrapper at some point if 
+we're going to call either of these methods via the virtual table of the interface.
 
-This should already give you a pretty good idea of how dynamic dispatch is handled at run time; which is what we will look at in the next section.
+This should already give you a pretty good idea of how dynamic dispatch is handled at run time; 
+which is what we will look at in the next section.
 
 **Bonus**
 
-I've hacked up a generic bash script that you can use to dump the contents of any symbol in any section of an ELF file ([dump_sym.sh](./dump_sym.sh)):
+I've hacked up a generic bash script that you can use to dump the contents of any symbol in any 
+section of an ELF file ([dump_sym.sh](./dump_sym.sh)):
 ```Bash
 # ./dump_sym.sh bin_path section_name sym_name
 $ ./dump_sym.sh iface.bin .rodata go.itab.main.Adder,main.Mather
@@ -997,7 +1040,8 @@ go.itab.main.Adder,main.Mather SIZE: 40
 0000028
 ```
 
-I'd imagine there must exist an easier way to do what this script does, maybe some arcane flags or an obscure gem hidden inside the `binutils` distribution.. who knows.  
+I'd imagine there must exist an easier way to do what this script does, maybe some arcane flags or 
+an obscure gem hidden inside the `binutils` distribution.. who knows.  
 If you've got some hints, don't hesitate to say so in the issues.
 
 ## Dynamic dispatch
