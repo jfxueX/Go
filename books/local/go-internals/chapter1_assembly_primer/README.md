@@ -89,7 +89,7 @@ Go 编译器会输出一种抽象的，可移植的汇编代码，它实际上�
 
 
 > ## Decomposing a simple program
-## 剖析一个简单的程序
+## 分析一个简单的程序
 
 > Consider the following Go code ([direct_topfunc_call.go](./direct_topfunc_call.go)):
 
@@ -106,7 +106,7 @@ func main() { add(10, 32) }
 
 *（注意这里的 `//go:noinline` 编译器指令... 不要省略掉这部分。）*
 
-Let's compile this down to assembly:
+> Let's compile this down to assembly:
 
 让我们把它编译成汇编代码：
 
@@ -152,20 +152,20 @@ compiler is doing.
 ```Assembly
 0x0000 TEXT "".add(SB), NOSPLIT, $0-16
 ```
+<ul>
+<li><code>0x0000</code>: Offset of the current instruction, relative to the start of the function.</li>
 
-- `0x0000`: Offset of the current instruction, relative to the start of the function.
-
-- `TEXT "".add`: The `TEXT` directive declares the `"".add` symbol as part of the `.text` section 
+<li><code>TEXT "".add</code>: The <code>TEXT</code> directive declares the <code>"".add</code> symbol as part of the <code>.text</code> section 
 (i.e. runnable code) and indicates that the instructions that follow are the body of the function.  
-The empty string `""` will be replaced by the name of the current package at link-time: i.e., 
-`"".add` will become `main.add` once linked into our final binary.
+The empty string <code>""</code> will be replaced by the name of the current package at link-time: i.e., 
+<code>"".add</code> will become <code>main.add</code> once linked into our final binary.</li>
 
-- `(SB)`: `SB` is the virtual register that holds the "static-base" pointer, i.e. the address of the 
+<li><code>(SB)</code>: <code>SB</code> is the virtual register that holds the "static-base" pointer, i.e. the address of the 
 beginning of the address-space of our program.  
-`"".add(SB)` declares that our symbol is located at some constant offset (computed by the linker) 
+<code>"".add(SB)</code> declares that our symbol is located at some constant offset (computed by the linker) 
 from the start of our address-space. Put differently, it has an absolute, direct address: it's a 
 global function symbol.  
-Good ol' `objdump` will confirm all of that for us:
+Good ol' <code>objdump</code> will confirm all of that for us:
 ```
 $ objdump -j .text -t direct_topfunc_call | grep 'main.add'
 000000000044d980 g     F .text	000000000000000f main.add
@@ -173,26 +173,28 @@ $ objdump -j .text -t direct_topfunc_call | grep 'main.add'
 > All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals) 
 and SB (globals).  
 > The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the 
-name foo as an address in memory.
+name foo as an address in memory.</li>
 
-- `NOSPLIT`: Indicates to the compiler that it should *not* insert the *stack-split* preamble, which 
+<li><code>NOSPLIT</code>: Indicates to the compiler that it should <i>not</i> insert the <i>stack-split</i> preamble, which 
 checks whether the current stack needs to be grown.  
-In the case of our `add` function, the compiler has set the flag by itself: it is smart enough to 
-figure that, since `add` has no local variables and no stack-frame of its own, it simply cannot 
+In the case of our <code>add</code> function, the compiler has set the flag by itself: it is smart enough to 
+figure that, since <code>add</code> has no local variables and no stack-frame of its own, it simply cannot 
 outgrow the current stack; thus it'd be a complete waste of CPU cycles to run these checks at each 
 call site.  
 > "NOSPLIT": Don't insert the preamble to check if the stack must be split. The frame for the 
 routine, plus anything it calls, must fit in the spare space at the top of the stack segment. Used 
 to protect routines such as the stack splitting code itself.  
-We'll have a quick word about goroutines and stack-splits at the end this chapter.
+We'll have a quick word about goroutines and stack-splits at the end this chapter.</li>
 
-- `$0-16`: `$0` denotes the size in bytes of the stack-frame that will be allocated; while `$16` 
+<li><code>$0-16</code>: <code>$0</code> denotes the size in bytes of the stack-frame that will be allocated; while <code>$16</code> 
 specifies the size of the arguments passed in by the caller.  
 > In the general case, the frame size is followed by an argument size, separated by a minus sign. 
-(It's not a subtraction, just idiosyncratic syntax.) The frame size $24-8 states that the function 
+(It's not a subtraction, just idiosyncratic syntax.) The frame size <i>$24-8</i> states that the function 
 has a 24-byte frame and is called with 8 bytes of argument, which live on the caller's frame. If 
 NOSPLIT is not specified for the TEXT, the argument size must be provided. For assembly functions 
-with Go prototypes, go vet will check that the argument size is correct.
+with Go prototypes, <b>go vet</b> will check that the argument size is correct.</li>
+</ul>
+
 
 ```Assembly
 0x0000 FUNCDATA $0, gclocals·f207267fbf96a0178e8758c6e3e0ce28(SB)
@@ -205,6 +207,7 @@ introduced by the compiler.
 Don't worry about this for now; we'll come back to it when diving into garbage collection later in 
 the book.
 
+
 ```Assembly
 0x0000 MOVL "".b+12(SP), AX
 0x0004 MOVL "".a+8(SP), CX
@@ -216,43 +219,44 @@ It is the caller's responsibility to grow (and shrink back) the stack appropriat
 arguments can be passed to the callee, and potential return-values passed back to the caller.
 
 The Go compiler never generates instructions from the PUSH/POP family: the stack is grown or shrunk 
-by respectively decrementing or incrementing the ~virtual~ hardware stack pointer `SP`.  
+by respectively decrementing or incrementing the ~virtual~ hardware stack pointer <code>SP</code>.  
 *[UPDATE: We've discussed about this matter in [issue #21: about SP register](https://github.com/
 teh-cmc/go-internals/issues/21).]*  
 > The SP pseudo-register is a virtual stack pointer used to refer to frame-local variables and the 
 arguments being prepared for function calls. It points to the top of the local stack frame, so 
-references should use negative offsets in the range [−framesize, 0): x-8(SP), y-4(SP), and so on.
+references should use negative offsets in the range &#91;−framesize, 0): x-8(SP), y-4(SP), and so on.
 
-Although the official documentation states that "*All user-defined symbols are written as offsets to 
-the pseudo-register FP (arguments and locals)*", this is only ever true for hand-written code.  
+Although the official documentation states that "<i>All user-defined symbols are written as offsets to 
+the pseudo-register FP (arguments and locals)</i>", this is only ever true for hand-written code.  
 Like most recent compilers, the Go tool suite always references argument and locals using offsets 
 from the stack-pointer directly in the code it generates. This allows for the frame-pointer to be 
 used as an extra general-purpose register on platform with fewer registers (e.g. x86).  
-Have a look at *Stack frame layout on x86-64* in the links at the end of this chapter if you enjoy 
+Have a look at <i>Stack frame layout on x86-64</i> in the links at the end of this chapter if you enjoy 
 this kind of nitty gritty details.  
-*[UPDATE: We've discussed about this matter in [issue #2: Frame pointer](https://github.com/teh-cmc/
-go-internals/issues/2).]*
+<i>[UPDATE: We've discussed about this matter in [issue #2: Frame pointer](https://github.com/teh-cmc/
+go-internals/issues/2).]</i>
 
-`"".b+12(SP)` and `"".a+8(SP)` respectively refer to the addresses 12 bytes and 8 bytes below the 
+<code>"".b+12(SP)</code> and <code>"".a+8(SP)</code> respectively refer to the addresses 12 bytes and 8 bytes below the 
 top of the stack (remember: it grows downwards!).  
-`.a` and `.b` are arbitrary aliases given to the referred locations; although *they have absolutely 
-no semantic meaning* whatsoever, they are mandatory when using relative addressing on virtual 
+<code>.a</code> and <code>.b</code> are arbitrary aliases given to the referred locations; although <i>they have absolutely 
+no semantic meaning</i> whatsoever, they are mandatory when using relative addressing on virtual 
 registers.
 The documentation about the virtual frame-pointer has some to say about this:
 > The FP pseudo-register is a virtual frame pointer used to refer to function arguments. The 
 compilers maintain a virtual frame pointer and refer to the arguments on the stack as offsets from 
 that pseudo-register. Thus 0(FP) is the first argument to the function, 8(FP) is the second (on a 
 64-bit machine), and so on. However, when referring to a function argument this way, it is necessary 
-to place a name at the beginning, as in first_arg+0(FP) and second_arg+8(FP). (The meaning of the 
+to place a name at the beginning, as in <i>first_arg+0(FP)</i> and <i>second_arg+8(FP)</i>. (The meaning of the 
 offset —offset from the frame pointer— distinct from its use with SB, where it is an offset from the 
 symbol.) The assembler enforces this convention, rejecting plain 0(FP) and 8(FP). The actual name is 
 semantically irrelevant but should be used to document the argument's name.
 
-Finally, there are two important things to note here:
-1. The first argument `a` is not located at `0(SP)`, but rather at `8(SP)`; that's because the 
-caller stores its return-address in `0(SP)` via the `CALL` pseudo-instruction.
-2. Arguments are passed in reverse-order; i.e. the first argument is the closest to the top of the 
+<b>Finally, there are two important things to note here:</b>
+- 1. The first argument <code>a</code> is not located at <code>0(SP)</code>, but rather at <code>8(SP)</code>; that's because the 
+caller stores its return-address in <code>0(SP)</code> via the <code>CALL</code> pseudo-instruction.
+- 2. Arguments are passed in reverse-order; i.e. the first argument is the closest to the top of the 
 stack.
+
 
 ```Assembly
 0x0008 ADDL CX, AX
@@ -270,6 +274,7 @@ To demonstrate how Go handles multiple return-values, we're also returning a con
 value.  
 The mechanics at play are exactly the same as for our first return value; only the offset relative 
 to `SP` changes.
+
 
 ```Assembly
 0x0013 RET
