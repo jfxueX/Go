@@ -86,7 +86,7 @@ func Swap(a, b int) (ret0, ret1 int)
 
 对于这个函数，我们可以轻易看出它需要 4 个 int 类型的空间，参数和返回值的大小也就是 32 个字节：
 
-```
+```asm
 TEXT ·Swap(SB), $0-32
 ```
 
@@ -107,13 +107,13 @@ TEXT ·Swap(SB), $0-32
 
 下面的代码演示了如何在汇编函数中使用参数和返回值：
 
-```
+```asm
 TEXT ·Swap(SB), $0
-	MOVQ a+0(FP), AX     // AX = a
-	MOVQ b+8(FP), BX     // BX = b
-	MOVQ BX, ret0+16(FP) // ret0 = BX
-	MOVQ AX, ret1+24(FP) // ret1 = AX
-	RET
+    MOVQ a+0(FP), AX     // AX = a
+    MOVQ b+8(FP), BX     // BX = b
+    MOVQ BX, ret0+16(FP) // ret0 = BX
+    MOVQ AX, ret1+24(FP) // ret1 = AX
+    RET
 ```
 
 从代码可以看出 a、b、ret0 和 ret1 的内存地址是依次递增的，FP 伪寄存器是第一个变量的开始地址。
@@ -139,9 +139,9 @@ func Foo(a bool, b int16) (c []byte)
 
 ```go
 type Foo_args_and_returns struct {
-	a bool
-	b int16
-	c []byte
+    a bool
+    b int16
+    c []byte
 }
 ```
 
@@ -149,13 +149,13 @@ type Foo_args_and_returns struct {
 
 ```go
 func Foo(FP *SomeFunc_args_and_returns) {
-	_ = unsafe.Offsetof(FP.a) + uintptr(FP) // a
-	_ = unsafe.Offsetof(FP.b) + uintptr(FP) // b
-	_ = unsafe.Offsetof(FP.c) + uintptr(FP) // c
+    _ = unsafe.Offsetof(FP.a) + uintptr(FP) // a
+    _ = unsafe.Offsetof(FP.b) + uintptr(FP) // b
+    _ = unsafe.Offsetof(FP.c) + uintptr(FP) // c
 
-	_ = unsafe.Sizeof(*FP) // argsize
+    _ = unsafe.Sizeof(*FP) // argsize
 
-	return
+    return
 }
 ```
 
@@ -174,12 +174,12 @@ Foo 函数的参数和返回值的大小和内存布局：
 
 ```
 TEXT ·Foo(SB), $0
-	MOVEQ a+0(FP),       AX // a
-	MOVEQ b+2(FP),       BX // b
-	MOVEQ c_dat+8*1(FP), CX // c.Data
-	MOVEQ c_len+8*2(FP), DX // c.Len
-	MOVEQ c_cap+8*3(FP), DI // c.Cap
-	RET
+    MOVEQ a+0(FP),       AX // a
+    MOVEQ b+2(FP),       BX // b
+    MOVEQ c_dat+8*1(FP), CX // c.Data
+    MOVEQ c_len+8*2(FP), DX // c.Len
+    MOVEQ c_cap+8*3(FP), DI // c.Cap
+    RET
 ```
 
 其中 a 和 b 参数之间出现了一个字节的空洞，b 和 c 之间出现了 4 个字节的空洞。出现空洞的原因是要包装每
@@ -209,9 +209,9 @@ Memory 数组表示，那么 `Memory[0(SP):end-0(SP)]` 就是对应当前栈帧�
 
 ```go
 func Foo() {
-	var c []byte
-	var b int16
-	var a bool
+    var c []byte
+    var b int16
+    var a bool
 }
 ```
 
@@ -219,12 +219,12 @@ func Foo() {
 
 ```
 TEXT ·Foo(SB), $32-0
-	MOVQ a-32(SP),      AX // a
-	MOVQ b-30(SP),      BX // b
-	MOVQ c_data-24(SP), CX // c.Data
-	MOVQ c_len-16(SP),  DX // c.Len
-	MOVQ c_cap-8(SP),   DI // c.Cap
-	RET
+    MOVQ a-32(SP),      AX // a
+    MOVQ b-30(SP),      BX // b
+    MOVQ c_data-24(SP), CX // c.Data
+    MOVQ c_len-16(SP),  DX // c.Len
+    MOVQ c_cap-8(SP),   DI // c.Cap
+    RET
 ```
 
 Foo 函数有 3 个局部变量，但是没有调用其它的函数，因为对齐和填充的问题导致函数的栈帧大小为 32 个字
@@ -238,16 +238,16 @@ Foo 函数有 3 个局部变量，但是没有调用其它的函数，因为对�
 
 ```go
 func Foo() {
-	var local [1]struct{
-		a bool
-		b int16
-		c []byte
-	}
-	var SP = &local[1];
+    var local [1]struct{
+        a bool
+        b int16
+        c []byte
+    }
+    var SP = &local[1];
 
-	_ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.a)) + uintptr(&SP) // a
-	_ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.b)) + uintptr(&SP) // b
-	_ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.c)) + uintptr(&SP) // c
+    _ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.a)) + uintptr(&SP) // a
+    _ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.b)) + uintptr(&SP) // b
+    _ = -(unsafe.Sizeof(local)-unsafe.Offsetof(local.c)) + uintptr(&SP) // c
 }
 ```
 
@@ -285,16 +285,16 @@ func Foo() {
 
 ```go
 func main() {
-	printsum(1, 2)
+    printsum(1, 2)
 }
 
 func printsum(a, b int) {
-	var ret = sum(a, b)
-	println(sum)
+    var ret = sum(a, b)
+    println(sum)
 }
 
 func sum(a, b int) int {
-	return a+b
+    return a+b
 }
 ```
 
@@ -340,14 +340,14 @@ Go 语言中函数调用是一个复杂的问题，因为 Go 函数不仅仅要�
 ```
 // func Swap(a, b int) (int, int)
 TEXT ·Swap(SB), $0-32
-	MOVQ a+0(FP), AX // AX = a
-	MOVQ b+8(FP), BX // BX = b
+    MOVQ a+0(FP), AX // AX = a
+    MOVQ b+8(FP), BX // BX = b
 
-	SWAP(AX, BX, CX)     // AX, BX = b, a
+    SWAP(AX, BX, CX)     // AX, BX = b, a
 
-	MOVQ AX, ret0+16(FP) // return
-	MOVQ BX, ret1+24(FP) //
-	RET
+    MOVQ AX, ret0+16(FP) // return
+    MOVQ BX, ret1+24(FP) //
+    RET
 ```
 
 因为预处理器可以通过条件编译针对不同的平台定义宏的实现，这样可以简化平台带来的差异。

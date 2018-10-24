@@ -45,7 +45,7 @@ NOPTR 表示数据中不包含指针数据。
 
 Go 汇编语言提供了 <b>DATA</b> 命令用于初始化包变量，DATA 命令的语法如下：
 
-```
+```asm
 DATA symbol+offset(SB)/width, value
 ```
 
@@ -56,20 +56,20 @@ DATA symbol+offset(SB)/width, value
 我们采用以下命令可以给 Id 变量初始化为十六进制的 0x2537，对应十进制的 9527（常量需要以美元符号 $ 开
 头表示）：
 
-```
+```asm
 DATA ·Id+0(SB)/1,$0x37
 DATA ·Id+1(SB)/1,$0x25
 ```
 
 变量定义好之后需要导出以供其它代码引用。Go 汇编语言提供了 GLOBL 命令用于将符号导出：
 
-```
+```asm
 GLOBL symbol(SB), width
 ```
 
 其中 symbol 对应汇编中符号的名字，width 为符号对应内存的大小。用以下命令将汇编中的 ·Id 变量导出：
 
-```
+```asm
 GLOBL ·Id, $8
 ```
 
@@ -89,7 +89,7 @@ var Id int
 
 我们将完整的汇编代码放到 pkg_amd64.s 文件中：
 
-```
+```asm
 GLOBL ·Id(SB),$8
 
 DATA ·Id+0(SB)/1,$0x37
@@ -112,7 +112,7 @@ package main
 import pkg "pkg包的路径"
 
 func main() {
-	println(pkg.Id)
+    println(pkg.Id)
 }
 ```
 
@@ -154,8 +154,8 @@ SRODATA 标志表示这个数据在只读内存段，dupok 表示出现多个相
 
 ```go
 type reflect.StringHeader struct {
-	Data uintptr
-	Len  int
+    Data uintptr
+    Len  int
 }
 ```
 
@@ -188,7 +188,7 @@ package main
 import pkg "path/to/pkg"
 
 func main() {
-	println(pkg.Name)
+    println(pkg.Name)
 }
 ```
 
@@ -206,7 +206,7 @@ NameData 变量没有标注是否会含有指针信息。
 
 通过给 NameData 变量增加一个 NOPTR 标志，表示其中不会包含指针数据可以修复该错误：
 
-```
+```asm
 #include "textflag.h"
 
 GLOBL ·NameData(SB),NOPTR,$8
@@ -230,10 +230,10 @@ NameData 发生变化，Name 字符串的数据也会跟着变化。
 
 ```go
 func main() {
-	println(pkg.Name)
+    println(pkg.Name)
 
-	pkg.NameData[0] = '?'
-	println(pkg.Name)
+    pkg.NameData[0] = '?'
+    println(pkg.Name)
 }
 ```
 
@@ -243,7 +243,7 @@ NameData 变量，这样可以避免内部数据被无意破坏。
 在用汇编定义字符串时我们可以换一种思维：将底层的字符串数据和字符串头结构体定义在一起，这样可以避免引
 入 NameData 符号：
 
-```
+```asm
 GLOBL ·Name(SB),$24
 
 DATA ·Name+0(SB)/8,$·Name+16(SB)
@@ -274,13 +274,13 @@ func main()
 
 然后创建 main_amd64.s 文件，里面对应 main 函数的实现（注意 ; 是语句分割符不是注释符号）：
 
-```
+```asm
 TEXT ·main(SB), $16-0
-	MOVQ ·helloworld+0(SB), AX; MOVQ AX, 0(SP)
-	MOVQ ·helloworld+8(SB), BX; MOVQ BX, 8(SP)
-	CALL runtime·printstring(SB)
-	CALL runtime·printnl(SB)
-	RET
+    MOVQ ·helloworld+0(SB), AX; MOVQ AX, 0(SP)
+    MOVQ ·helloworld+8(SB), BX; MOVQ BX, 8(SP)
+    CALL runtime·printstring(SB)
+    CALL runtime·printnl(SB)
+    RET
 ```
 
 `TEXT ·main(SB), $16-0` 用于定义 `main` 函数，其中 `$16-0` 表示 `main` 函数的帧大小是 16 个字节
@@ -296,7 +296,7 @@ TEXT ·main(SB), $16-0
 ## 3.1.5 特殊字符
 
 Go 语言函数或方法符号在编译为目标文件后，目标文件中的每个符号均包含对应包的绝对导入路径。因此目标文
-件的符号可能非常复杂，比如 "path/to/pkg.(*SomeType).SomeMethod" 或 "go.string."abc"" 等名字。目标文
+件的符号可能非常复杂，比如 "path/to/pkg.(\*SomeType).SomeMethod" 或 "go.string."abc"" 等名字。目标文
 件的符号名中不仅仅包含普通的字母，还可能包含点号、星号、小括弧和双引号等诸多特殊字符。而 Go 语言的汇
 编器是从 plan9 移植过来的二把刀，并不能处理这些特殊的字符，导致了用 Go 汇编语言手工实现 Go 诸多特性
 时遇到种种限制。
@@ -321,7 +321,7 @@ Unicode 码点。其中 Unicode 输入法可能是最安全可靠的输入方式
 
 Go 汇编语言中分号可以用于分隔同一行内的多个语句。下面是用分号混乱排版的汇编代码：
 
-```
+```asm
 TEXT ·main(SB), $16-0; MOVQ ·helloworld+0(SB), AX; MOVQ ·helloworld+8(SB), BX;
 MOVQ AX, 0(SP);MOVQ BX, 8(SP);CALL runtime·printstring(SB);
 CALL runtime·printnl(SB);
@@ -332,11 +332,11 @@ RET;
 
 ```
 TEXT ·main(SB), $16-0
-	MOVQ ·helloworld+0(SB), AX; MOVQ AX, 0(SP)
-	MOVQ ·helloworld+8(SB), BX; MOVQ BX, 8(SP)
-	CALL runtime·printstring(SB)
-	CALL runtime·printnl(SB)
-	RET
+    MOVQ ·helloworld+0(SB), AX; MOVQ AX, 0(SP)
+    MOVQ ·helloworld+8(SB), BX; MOVQ BX, 8(SP)
+    CALL runtime·printstring(SB)
+    CALL runtime·printnl(SB)
+    RET
 ```
 
 和 Go 语言一样，语句之间多个连续的空白字符和一个空格是等价的。
