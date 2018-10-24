@@ -310,7 +310,7 @@ L_END:
 
 下面继续改造为汇编语言版本：
 
-```
+```asm
 // func sum(n int) (result int)
 TEXT ·sum(SB), NOSPLIT, $16-16
 	MOVQ n+0(FP), AX       // n
@@ -351,7 +351,7 @@ L_END 用于处理递归终结的部分。
 Go 语言的编译器在生成函数的机器代码时，会在开头插入一小段代码。因为 sum 函数也需要深度递归调用，因此
 我们删除了 NOSPLIT 标志，让汇编器为我们自动生成一个栈扩容的代码：
 
-```
+```asm
 // func sum(n int) int
 TEXT ·sum(SB), $16-16
 	NO_LOCAL_POINTERS
