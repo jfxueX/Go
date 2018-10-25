@@ -59,7 +59,7 @@ import "runtime"
 
 func main() {
 	var buf = make([]byte, 64)
-	var stk = buf[:runtime.stack(buf, false)]
+	var stk = buf[:runtime.Stack(buf, false)]
 	print(string(stk))
 }
 ```
@@ -75,7 +75,7 @@ main.main()
 因此从 runtime.stack 获取的字符串中就可以很容易解析出 goid 信息：
 
 ```go
-func get go id() int64 {
+func getgoid() int64 {
     var (
         buf [64]byte
         n = runtime.stack(buf[:], false)
@@ -92,7 +92,7 @@ func get go id() int64 {
 }
 ```
 
-get go id 函数的细节我们不再赘述。需要补充说明的是 `runtime.stack` 函数不仅仅可以获取当前 go routine 的
+getgoid 函数的细节我们不再赘述。需要补充说明的是 `runtime.stack` 函数不仅仅可以获取当前 go routine 的
 栈信息，还可以获取全部 go routine 的栈信息（通过第二个参数控制）。同时在 go 语言内部的 
 [net/http2.cur go routineid](https://github.com/golang/net/blob/master/http2/gotrack.go)
 函数正是采用类似方式获取的 goid。
@@ -117,32 +117,32 @@ movq g(cx), ax  // move g into ax.
 
 ```asm
 #ifdef goarch_amd64
-#define	get_tls(r)	movq tls, r
-#define	g(r)    0(r)(tls*1)
+#define	get_tls(r)	MOVQ TLS, r
+#define	g(r)    0(r)(TLS*1)
 #endif
 ```
 
 将 get_tls 宏函数展开之后，获取 g 指针的代码如下：
 
 ```asm
-movq tls, cx
-movq 0(cx)(tls*1), ax
+MOVQ TLS, CX
+MOVQ 0(CX)(TLS*1), AX
 ```
 
 其实 tls 类似线程局部存储的地址，地址对应的内存里的数据才是 g 指针。我们还可以更直接一点:
 
 ```asm
-movq (tls), ax
+MOVQ (TLS), AX
 ```
 
 基于上述方法可以包装一个 getg 函数，用于获取 g 指针：
 
 ```asm
-// func getg() unsafe.pointer
-text ·getg(sb), nosplit, $0-8
-    movq (tls), ax
-    movq ax, ret+0(fp)
-    ret
+// func getg() unsafe.Pointer
+TEXT ·getg(SB), NOSPLIT, $0-8
+    MOVQ (TLS), AX
+    MOVQ AX, RET+0(FP)
+    RET
 ```
 
 然后在 go 代码中通过 goid 成员在 g 结构体中的偏移量来获取 goid 的值：
@@ -152,7 +152,7 @@ const g_goid_offset = 152 //  go 1.10
 
 func getgroutineid() int64 {
     g := getg()
-    p := (*int64)(unsafe.pointer(uintptr(g) + g_goid_offset))
+    p := (*int64)(unsafe.Pointer(uintptr(g) + g_goid_offset))
     return *p
 }
 ```
@@ -191,13 +191,13 @@ var g_goid_offset = func() int64 {
 枚举和暴力穷举虽然够直接，但是对于正在开发中的未发布的 go 版本支持并不好，我们无法提前知晓开发中的某
 个版本的 goid 成员的偏移量。
 
-如果是在 runtime 包内部，我们可以通过 `unsafe.offsetof(g.goid)` 直接获取成员的偏移量。也可以通过反射
+如果是在 runtime 包内部，我们可以通过 `unsafe.Offsetof(g.goid)` 直接获取成员的偏移量。也可以通过反射
 获取 g 结构体的类型，然后通过类型查询某个成员的偏移量。因为 g 结构体是一个内部类型，go 代码无法从外
 部包获取 g 结构体的类型信息。但是在 go 汇编语言中，我们是可以看到全部的符号的，因此理论上我们也可以
 获取 g 结构体的类型信息。
 
 在任意的类型被定义之后，go 语言都会为该类型生成对应的类型信息。比如 g 结构体会生成一个 
-`type·runtime·g` 标识符表示g结构体的值类型信息，同时还有一个 `type·*runtime·g` 标识符表示指针类型的
+`type·runtime·g` 标识符表示 g 结构体的值类型信息，同时还有一个 `type·*runtime·g` 标识符表示指针类型的
 信息。如果 g 结构体带有方法，那么同时还会生成 `go.itab.runtime.g` 和 `go.itab.*runtime.g` 类型信息，
 用于表示带方法的类型信息。
 
@@ -226,13 +226,13 @@ TEXT ·getg(SB), NOSPLIT, $32-16
 ```
 
 其中 AX 寄存器对应 g 指针，BX 寄存器对应 g 结构体的类型。然后通过 runtime·convT2E 函数将类型转为接
-口。因为我们使用的不是 g 结构体指针类型，因此返回的接口表示的 g 结构体值类型。理论上我们也可以构造 g 
-指针类型的接口，但是因为 Go 汇编语言的限制，我们无法使用 `type·*runtime·g` 标识符。
+口。因为我们使用的不是 g 结构体指针类型，因此返回的接口表示的 g 结构体值类型。*理论上我们也可以构造 g 
+指针类型的接口，但是因为 Go 汇编语言的限制，我们无法使用 `type·*runtime·g` 标识符。*
 
 基于 g 返回的接口，就可以容易获取 goid 了：
 
 ```go
-func Get Go id() int64 {
+func GetGoid() int64 {
 	g := getg()
 	gid := reflect.ValueOf(g).FieldByName("goid").Int()
 	return goid
@@ -336,7 +336,7 @@ func getMap() map[interface{}]interface{} {
     gls.Lock()
     defer gls.Unlock()
     
-    goid := Get Go id()
+    goid := GetGoid()
     if m, _ := gls.m[goid]; m != nil {
         return m
     }
@@ -368,7 +368,7 @@ func Clean() {
     gls.Lock()
     defer gls.Unlock()
     
-    delete(gls.m, Get Go id())
+    delete(gls.m, GetGoid())
 }
 ```
 
