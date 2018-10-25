@@ -26,7 +26,7 @@ goid 之后，在之后的编程中会不自觉地编写出强依赖 goid 的代
 每个 go 语言用户应该都知道 panic 函数。调用 panic 函数将导致 go routine 异常，如果 panic 在传递到 go 
 routine 的根函数还没有被 recover 函数处理掉，那么运行时将打印相关的异常和栈信息并退出 go routine。
 
-下面我们构造一个简单的例子，通过panic来输出goid：
+下面我们构造一个简单的例子，通过 panic 来输出 goid：
 
 ```go
 package main
@@ -137,7 +137,7 @@ movq (tls), ax
 
 基于上述方法可以包装一个 getg 函数，用于获取 g 指针：
 
-```
+```asm
 // func getg() unsafe.pointer
 text ·getg(sb), nosplit, $0-8
     movq (tls), ax
@@ -157,8 +157,7 @@ func getgroutineid() int64 {
 }
 ```
 
-其中 `g_goid_offset` 是 goid 成员的偏移量，g 结构参考 [runtime/runtime2.go](https://github.com/
-golang/go/blob/master/src/runtime/runtime2.go)。
+其中 `g_goid_offset` 是 goid 成员的偏移量，g 结构参考 [runtime/runtime2.go](https://github.com/golang/go/blob/master/src/runtime/runtime2.go)。
 
 在 go 1.10 版本，goid 的偏移量是 152 字节。因此上述代码只能正确运行在 goid 偏移量也是 152 字节的 go 
 版本中。根据汤普森大神的神谕，枚举和暴力穷举是解决一切疑难杂症的万金油。我们也可以将 goid 的偏移保存

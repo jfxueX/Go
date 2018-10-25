@@ -31,10 +31,10 @@ Linux 在 AMD64 架构上的系统调用规范，在 `syscall/asm_linux_amd64.s`
 DI、SI、DX、R10、R8 和 R9 寄存器传输，结果由 AX 和 DX 寄存器返回。macOS 等类 UINX 系统调用的参数传输
 大多数都采用类似的规则。
 
-macOS 的系统调用编号在 `/usr/include/sys/syscall.h` 头文件，Linux 的系统调用号在 `/usr/include/asm/
-unistd.h` 头文件。虽然在 UNIX 家族中是系统调用的参数和返回值的传输规则类似，但是不同操作系统提供的系
-统调用却不是完全相同的，因此系统调用编号也有很大的差异。以 UNIX 系统中著名的 write 系统调用为例，在 
-macOS 的系统调用编号为 4，而在 Linux 的系统调用编号却是 1。
+macOS 的系统调用编号在 `/usr/include/sys/syscall.h` 头文件，Linux 的系统调用号在
+`/usr/include/asm/unistd.h` 头文件。虽然在 UNIX 家族中是系统调用的参数和返回值的传输规则类似，但是不
+同操作系统提供的系统调用却不是完全相同的，因此系统调用编号也有很大的差异。以 UNIX 系统中著名的 write 
+系统调用为例，在 macOS 的系统调用编号为 4，而在 Linux 的系统调用编号却是 1。
 
 我们将基于 write 系统调用包装一个字符串输出函数。下面的代码是 macOS 版本：
 
@@ -111,9 +111,9 @@ func asmCallCAdd(cfun uintptr, a, b int64) int64
 其余参数和 C 语言 myadd 函数的参数保持一致。
 
 我们只实现 System V AMD64 ABI 规范的版本。在 System V 版本中，寄存器可以最多传递六个参数，分别对应 
-DI、SI、DX、CX、R8 和 R9 六个寄存器（如果是浮点数则需要通过XMM寄存器传送），返回值依然通过 AX 返回。
-通过对比系统调用的规范可以发现，系统调用的第四个参数是用 R10 寄存器传递，而 C 语言函数的第四个参数是
-用 CX 传递。 
+DI、SI、DX、CX、R8 和 R9 六个寄存器（如果是浮点数则需要通过 XMM 寄存器传送），返回值依然通过 AX 返
+回。通过对比系统调用的规范可以发现，系统调用的第四个参数是用 R10 寄存器传递，而 C 语言函数的第四个参
+数是用 CX 传递。 
 
 下面是 System V AMD64 ABI 规范的 asmCallCAdd 函数的实现：
 
