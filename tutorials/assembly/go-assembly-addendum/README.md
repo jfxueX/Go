@@ -144,7 +144,7 @@ B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
    mov    0x10(%rsp),%rax       ; (15) 把 asmpkg.Bar 的返回值（0x10(rsp)）取到寄存器 rax 中
    mov    %rax,0x48(%rsp)       ; (16) 把 rax 的值写入 asmpkg.Foo 返回值的堆栈空间中
    mov    0x28(%rsp),%rbp       ; (17) 从堆栈（0x28(rsp)）中取出在第(2)行保存的 Foo 调用者的 rbp 值
-   add    $0x30,%rsp            ; (18) 恢复堆栈指针到刚进入 Foo 函数时的位置，准备反悔了
+   add    $0x30,%rsp            ; (18) 恢复堆栈指针到刚进入 Foo 函数时的位置，准备返回了
    retq                         ; (19) 返回调用者
 ```
 
@@ -164,25 +164,25 @@ Go 工具链的 asm 汇编器生成的汇编文件中虚拟寄存器的使用文
 FP(visual FP) --->     ----------------- <------------- 这是进入 Bar 函数后真实 SP 所指位置
                         caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Bar 后面一行代码的地址
                        ----------------- <--------- SP(real SP)  这是真实 SP 所指位置   <--------- 这也是进入 Bar 后 FP 所指位置
-                       |     arg1      |            此处存储调用 asmpkg.Bar 的第一个参数 arg1，一般用真实 SP 访问它更方便 arg1+$0(SP)
+                       |     arg1      |            此处存储调用 asmpkg.Bar 的第一个参数 arg1，一般用真实 SP 访问它更方便 arg1+0(SP)
                        -----------------
-                       |     arg2      |            此处存储调用 asmpkg.Bar 的第二个参数 arg1，使用真实 SP 访问 arg1+$8(SP)
+                       |     arg2      |            此处存储调用 asmpkg.Bar 的第二个参数 arg1，使用真实 SP 访问 arg1+8(SP)
                        -----------------
                        |  Bar 的返回值 |            该空间用于存储调用 asmpkg.Bar 的返回值
                        -----------------
-                       |   local var1  |            这是局部变量 var1 使用的空间，使用伪 SP 访问：var1-$16(SP)
+                       |   local var1  |            这是局部变量 var1 使用的空间，使用伪 SP 访问：var1-16(SP)
                        -----------------
-                       |   local var2  |            这是局部变量 var2 使用的空间，使用伪 SP 访问：var1-$8(SP)
+                       |   local var2  |            这是局部变量 var2 使用的空间，使用伪 SP 访问：var1-8(SP)
                        ----------------- <--------- SP(visual SP，真实寄存器 BP 也指向这里)
                        |   caller BP   |            这是汇编器生成的附加代码，用于建立 stack frame（与传统方法相同）
 FP(visual FP) --->     +---------------+
                         caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Foo 后面一行代码的地址
                        ----------------- <--------- FP(visual FP)
-                       |     arg1      |            此处存储调用 asmpkg.Foo 的第一个参数 arg1，使用 arg1+$0(FP) 访问
+                       |     arg1      |            此处存储调用 asmpkg.Foo 的第一个参数 arg1，使用 arg1+0(FP) 访问
                        -----------------
-                       |     arg2      |            此处存储调用 asmpkg.Foo 的第二个参数 arg1，使用 arg1+$8(FP) 访问
+                       |     arg2      |            此处存储调用 asmpkg.Foo 的第二个参数 arg1，使用 arg1+8(FP) 访问
                        -----------------
-                       |  Foo 的返回值 |            此处存储调用 asmpkg.Foo 的返回值，使用 ret+$16(FP) 访问
+                       |  Foo 的返回值 |            此处存储调用 asmpkg.Foo 的返回值，使用 ret+16(FP) 访问
                        -----------------
 ```
 
