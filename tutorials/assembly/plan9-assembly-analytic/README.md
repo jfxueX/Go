@@ -91,7 +91,7 @@ MOVQ $0x10, AX ===== mov rax, 0x10
        |------------------------|
 ```
 
-不过凡事总有例外，如果想了解这种意外，可以参见参考资料中的 [1][1]。
+不过凡事总有例外，如果想了解这种意外，可以参见参考资料中的 [1](#参考资料)。
 
 ### 常见计算指令
 
@@ -113,7 +113,7 @@ JMP 2(PC)  // 以当前指令为基础，向前/后跳转 x 行
 JMP -2(PC) // 同上
 
 // 有条件跳转
-JZ target // 如果 zero flag 被 set 过，则跳转
+JZ target  // 如果 zero flag 被 set，则跳转
 
 ```
 
@@ -164,7 +164,7 @@ r8~r15 这 14 个寄存器，虽然 rbp 和 rsp 也可以用，不过 bp 和 sp 
 plan9 中使用寄存器不需要带 r 或 e 的前缀，例如 rax，只要写 AX 即可:
 
 ```asm
-MOVQ $101, AX = mov rax, 101
+MOVQ $101, AX  // mov rax, 101
 ```
 
 下面是通用通用寄存器的名字在 X64 和 plan9 中的对应关系:
@@ -184,7 +184,7 @@ Go 的汇编还引入了 4 个伪寄存器，援引官方文档的描述:
 
 官方的描述稍微有一些问题，我们对这些说明进行一点扩充:
 
-- `FP`
+- `FP`  
    使用形如 `symbol+offset(FP)` 的方式，引用函数的输入参数。例如 `arg0+0(FP)`，`arg1+8(FP)`，使
    用 FP 不加 symbol 时，无法通过编译，在汇编层面来讲，symbol 并没有什么用，加 symbol 主要是为了提升代
    码可读性。另外，官方文档虽然将伪寄存器 FP 称之为 frame pointer，实际上它根本不是 frame pointer，按照
@@ -192,20 +192,20 @@ Go 的汇编还引入了 4 个伪寄存器，援引官方文档的描述:
    是 add，在 add 的代码中引用 FP，该 FP 指向的位置不在 callee 的 stack frame 之内，而是在 caller 的 
    stack frame 上。具体可参见之后的 **栈结构** 一章。
 
-- `PC`
+- `PC`  
    实际上就是在体系结构的知识中常见的 pc 寄存器，在 x86 平台下对应 ip 寄存器，amd64 上则是 rip。
    除了个别跳转之外，手写 plan9 代码与 PC 寄存器打交道的情况较少。
 
-- `SB`
+- `SB`  
    全局静态基指针，一般用来声明函数或全局变量，在之后的函数知识和示例部分会看到具体用法。
 
-- `SP`
+- `SP`  
    plan9 的这个 SP 寄存器指向当前栈帧的局部变量的开始位置，使用形如 `symbol+offset(SP)` 的方式，
    引用函数的局部变量。offset 的合法取值是 [-framesize, 0)，注意是个左闭右开的区间。假如局部变量都是 8 
    字节，那么第一个局部变量就可以用 `localvar0-8(SP)` 来表示。这也是一个词不表意的寄存器。与硬件寄存器 
    SP 是两个不同的东西，在栈帧 size 为 0 的情况下，伪寄存器 SP 和硬件寄存器 SP 指向同一位置。手写汇编代
    码时，如果是 `symbol+offset(SP)` 形式，则表示伪寄存器 SP。如果是 `offset(SP)` 则表示硬件寄存器 SP。
-   务必注意。*对于编译输出(go tool compile -S / go tool objdump)的代码来讲，目前所有的 SP 都是硬件寄存器 
+   务必注意。*对于编译输出(`go tool compile -S` / `go tool objdump`)的代码来讲，目前所有的 SP 都是硬件寄存器 
    SP，无论是否带 symbol*。
 
 我们这里对容易混淆的几点简单进行说明：
@@ -219,7 +219,7 @@ Go 的汇编还引入了 4 个伪寄存器，援引官方文档的描述:
 3. 官方文档中说的伪 SP 指向 stack 的 top，是有问题的。其指向的局部变量位置实际上是整个栈的栈底(除 
    caller BP 之外)，所以说 bottom 更合适一些。
 
-4. 在 go tool objdump/go tool compile -S 输出的代码中，是没有伪 SP 和 FP 寄存器的，我们上面说的区分
+4. 在 `go tool objdump` / `go tool compile -S` 输出的代码中，是没有伪 SP 和 FP 寄存器的，我们上面说的区分
    伪 SP 和硬件 SP 寄存器的方法，对于上述两个命令的输出结果是没法使用的。在编译和反汇编的结果中，只有真
    实的 SP 寄存器。
 
@@ -279,15 +279,17 @@ found` 的错误。
 >-  `NOPROF`  = 1  
     (For  `TEXT`  items.) Don't profile the marked function. This flag is deprecated.
 >-  `DUPOK`  = 2  
-    It is legal to have multiple instances of this symbol in a single binary. The linker will choose one of the duplicates to use.
+    It is legal to have multiple instances of this symbol in a single binary. The linker will choose  
+    one of the duplicates to use.
 >-  `NOSPLIT`  = 4  
-    (For  `TEXT`  items.) Don't insert the preamble to check if the stack must be split. The frame 
-   for the routine, plus anything it calls, must fit in the spare space at the top of the stack 
-   segment. Used to protect routines such as the stack splitting code itself.
+    (For  `TEXT`  items.) Don't insert the preamble to check if the stack must be split. The frame  
+    for the routine, plus anything it calls, must fit in the spare space at the top of the stack  
+    segment. Used to protect routines such as the stack splitting code itself.
 >-   `RODATA`  = 8  
     (For  `DATA`  and  `GLOBL`  items.) Put this data in a read-only section.
 >-   `NOPTR`  = 16  
-    (For  `DATA`  and  `GLOBL`  items.) This data contains no pointers and therefore does not need to be scanned by the garbage collector.
+    (For  `DATA`  and  `GLOBL`  items.) This data contains no pointers and therefore does not need  
+    to be scanned by the garbage collector.
 >-   `WRAPPER`  = 32  
     (For  `TEXT`  items.) This is a wrapper function and should not count as disabling  `recover`.
 >-   `NEEDCTXT`  = 64  
@@ -324,7 +326,8 @@ TEXT ·get(SB), NOSPLIT, $0-8
     RET
 ```
 
-·a(SB)，表示该符号需要链接器来帮我们进行重定向(relocation)，如果找不到该符号，会输出 `relocation target not found` 的错误。
+·a(SB)，表示该符号需要链接器来帮我们进行重定向(relocation)，如果找不到该符号，会输出‘relocation 
+target not found’ 的错误。
 
 例子比较简单，大家可以自行尝试。
 
@@ -353,7 +356,7 @@ TEXT pkgname·add(SB), NOSPLIT, $0-8
 
 中点 `·` 比较特殊，是一个 unicode 的中点，该点在 mac 下的输入方法是 `option+shift+9`。在程序被链接之
 后，所有的中点`·` 都会被替换为句号`.`，比如你的方法是 `runtime·main`，在编译之后的程序里的符号则是 
-`runtime.main`。嗯，看起来很变态。简单总结一下:
+`runtime.main`。这就是为了在编译时方便与 '.' 区分。
 
 ```asm
 
@@ -368,6 +371,56 @@ TEXT pkgname·add(SB), NOSPLIT, $0-8
 ## 栈结构
 
 下面是一个典型的函数的栈结构图:
+
+```
+                                                                                   
+                       +---------------+                                           
+                         return addr                                               
+                       -----------------   <------------  hardware SP 位置           
+                       |  call arg1    |                                           
+                       |---------------|                                           
+                       |  call arg2    |                                           
+                       -----------------                                           
+                       |  call arg3    |                                           
+                       -----------------                                           
+                       |   .....       |                                           
+                       -----------------                                           
+                       |  call argn    |                                           
+                       -----------------                                           
+                       |  call ret1    |                                           
+                       -----------------                                           
+                       |  ..........   |                                           
+                       -----------------                                           
+                       |  call ret(n-1)|                                           
+                       -----------------                                           
+                       |  call retn    |                                           
+                       -----------------                                           
+                       |               |                                           
+                       |               |                                           
+                       |  temporarily  |                                           
+                       |  unused space |                                           
+                       |               |                                           
+                       |               |                                           
+                       -----------------                                           
+                       |   Local VarN  |                                           
+                       -----------------                                           
+                       |   ........    |                                           
+                       -----------------                -                          
+                       |   Local Var2  |                                           
+                       -----------------                                           
+                       |   Local Var1  |                                           
+                       -----------------                                           
+                       |   Local Var0  |                                           
+                       ----------------- <----------- SP(pseudo SP，实际上是当前栈帧的 BP 位置)
+                       | caller BP(*)  |                                           
+                       +---------------+                                           
+                        caller ret addr                                            
+                       ----------------- <----------- FP(pseudo FP)                
+                       current func arg0                                           
+                       -----------------                                           
+                                                                                   
+
+```
 
 ```
                                                                                    
@@ -1110,7 +1163,7 @@ go compile -S:
 1. [external resources][1]
 2. [Go Assembly by Example][2]
 3. [Go & Assembly][3]
-4. [Go functions in assembly language][4]
+4. [Go functions in assembly language(pdf)][4]
 5. [https://golang.org/doc/asm][5]
 
 参考资料[4]需要特别注意，在该 slide 中给出的 callee stack frame 中把 caller 的 return address 也包含

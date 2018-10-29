@@ -89,18 +89,18 @@ func main() {
 
 1.  build program
 
-    ```
+    ```bash
     cd src/syscall
     go build syscall.go
     ```
 
 2.  debug with gdbtui
   
-    ```
+    ```bash
     gdbtui syscall
     ```
 
-    ```
+    ```gdb
     Reading symbols from syscall...done.
     (gdb) layout asm
     (gdb) layout regs
@@ -120,7 +120,8 @@ func main() {
     二个是函数名。然后启动程序，可以看到 asm 窗口中当前指令在 main 的第一条语句处。
 
     asm 窗口部分内容：
-	```
+
+    ```asm
     B+> 0x450a70 <main.main>    mov    %fs:0xfffffffffffffff8,%rcx
         0x450a79 <main.main+9>  cmp    0x10(%rcx),%rsp
         0x450a7d <main.main+13> jbe    0x450ab9 <main.main+73>
@@ -141,18 +142,21 @@ func main() {
         0x450ac9 <main.init+9>  cmp    0x10(%rcx),%rsp
         0x450acd <main.init+13> jbe    0x450b08 <main.init+72>
     ```
+
     其中第一行显示的 `B` 表示断点被命中至少一次，`+` 表示断点是 enabled 的。`>` 指向为当前指令位置。接着使用 disable 禁
     用该断点，否则这个断点会多次命中（go 进行堆栈空间检查，见 0x450abe 处的代码，会 jump 到第一条指令。）我们直接在调用
-    asmpkg.Syscall_Write 的指令上下断点：
+    `asmpkg.Syscall_Write` 的指令上下断点：
 
-	```
+    ```gdb
    	(gdb) disable 1
 	(gdb) b *0x450aaa
 	Breakpoint 2 at 0x450aaa: file /home/jfxue/excise/src/syscall/syscall.go, line 8.
 	(gdb) 
     ```
+
     现在 asm 窗口的内容为：
-    ```
+
+    ```asm
     B-> 0x450a70 <main.main>    mov    %fs:0xfffffffffffffff8,%rcx
         0x450a79 <main.main+9>  cmp    0x10(%rcx),%rsp
         0x450a7d <main.main+13> jbe    0x450ab9 <main.main+73>
@@ -176,7 +180,8 @@ func main() {
     `B-` 表示 0x450a70 处的断点被命中过，当前为 disabled 状态，而新加的断点还没有被命中。
 
     在 gdb 命令窗口中输入 c 运行到断点处，查看堆栈中当前的参数：
-    ```
+
+    ```gdb
 	(gdb) x/gx $rsp
 	0xc42003df50:   0x0000000000000001
 	(gdb) x/gx $rsp+8
@@ -188,11 +193,12 @@ func main() {
 	(gdb)
     ```
     正如预期，第一个参数是 fd(stdout) 的值 1，第二个参数为 string 的 data，第三个参数为 string 的长
-度。还可以从内存中看到字符串的内容为 'Hello world!\n'，而且可以看到不同于 C/C++ 的字符串要以 '\0' 结
-尾。
+    度。还可以从内存中看到字符串的内容为 'Hello world!\n'，而且可以看到不同于 C/C++ 的字符串要以 '\0' 结
+    尾。
 
-    然后在 gdb 命令行键入 si 指令 step into asmpkg.Syscall_Write 函数：
-    ```
+    然后在 gdb 命令行键入 si 指令 step into `asmpkg.Syscall_Write` 函数：
+
+    ```asm
       > 0x450a50 <asmpkg.Syscall_Write>         mov    $0x1,%rax
         0x450a57 <asmpkg.Syscall_Write+7>       mov    0x8(%rsp),%rdi
         0x450a5c <asmpkg.Syscall_Write+12>      mov    0x10(%rsp),%rsi
@@ -204,8 +210,8 @@ func main() {
         0x450a6f                                int3
     B-  0x450a70 <main.main>                    mov    %fs:0xfffffffffffffff8,%rcx
     ```
-    可以看到 asmpkg.Syscall_Write 的代码与我们写的汇编伪代码基本完全一致，这是因为这个叶子函数非常简
-单，我们指定了 stack frame 大小为 0，也不需要栈分裂，所以没有生成多余的代码。
+    可以看到 `asmpkg.Syscall_Write` 的代码与我们写的汇编伪代码基本完全一致，这是因为这个叶子函数非常简
+    单，我们指定了 stack frame 大小为 0，也不需要栈分裂，所以没有生成多余的代码。
  
 
 ### MISC
@@ -214,20 +220,20 @@ func main() {
 
 一般使用类似于下面的命令即可：
 
-```
+```bash
 go tool compile -S syscall.go
 ```
 
 但是有时会报告找不到 package，比如在本例使用了汇编语言实现的 package：
 
-```
+```bash
 ~/excise/src/syscall$ go tool compile -S syscall.go 
 syscall.go:4:2: can't find import: "asmpkg"
 ```
 
-一个偷懒的做法是让 build 输出命令，然后手动改一下让其输出汇编代码:
+一个懒惰的解决办法是让 build 输出命令，然后手动改一下让其输出汇编代码:
 
-```
+```bash
 ~/excise/src/syscall$ go build -x syscall.go 
 WORK=/tmp/go-build284840720
 mkdir -p $WORK/asmpkg/_obj/
@@ -261,10 +267,21 @@ mv $WORK/command-line-arguments/_obj/exe/a.out syscall
 可以看到 build 过程是先编译 stubs.go，再使用汇编器编译 asm_amd64.s，然后使用 pack 将 stubs 与
 asm 的 obj 打包，然后编译 syscall.go，最后使用链接器把这些 obj 链接成可执行文件。
 
-我们把上述代码复制到一个 bash 文件中，并在编译相应的文件中加入命令行选项 -S 接口输出汇编文件。
-如：
+把上述 build 命令复制到一个 bash 文件中，比如 build.sh，并在编译相应的文件中加入命令行选项 -S 以输出
+汇编文件。如：
 
-```
+```bash
+...
 /usr/local/go/pkg/tool/linux_amd64/compile -S -o $WORK/command-line-arguments.a -trimpath $WORK
+-goversion go1.9.2 -p main -complete -buildid 4439993cf4f82038735fc5e30a3fdae52c35dcd0 
+-D _/home/jfxue/excise/src/syscall -I $WORK -I /home/jfxue/excise/pkg/linux_amd64 -pack ./syscall.go
 ...
 ```
+
+然后执行 bash 脚本重新 build：
+
+```bash
+bash build.sh | tee -a syscall.s
+```
+
+这样既可得到 syscall.go 通过汇编器编译生成的汇编代码。

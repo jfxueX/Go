@@ -2,7 +2,7 @@
    可以同时显示 3 个窗口(除必须显示的命令窗口外，还可以显示源码、汇编、寄存器窗口的任意一个或两个)。
    在 ~/.gdbinit 文件中做如下配置以初始化 TUI：
 
-   ```
+   ```gdb
    tui enable
    layout asm
    layout regs
@@ -20,7 +20,7 @@
 
 2. 不要把断点设在函数的第一条指令上，因为头部代码检查堆栈可能会多次中断在第一条指令上。
 
-   ```
+   ```asm
    B+> 0x48a5d0 <main.main>        mov    %fs:0xfffffffffffffff8,%rcx                          
        0x48a5d9 <main.main+9>      cmp    0x10(%rcx),%rsp
        0x48a5dd <main.main+13>     jbe    0x48a679 <main.main+169>
@@ -64,30 +64,30 @@
    可以一般做法为先把断点设在函数第一条指令上（因为直接设置函数断点就是这样），然后立即禁用该断点，并在跳过堆栈检查的代
    码上设临时断点，本例为 0x48a5e3，然后 continue 这样就可以跳过堆栈检查。具体做法：
 
-   <pre>
+   ```gdb
    Focus set to cmd window.
    Reading symbols from test_gls...done.
    Loading Go Runtime support.
-   (gdb) <b>b main.main</b>
+   (gdb) b main.main
    Breakpoint 1 at 0x48a5d0: file /home/jfxue/excise/src/test_gls/test_gls.go, line 9.
-   (gdb) <b>r</b>
+   (gdb) r
    Starting program: /home/jfxue/excise/src/test_gls/test_gls
    [New LWP 9962]
    [New LWP 9963]
    [New LWP 9964]
    
    Thread 1 "test_gls" hit Breakpoint 1, main.main () at /home/jfxue/excise/src/test_gls/test_gls.go:9
-   (gdb) <b>disable 1</b>
-   (gdb) <b>tb *0x48a5e3</b>
+   (gdb) disable 1
+   (gdb) tb *0x48a5e3
    Temporary breakpoint 2 at 0x48a5e3: file /home/jfxue/excise/src/test_gls/test_gls.go, line 9.
-   (gdb) <b>c</b>
+   (gdb) c
    Continuing.
    
    Thread 1 "test_gls" hit Temporary breakpoint 2, 0x000000000048a5e3 in main.main () at /home/jfxue/excise/src/test_gls/test_gls.go:9
-   (gdb) <b>p/x $pc</b>
+   (gdb) p/x $pc
    $1 = 0x48a5e3
    (gdb) 
-   </pre>
+   ```
 
 3. gdb 支持 go 变量，如
    <pre>
