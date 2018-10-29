@@ -100,25 +100,25 @@ Thread 1 "test" hit Breakpoint 2, asmpkg.Foo () at /home/jfxue/excise/src/asmpkg
 现在调试器停在第二个断点处，即函数 asmpkg.Foo 的第一行指令，这样就得到函数 asmpkg.Foo 的反汇编代码：
 
 ```asm
-B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp                                           
+B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
     0x457424 <asmpkg.Foo+4>     mov    %rbp,0x28(%rsp)
-    0x457429 <asmpkg.Foo+9>     lea    0x28(%rsp),%rbp         
+    0x457429 <asmpkg.Foo+9>     lea    0x28(%rsp),%rbp
     0x45742e <asmpkg.Foo+14>    mov    0x38(%rsp),%rax
     0x457433 <asmpkg.Foo+19>    mov    0x40(%rsp),%rbx
     0x457438 <asmpkg.Foo+24>    mov    %rax,0x18(%rsp)
     0x45743d <asmpkg.Foo+29>    mov    %rbx,0x20(%rsp)
     0x457442 <asmpkg.Foo+34>    mov    0x18(%rsp),%rbx
-    0x457447 <asmpkg.Foo+39>    mov    0x20(%rsp),%rax      
-    0x45744c <asmpkg.Foo+44>    mov    %rbx,(%rsp)    
-    0x457450 <asmpkg.Foo+48>    mov    %rax,0x8(%rsp) 
-    0x457455 <asmpkg.Foo+53>    xor    %eax,%eax      
-    0x457457 <asmpkg.Foo+55>    mov    %rax,0x10(%rsp)                                                                                 
-    0x45745c <asmpkg.Foo+60>    callq  0x457400 <asmpkg.Bar>              
+    0x457447 <asmpkg.Foo+39>    mov    0x20(%rsp),%rax
+    0x45744c <asmpkg.Foo+44>    mov    %rbx,(%rsp)
+    0x457450 <asmpkg.Foo+48>    mov    %rax,0x8(%rsp)
+    0x457455 <asmpkg.Foo+53>    xor    %eax,%eax
+    0x457457 <asmpkg.Foo+55>    mov    %rax,0x10(%rsp)
+    0x45745c <asmpkg.Foo+60>    callq  0x457400 <asmpkg.Bar>
     0x457461 <asmpkg.Foo+65>    mov    0x10(%rsp),%rax
     0x457466 <asmpkg.Foo+70>    mov    %rax,0x48(%rsp)
     0x45746b <asmpkg.Foo+75>    mov    0x28(%rsp),%rbp
-    0x457470 <asmpkg.Foo+80>    add    $0x30,%rsp                  
-    0x457474 <asmpkg.Foo+84>    retq                  
+    0x457470 <asmpkg.Foo+80>    add    $0x30,%rsp
+    0x457474 <asmpkg.Foo+84>    retq
 ```
 
 下面逐行解释每条指令：
@@ -127,7 +127,7 @@ B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
    sub    $0x30,%rsp            ; (1) 在堆栈上为当前函数保留 48 字节空间
    mov    %rbp,0x28(%rsp)       ; (2) 把 asmpkg.Foo(下简称 Foo) 调用者的 rbp 保留到栈底(48 字节空间的最后 8 字节)
    lea    0x28(%rsp),%rbp       ; (3) 让 rbp 指向栈底元素（就是上面一行保存调用者 rbp 值的堆栈位置），
-                                ;     这是传统建立 stack frame 的方法 
+                                ;     这是传统建立 stack frame 的方法
    mov    0x38(%rsp),%rax       ; (4) 取函数 Foo 的第一个参数 arg1 的值到寄存器 rax
    mov    0x40(%rsp),%rbx       ; (5) 取函数 Foo 的第二个参数 arg2 的值到寄存器 rbx
    mov    %rax,0x18(%rsp)       ; (6) 把 rax 寄存器中的值(即 arg1 的值) 写入局部变量 var1(0x18(rsp)) 中
@@ -137,8 +137,8 @@ B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
    mov    %rbx,(%rsp)           ; (10) 把寄存器 rbx 的值（即 arg1 的值）保存到当前栈顶 (0(rsp))，用作调用参数
    mov    %rax,0x8(%rsp)        ; (11) 把寄存器 rax 的值（即 arg2 的值）保存到当前栈顶下一个 (8(rsp))，用作调用参数
    xor    %eax,%eax             ; (12) 初始化 16(rsp) 的值为 0，此空间用于保存调用 asmpkg.Bar 的返回值
-   mov    %rax,0x10(%rsp)       ; (13) 实际上在 Bar 函数内初始化该值也可以                                                                          
-   callq  0x457400 <asmpkg.Bar> ; (14) 调用 asmpkg.Bar             
+   mov    %rax,0x10(%rsp)       ; (13) 实际上在 Bar 函数内初始化该值也可以
+   callq  0x457400 <asmpkg.Bar> ; (14) 调用 asmpkg.Bar
    mov    0x10(%rsp),%rax       ; (15) 把 asmpkg.Bar 的返回值（0x10(rsp)）取到寄存器 rax 中
    mov    %rax,0x48(%rsp)       ; (16) 把 rax 的值写入 asmpkg.Foo 返回值的堆栈空间中
    mov    0x28(%rsp),%rbp       ; (17) 从堆栈（0x28(rsp)）中取出在第(2)行保存的 Foo 调用者的 rbp 值
@@ -158,23 +158,23 @@ Go 工具链的 asm 汇编器生成的汇编文件中虚拟寄存器的使用文
                        |               |
                        |               |
                        |               |
-                       |               |            从这里往上的堆栈空间都不是 Bar 的，Bar 是一个叶子函数，没有局部变量，不需要建立 stack frame                                           
-FP(visual FP) --->     ----------------- <------------- 这是进入 Bar 函数后真实 SP 所指位置                                          
-                        caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Bar 后面一行代码的地址                                          
-                       ----------------- <--------- SP(real SP)  这是真实 SP 所指位置   <--------- 这也是进入 Bar 后 FP 所指位置                                      
+                       |               |            从这里往上的堆栈空间都不是 Bar 的，Bar 没有使用堆栈空间，不需要建立 stack frame
+FP(visual FP) --->     ----------------- <------------- 这是进入 Bar 函数后真实 SP 所指位置
+                        caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Bar 后面一行代码的地址
+                       ----------------- <--------- SP(real SP)  这是真实 SP 所指位置   <--------- 这也是进入 Bar 后 FP 所指位置
                        |     arg1      |            此处存储调用 asmpkg.Bar 的第一个参数 arg1，一般用真实 SP 访问它更方便 arg1+$0(SP)
                        -----------------
                        |     arg2      |            此处存储调用 asmpkg.Bar 的第二个参数 arg1，使用真实 SP 访问 arg1+$8(SP)
                        -----------------
-                       |  Bar 的返回值 |            该空间用于存储调用 asmpkg.Bar 的返回值                               
+                       |  Bar 的返回值 |            该空间用于存储调用 asmpkg.Bar 的返回值
                        -----------------
                        |   local var1  |            这是局部变量 var1 使用的空间，使用伪 SP 访问：var1-$16(SP)
                        -----------------
-                       |   local var2  |            这是局部变量 var2 使用的空间，使用伪 SP 访问：var1-$8(SP)                              
+                       |   local var2  |            这是局部变量 var2 使用的空间，使用伪 SP 访问：var1-$8(SP)
                        ----------------- <--------- SP(visual SP，真实寄存器 BP 也指向这里)
                        |   caller BP   |            这是汇编器生成的附加代码，用于建立 stack frame（与传统方法相同）
 FP(visual FP) --->     +---------------+
-                        caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Foo 后面一行代码的地址                                          
+                        caller ret addr  <--------- 调用返回地址，即调用 asmpkg.Foo 后面一行代码的地址
                        ----------------- <--------- FP(visual FP)
                        |     arg1      |            此处存储调用 asmpkg.Foo 的第一个参数 arg1，使用 arg1+$0(FP) 访问
                        -----------------
@@ -201,38 +201,38 @@ FP(visual FP) --->     +---------------+
 看一下汇编器编译输出的汇编代码（生成方法参考）：
 
 ```asm
-"".Bar STEXT nosplit size=19 args=0x18 locals=0x0                                                                                                          
-    0x0000 00000 (./asm_amd64.s:85) TEXT    "".Bar(SB), NOSPLIT, $0-24                                                                                     
-    0x0000 00000 (./asm_amd64.s:85) FUNCDATA    $0, "".Bar.args_stackmap(SB)                                                                               
-    0x0000 00000 (./asm_amd64.s:86) MOVQ    arg1+8(FP), AX                                                                                                 
-    0x0005 00005 (./asm_amd64.s:87) MOVQ    arg2+16(FP), BX                                                                                                
-    0x000a 00010 (./asm_amd64.s:88) SUBQ    BX, AX                                                                                                         
-    0x000d 00013 (./asm_amd64.s:89) MOVQ    AX, ret+24(FP)                                                                                                 
-    0x0012 00018 (./asm_amd64.s:90) RET                                                                                                                    
-    0x0000 48 8b 44 24 08 48 8b 5c 24 10 48 29 d8 48 89 44  H.D$.H.\$.H).H.D                                                                               
-    0x0010 24 18 c3                                         $..                                                                                            
-"".Foo STEXT nosplit size=85 args=0x18 locals=0x30                                                                                                         
-    0x0000 00000 (./asm_amd64.s:92) TEXT    "".Foo(SB), NOSPLIT, $48-24                                                                                    
-    0x0000 00000 (./asm_amd64.s:92) SUBQ    $48, SP                                                                                                        
-    0x0004 00004 (./asm_amd64.s:92) MOVQ    BP, 40(SP)                                                                                                     
-    0x0009 00009 (./asm_amd64.s:92) LEAQ    40(SP), BP                                                                                                     
-    0x000e 00014 (./asm_amd64.s:92) FUNCDATA    $0, "".Foo.args_stackmap(SB)                                                                               
-    0x000e 00014 (./asm_amd64.s:93) MOVQ    arg1+56(FP), AX                                                                                                                                                                                                                 
-    0x0013 00019 (./asm_amd64.s:94) MOVQ    arg2+64(FP), BX                                                                                                
-    0x0018 00024 (./asm_amd64.s:95) MOVQ    AX, var1+24(SP)                                                                                                
-    0x001d 00029 (./asm_amd64.s:96) MOVQ    BX, var2+32(SP)                                                                                                
-    0x0022 00034 (./asm_amd64.s:97) MOVQ    var1+24(SP), BX                                                                                                
-    0x0027 00039 (./asm_amd64.s:98) MOVQ    var2+32(SP), AX                                                                                                
-    0x002c 00044 (./asm_amd64.s:99) MOVQ    BX, (SP)                                                                                                       
-    0x0030 00048 (./asm_amd64.s:100)    MOVQ    AX, 8(SP)                                                                                                  
-    0x0035 00053 (./asm_amd64.s:101)    MOVQ    $0, AX                                                                                                     
-    0x0037 00055 (./asm_amd64.s:102)    MOVQ    AX, 16(SP)                                                                                                 
-    0x003c 00060 (./asm_amd64.s:103)    CALL    "".Bar(SB)                                                                                                 
-    0x0041 00065 (./asm_amd64.s:104)    MOVQ    16(SP), AX                                                                                                 
-    0x0046 00070 (./asm_amd64.s:105)    MOVQ    AX, ret+72(FP)                                                                                             
-    0x004b 00075 (./asm_amd64.s:106)    MOVQ    40(SP), BP                                                                                                 
-    0x0050 00080 (./asm_amd64.s:106)    ADDQ    $48, SP                                                                                                    
-    0x0054 00084 (./asm_amd64.s:106)    RET                     
+"".Bar STEXT nosplit size=19 args=0x18 locals=0x0
+    0x0000 00000 (./asm_amd64.s:85) TEXT    "".Bar(SB), NOSPLIT, $0-24
+    0x0000 00000 (./asm_amd64.s:85) FUNCDATA    $0, "".Bar.args_stackmap(SB)
+    0x0000 00000 (./asm_amd64.s:86) MOVQ    arg1+8(FP), AX
+    0x0005 00005 (./asm_amd64.s:87) MOVQ    arg2+16(FP), BX
+    0x000a 00010 (./asm_amd64.s:88) SUBQ    BX, AX
+    0x000d 00013 (./asm_amd64.s:89) MOVQ    AX, ret+24(FP)
+    0x0012 00018 (./asm_amd64.s:90) RET
+    0x0000 48 8b 44 24 08 48 8b 5c 24 10 48 29 d8 48 89 44  H.D$.H.\$.H).H.D
+    0x0010 24 18 c3                                         $..
+"".Foo STEXT nosplit size=85 args=0x18 locals=0x30
+    0x0000 00000 (./asm_amd64.s:92) TEXT    "".Foo(SB), NOSPLIT, $48-24
+    0x0000 00000 (./asm_amd64.s:92) SUBQ    $48, SP
+    0x0004 00004 (./asm_amd64.s:92) MOVQ    BP, 40(SP)
+    0x0009 00009 (./asm_amd64.s:92) LEAQ    40(SP), BP
+    0x000e 00014 (./asm_amd64.s:92) FUNCDATA    $0, "".Foo.args_stackmap(SB)
+    0x000e 00014 (./asm_amd64.s:93) MOVQ    arg1+56(FP), AX
+    0x0013 00019 (./asm_amd64.s:94) MOVQ    arg2+64(FP), BX
+    0x0018 00024 (./asm_amd64.s:95) MOVQ    AX, var1+24(SP)
+    0x001d 00029 (./asm_amd64.s:96) MOVQ    BX, var2+32(SP)
+    0x0022 00034 (./asm_amd64.s:97) MOVQ    var1+24(SP), BX
+    0x0027 00039 (./asm_amd64.s:98) MOVQ    var2+32(SP), AX
+    0x002c 00044 (./asm_amd64.s:99) MOVQ    BX, (SP)
+    0x0030 00048 (./asm_amd64.s:100)    MOVQ    AX, 8(SP)
+    0x0035 00053 (./asm_amd64.s:101)    MOVQ    $0, AX
+    0x0037 00055 (./asm_amd64.s:102)    MOVQ    AX, 16(SP)
+    0x003c 00060 (./asm_amd64.s:103)    CALL    "".Bar(SB)
+    0x0041 00065 (./asm_amd64.s:104)    MOVQ    16(SP), AX
+    0x0046 00070 (./asm_amd64.s:105)    MOVQ    AX, ret+72(FP)
+    0x004b 00075 (./asm_amd64.s:106)    MOVQ    40(SP), BP
+    0x0050 00080 (./asm_amd64.s:106)    ADDQ    $48, SP
+    0x0054 00084 (./asm_amd64.s:106)    RET
 ```
 
 与原始手写代码相比，汇编器生成的代码有几点明显不同：
