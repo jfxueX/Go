@@ -59,6 +59,8 @@ TEXT ·Foo(SB), NOSPLIT, $40-24
 用于声明的 stub 文件：src/asmpkg/stubs.go
 
 ```go
+package asmpkg
+
 func Bar(arg1, arg2 int) int
 
 func Foo(arg1, arg2 int) int
