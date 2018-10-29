@@ -6,3 +6,4 @@
 - [A Quick Guide to Go's Assembler](go-assembly-guide.md)
 - [How to Use the Plan 9 C Compiler](how-to-use-plan9-c-compiler.md)
 - [A Manual for the Plan 9 assembler](plan9-assembly-manual.md)
+- [Go Assembly 补充](go-assembly-addendum/README.md)
