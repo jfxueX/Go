@@ -210,7 +210,7 @@ FP(visual FP) --->     +---------------+
 5. 在调用函数时，要在堆栈中压入返回地址，在 Go Assembly 中这个返回地址占用的堆栈空间并不在当前函数的
    栈中，它是在当前函数的栈顶再分配一个堆栈单元，也不能算作 callee 的堆栈空间，这个是特殊的。
 
-看一下汇编器编译输出的汇编代码（生成方法参考[1](../simple-examples-using-go-assembly/README.md)）：
+看一下汇编器编译输出的汇编代码（生成方法参考[1](../simple-examples-using-go-assembly/README.md#MISC)）：
 
 ```asm
 "".Bar STEXT nosplit size=19 args=0x18 locals=0x0
