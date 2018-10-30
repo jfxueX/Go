@@ -42,12 +42,12 @@ TEXT ·Bar(SB), NOSPLIT, $0-24
 TEXT ·Foo(SB), NOSPLIT, $40-24
 	MOVQ arg1+0(FP), AX
 	MOVQ arg2+8(FP), BX
-	MOVQ AX, var1-16(SP)
-	MOVQ BX, var2-8(SP)
-	MOVQ var1-16(SP), BX
-	MOVQ var2-8(SP), AX
-	MOVQ BX, 0(SP)
-	MOVQ AX, 8(SP)
+	MOVQ AX, var1-8(SP)
+	MOVQ BX, var2-16(SP)
+	MOVQ var1-8(SP), AX
+	MOVQ var2-16(SP), BX
+	MOVQ AX, 0(SP)
+	MOVQ BX, 8(SP)
 	MOVQ $0, AX
 	MOVQ AX, 16(SP)
 	CALL ·Bar(SB)
@@ -102,25 +102,25 @@ Thread 1 "test" hit Breakpoint 2, asmpkg.Foo () at /home/jfxue/excise/src/asmpkg
 现在调试器停在第二个断点处，即函数 asmpkg.Foo 的第一行指令，这样就得到函数 asmpkg.Foo 的反汇编代码：
 
 ```asm
-B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
-    0x457424 <asmpkg.Foo+4>     mov    %rbp,0x28(%rsp)
-    0x457429 <asmpkg.Foo+9>     lea    0x28(%rsp),%rbp
-    0x45742e <asmpkg.Foo+14>    mov    0x38(%rsp),%rax
-    0x457433 <asmpkg.Foo+19>    mov    0x40(%rsp),%rbx
-    0x457438 <asmpkg.Foo+24>    mov    %rax,0x18(%rsp)
-    0x45743d <asmpkg.Foo+29>    mov    %rbx,0x20(%rsp)
-    0x457442 <asmpkg.Foo+34>    mov    0x18(%rsp),%rbx
-    0x457447 <asmpkg.Foo+39>    mov    0x20(%rsp),%rax
-    0x45744c <asmpkg.Foo+44>    mov    %rbx,(%rsp)
-    0x457450 <asmpkg.Foo+48>    mov    %rax,0x8(%rsp)
-    0x457455 <asmpkg.Foo+53>    xor    %eax,%eax
-    0x457457 <asmpkg.Foo+55>    mov    %rax,0x10(%rsp)
-    0x45745c <asmpkg.Foo+60>    callq  0x457400 <asmpkg.Bar>
-    0x457461 <asmpkg.Foo+65>    mov    0x10(%rsp),%rax
-    0x457466 <asmpkg.Foo+70>    mov    %rax,0x48(%rsp)
-    0x45746b <asmpkg.Foo+75>    mov    0x28(%rsp),%rbp
-    0x457470 <asmpkg.Foo+80>    add    $0x30,%rsp
-    0x457474 <asmpkg.Foo+84>    retq
+B+> 0x457440 <asmpkg.Foo>       sub    $0x30,%rsp
+    0x457444 <asmpkg.Foo+4>     mov    %rbp,0x28(%rsp)
+    0x457449 <asmpkg.Foo+9>     lea    0x28(%rsp),%rbp
+    0x45744e <asmpkg.Foo+14>    mov    0x38(%rsp),%rax
+    0x457453 <asmpkg.Foo+19>    mov    0x40(%rsp),%rbx
+    0x457458 <asmpkg.Foo+24>    mov    %rax,0x20(%rsp)
+    0x45745d <asmpkg.Foo+29>    mov    %rbx,0x18(%rsp)
+    0x457462 <asmpkg.Foo+34>    mov    0x20(%rsp),%rax
+    0x457467 <asmpkg.Foo+39>    mov    0x18(%rsp),%rbx
+    0x45746c <asmpkg.Foo+44>    mov    %rax,(%rsp)
+    0x457470 <asmpkg.Foo+48>    mov    %rbx,0x8(%rsp)
+    0x457475 <asmpkg.Foo+53>    xor    %eax,%eax
+    0x457477 <asmpkg.Foo+55>    mov    %rax,0x10(%rsp)
+    0x45747c <asmpkg.Foo+60>    callq  0x457400 <asmpkg.Bar>
+    0x457481 <asmpkg.Foo+65>    mov    0x10(%rsp),%rax
+    0x457486 <asmpkg.Foo+70>    mov    %rax,0x48(%rsp)
+    0x45748b <asmpkg.Foo+75>    mov    0x28(%rsp),%rbp
+    0x457490 <asmpkg.Foo+80>    add    $0x30,%rsp
+    0x457494 <asmpkg.Foo+84>    retq
 ```
 
 下面逐行解释每条指令：
@@ -132,12 +132,12 @@ B+> 0x457420 <asmpkg.Foo>       sub    $0x30,%rsp
                                 ;     这是传统建立 stack frame 的方法
    mov    0x38(%rsp),%rax       ; (4) 取函数 Foo 的第一个参数 arg1 的值到寄存器 rax
    mov    0x40(%rsp),%rbx       ; (5) 取函数 Foo 的第二个参数 arg2 的值到寄存器 rbx
-   mov    %rax,0x18(%rsp)       ; (6) 把 rax 寄存器中的值(即 arg1 的值) 写入局部变量 var1(0x18(rsp)) 中
-   mov    %rbx,0x20(%rsp)       ; (7) 把 rbx 寄存器中的值(即 arg2 的值) 写入局部变量 var2(0x20(rsp)) 中
-   mov    0x18(%rsp),%rbx       ; (8) 从局部变量 var1 中读出 int 值到寄存器 rbx 中（这里有意把 rax, rbx 颠倒了一下顺序）
-   mov    0x20(%rsp),%rax       ; (9) 从局部变量 var2 中读出 int 值到寄存器 rax 中
-   mov    %rbx,(%rsp)           ; (10) 把寄存器 rbx 的值（即 arg1 的值）保存到当前栈顶 (0(rsp))，用作调用参数
-   mov    %rax,0x8(%rsp)        ; (11) 把寄存器 rax 的值（即 arg2 的值）保存到当前栈顶下一个 (8(rsp))，用作调用参数
+   mov    %rax,0x20(%rsp)       ; (6) 把 rax 寄存器中的值(即 arg1 的值) 写入局部变量 var1(0x20(rsp)) 中
+   mov    %rbx,0x18(%rsp)       ; (7) 把 rbx 寄存器中的值(即 arg2 的值) 写入局部变量 var2(0x18(rsp)) 中
+   mov    0x20(%rsp),%rax       ; (9) 从局部变量 var1 中读出 int 值到寄存器 rax 中
+   mov    0x18(%rsp),%rbx       ; (8) 从局部变量 var2 中读出 int 值到寄存器 rbx 中
+   mov    %rax,(%rsp)           ; (10) 把寄存器 rax 的值（即 var1 的值）保存到当前栈顶 (0(rsp))，用作调用参数
+   mov    %rbx,0x8(%rsp)        ; (11) 把寄存器 rbx 的值（即 var2 的值）保存到当前栈顶下一个 (8(rsp))，用作调用参数
    xor    %eax,%eax             ; (12) 初始化 16(rsp) 的值为 0，此空间用于保存调用 asmpkg.Bar 的返回值
    mov    %rax,0x10(%rsp)       ; (13) 实际上在 Bar 函数内初始化该值也可以
    callq  0x457400 <asmpkg.Bar> ; (14) 调用 asmpkg.Bar
@@ -202,6 +202,11 @@ FP(visual FP) --->     +---------------+
 3. 局部变量在堆栈上的布局与传统 C/C++ 是不同的，C/C++ 按照内存地址从低到高的顺序来依次安排局部变量，
    而 Go Assembly 则恰恰相反。
 
+4. Go Assembly 堆栈布局与 C/C++ 还有另一个不同，即调用参数使用栈的方式不同。传统 C/C++ 在使用堆栈传
+   递参数（比如 cdecl 调用）时，临时通过调整 SP 为参数分配堆栈空间，当函数返回时根据调用约定的不同由 
+   callee 或 caller 来恢复 SP。而 Go Assembly 是在函数入口处就在堆栈中分配好局部变量和函数调用需要的所
+   有堆栈空间，当调用其它函数时就使用这个堆栈空间的栈顶部分，而局部变量使用栈底部分，两端向中间增长。
+
 看一下汇编器编译输出的汇编代码（生成方法参考）：
 
 ```asm
@@ -216,27 +221,34 @@ FP(visual FP) --->     +---------------+
     0x0000 48 8b 44 24 08 48 8b 5c 24 10 48 29 d8 48 89 44  H.D$.H.\$.H).H.D
     0x0010 24 18 c3                                         $..
 "".Foo STEXT nosplit size=85 args=0x18 locals=0x30
-    0x0000 00000 (./asm_amd64.s:92) TEXT    "".Foo(SB), NOSPLIT, $48-24
-    0x0000 00000 (./asm_amd64.s:92) SUBQ    $48, SP
-    0x0004 00004 (./asm_amd64.s:92) MOVQ    BP, 40(SP)
-    0x0009 00009 (./asm_amd64.s:92) LEAQ    40(SP), BP
-    0x000e 00014 (./asm_amd64.s:92) FUNCDATA    $0, "".Foo.args_stackmap(SB)
-    0x000e 00014 (./asm_amd64.s:93) MOVQ    arg1+56(FP), AX
-    0x0013 00019 (./asm_amd64.s:94) MOVQ    arg2+64(FP), BX
-    0x0018 00024 (./asm_amd64.s:95) MOVQ    AX, var1+24(SP)
-    0x001d 00029 (./asm_amd64.s:96) MOVQ    BX, var2+32(SP)
-    0x0022 00034 (./asm_amd64.s:97) MOVQ    var1+24(SP), BX
-    0x0027 00039 (./asm_amd64.s:98) MOVQ    var2+32(SP), AX
-    0x002c 00044 (./asm_amd64.s:99) MOVQ    BX, (SP)
-    0x0030 00048 (./asm_amd64.s:100)    MOVQ    AX, 8(SP)
-    0x0035 00053 (./asm_amd64.s:101)    MOVQ    $0, AX
-    0x0037 00055 (./asm_amd64.s:102)    MOVQ    AX, 16(SP)
-    0x003c 00060 (./asm_amd64.s:103)    CALL    "".Bar(SB)
-    0x0041 00065 (./asm_amd64.s:104)    MOVQ    16(SP), AX
-    0x0046 00070 (./asm_amd64.s:105)    MOVQ    AX, ret+72(FP)
-    0x004b 00075 (./asm_amd64.s:106)    MOVQ    40(SP), BP
-    0x0050 00080 (./asm_amd64.s:106)    ADDQ    $48, SP
-    0x0054 00084 (./asm_amd64.s:106)    RET
+	0x0000 00000 (./asm_amd64.s:106)	TEXT	"".Foo(SB), NOSPLIT, $48-24
+	0x0000 00000 (./asm_amd64.s:106)	SUBQ	$48, SP
+	0x0004 00004 (./asm_amd64.s:106)	MOVQ	BP, 40(SP)
+	0x0009 00009 (./asm_amd64.s:106)	LEAQ	40(SP), BP
+	0x000e 00014 (./asm_amd64.s:106)	FUNCDATA	$0, "".Foo.args_stackmap(SB)
+	0x000e 00014 (./asm_amd64.s:107)	MOVQ	arg1+56(FP), AX
+	0x0013 00019 (./asm_amd64.s:108)	MOVQ	arg2+64(FP), BX
+	0x0018 00024 (./asm_amd64.s:109)	MOVQ	AX, var1+32(SP)
+	0x001d 00029 (./asm_amd64.s:110)	MOVQ	BX, var2+24(SP)
+	0x0022 00034 (./asm_amd64.s:111)	MOVQ	var1+32(SP), AX
+	0x0027 00039 (./asm_amd64.s:112)	MOVQ	var2+24(SP), BX
+	0x002c 00044 (./asm_amd64.s:113)	MOVQ	AX, (SP)
+	0x0030 00048 (./asm_amd64.s:114)	MOVQ	BX, 8(SP)
+	0x0035 00053 (./asm_amd64.s:115)	MOVQ	$0, AX
+	0x0037 00055 (./asm_amd64.s:116)	MOVQ	AX, 16(SP)
+	0x003c 00060 (./asm_amd64.s:117)	CALL	"".Bar(SB)
+	0x0041 00065 (./asm_amd64.s:118)	MOVQ	16(SP), AX
+	0x0046 00070 (./asm_amd64.s:119)	MOVQ	AX, ret+72(FP)
+	0x004b 00075 (./asm_amd64.s:120)	MOVQ	40(SP), BP
+	0x0050 00080 (./asm_amd64.s:120)	ADDQ	$48, SP
+	0x0054 00084 (./asm_amd64.s:120)	RET
+	0x0000 48 83 ec 30 48 89 6c 24 28 48 8d 6c 24 28 48 8b  H..0H.l$(H.l$(H.
+	0x0010 44 24 38 48 8b 5c 24 40 48 89 44 24 20 48 89 5c  D$8H.\$@H.D$ H.\
+	0x0020 24 18 48 8b 44 24 20 48 8b 5c 24 18 48 89 04 24  $.H.D$ H.\$.H..$
+	0x0030 48 89 5c 24 08 31 c0 48 89 44 24 10 e8 00 00 00  H.\$.1.H.D$.....
+	0x0040 00 48 8b 44 24 10 48 89 44 24 48 48 8b 6c 24 28  .H.D$.H.D$HH.l$(
+	0x0050 48 83 c4 30 c3                                   H..0.
+	rel 61+4 t=8 "".Bar+0
 ```
 
 与原始手写代码相比，汇编器生成的代码有几点明显不同：
@@ -254,3 +266,9 @@ FP(visual FP) --->     +---------------+
 
 另外，如果当前函数不需要自己的堆栈空间，即没有局部变量，也不需要通过堆栈传递参数或获取返回值（如不调用
 其它函数的叶子函数，或者调用其它函数既无参数也无返回值），那么汇编器不会为该函数建立 stack frame。
+
+这样的函数被称为叶子函数（ **Leaf function** ），关于叶子函数的解释：
+
+> Leaf function，A function that does not require a stack frame. A leaf function does not require a  
+  function table entry. It cannot call any functions, allocate space, or save any nonvolatile  
+  registers. It can leave the stack unaligned while it executes.
