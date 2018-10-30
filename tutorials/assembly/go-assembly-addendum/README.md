@@ -267,7 +267,7 @@ FP(visual FP) --->     +---------------+
 另外，如果当前函数不需要自己的堆栈空间，即没有局部变量，也不需要通过堆栈传递参数或获取返回值（如不调用
 其它函数的叶子函数，或者调用其它函数既无参数也无返回值），那么汇编器不会为该函数建立 stack frame。
 
-这样的函数被称为叶子函数（ **Leaf function** ），关于叶子函数的解释：
+这样的函数被称为叶子函数（ **Leaf Function** ），关于叶子函数的解释：
 
 > Leaf function，A function that does not require a stack frame. A leaf function does not require a  
   function table entry. It cannot call any functions, allocate space, or save any nonvolatile  
