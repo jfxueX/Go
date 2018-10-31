@@ -95,7 +95,7 @@ Go 编译器会输出一种抽象的，可移植的汇编代码，它实际上�
 
 请思考以下 Go 代码 ([direct_topfunc_call.go](./direct_topfunc_call.go)):
 
-```Go
+```go
 //go:noinline
 func add(a, b int32) (int32, bool) { return a + b, true }
 
@@ -114,7 +114,7 @@ func main() { add(10, 32) }
 <b>$ GOOS=linux GOARCH=amd64 go tool compile -S direct_topfunc_call.go</b>
 </pre>
 
-```Assembly
+```asm
 0x0000 TEXT		"".add(SB), NOSPLIT, $0-16
   0x0000 FUNCDATA	$0, gclocals·f207267fbf96a0178e8758c6e3e0ce28(SB)
   0x0000 FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
@@ -142,39 +142,40 @@ func main() { add(10, 32) }
   ;; ...omitted stack-split epilogue...
 ```
 
-> We'll dissect those 2 functions line-by-line in order to get a better understanding of what the 
+> We'll dissect those 2 functions line-by-line in order to get a better understanding of what the  
 compiler is doing.
 我们将逐行剖析这两个函数，以便更好地理解编译器正在做什么．
 
 > ### Dissecting `add`
 ### 剖析 `add`
 
-```Assembly
+```asm
 0x0000 TEXT "".add(SB), NOSPLIT, $0-16
 ```
-<ul>
-<li><code>0x0000</code>: Offset of the current instruction, relative to the start of the function.</li>
+- `0x0000`:  
+   Offset of the current instruction, relative to the start of the function.
 
-<br>
+- `TEXT "".add`:  
+   The `TEXT` directive declares the `"".add` symbol as part of the `.text` section (i.e. runnable 
+   code) and indicates that the instructions that follow are the body of the function.  
 
-<li><code>TEXT "".add</code>: The <code>TEXT</code> directive declares the <code>"".add</code> symbol as part of the <code>.text</code> section 
-(i.e. runnable code) and indicates that the instructions that follow are the body of the function.<br> 
-The empty string <code>""</code> will be replaced by the name of the current package at link-time: i.e., 
-<code>"".add</code> will become <code>main.add</code> once linked into our final binary.</li>
+   The empty string `""` will be replaced by the name of the current package at link-time: i.e., 
+   `"".add` will become `main.add` once linked into our final binary.
 
-<br>
+- `(SB)`: 
+   `SB` is the virtual register that holds the "static-base" pointer, i.e. the address of the 
+   beginning of the address-space of our program.
 
-<li><code>(SB)</code>: <code>SB</code> is the virtual register that holds the "static-base" pointer, i.e. the address of the 
-beginning of the address-space of our program.<br> 
-<code>"".add(SB)</code> declares that our symbol is located at some constant offset (computed by the linker) 
-from the start of our address-space. Put differently, it has an absolute, direct address: it's a 
-global function symbol.<br> 
-Good ol' <code>objdump</code> will confirm all of that for us:
+   `"".add(SB)` declares that our symbol is located at some constant offset (computed by the linker) 
+   from the start of our address-space. Put differently, it has an absolute, direct address: it's a 
+   global function symbol.
 
-<pre>
-$ objdump -j .text -t direct_topfunc_call | grep 'main.add'
-000000000044d980 g     F .text	000000000000000f main.add
-</pre>
+   Good ol' `objdump` will confirm all of that for us:
+
+   <pre>
+   $ objdump -j .text -t direct_topfunc_call | grep 'main.add'
+   000000000044d980 g     F .text	000000000000000f main.add
+   </pre>
 
 <blockquote>All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals) 
 and SB (globals).<br>
@@ -208,7 +209,7 @@ with Go prototypes, <b>go vet</b> will check that the argument size is correct.<
 
 <br>
 
-```Assembly
+```asm
 0x0000 FUNCDATA $0, gclocals·f207267fbf96a0178e8758c6e3e0ce28(SB)
 0x0000 FUNCDATA $1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
 ```
@@ -221,7 +222,7 @@ the book.
 
 <br>
 
-```Assembly
+```asm
 0x0000 MOVL "".b+12(SP), AX
 0x0004 MOVL "".a+8(SP), CX
 ```
@@ -270,7 +271,7 @@ stack.
 
 <br>
 
-```Assembly
+```asm
 0x0008 ADDL CX, AX
 0x000a MOVL AX, "".~r2+16(SP)
 0x000e MOVB $1, "".~r3+20(SP)
@@ -289,7 +290,7 @@ to `SP` changes.
 
 <br>
 
-```Assembly
+```asm
 0x0013 RET
 ```
 
@@ -305,7 +306,7 @@ TEXTs.)
 
 That's a lot of syntax and semantics to ingest all at once. Here's a quick inlined summary of what 
 we've just covered:
-```Assembly
+```asm
 ;; Declare global function symbol "".add (actually main.add once linked)
 ;; Do not insert stack-split preamble
 ;; 0 bytes of stack-frame, 16 bytes of arguments passed in
@@ -359,7 +360,7 @@ executing:
 
 We'll spare you some unnecessary scrolling, here's a reminder of what our `main` function looks 
 like:
-```Assembly
+```asm
 0x0000 TEXT		"".main(SB), $24-0
   ;; ...omitted stack-split prologue...
   0x000f SUBQ		$24, SP
@@ -378,7 +379,7 @@ like:
 
 <br>
 
-```Assembly
+```asm
 0x0000 TEXT "".main(SB), $24-0
 ```
 
@@ -389,7 +390,7 @@ address is some constant offset from the beginning of our address-space.
 
 <br>
 
-```Assembly
+```asm
 0x000f SUBQ     $24, SP
 0x0013 MOVQ     BP, 16(SP)
 0x0018 LEAQ     16(SP), BP
@@ -401,10 +402,10 @@ stack.
 Our caller, `main`, grows its stack-frame by 24 bytes (*remember that the stack grows downwards, so 
 `SUBQ` here actually makes the stack-frame bigger*) by decrementing the virtual stack-pointer.
 Of those 24 bytes:
-- 8 bytes (`16(SP)`-`24(SP)`) are used to store the current value of the frame-pointer `BP` (*the 
-real one!*) to allow for stack-unwinding and facilitate debugging
+- 8 bytes (`16(SP)`-`24(SP)`) are used to store the current value of the frame-pointer `BP` (
+  *the real one!*) to allow for stack-unwinding and facilitate debugging
 - 1+3 bytes (`12(SP)`-`16(SP)`) are reserved for the second return value (`bool`) plus 3 bytes of 
-necessary alignment on `amd64`
+  necessary alignment on `amd64`
 - 4 bytes (`8(SP)`-`12(SP)`) are reserved for the first return value (`int32`)
 - 4 bytes (`4(SP)`-`8(SP)`) are reserved for the value of argument `b (int32)`
 - 4 bytes (`0(SP)`-`4(SP)`) are reserved for the value of argument `a (int32)`
@@ -414,7 +415,7 @@ stores it in `BP`.
 
 <br>
 
-```Assembly
+```asm
 0x001d MOVQ     $137438953482, AX
 0x0027 MOVQ     AX, (SP)
 ```
