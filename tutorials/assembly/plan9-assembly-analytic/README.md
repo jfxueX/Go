@@ -213,8 +213,8 @@ Go 的汇编还引入了 4 个伪寄存器，援引官方文档的描述:
 1. 伪 SP 和硬件 SP 不是一回事，在手写代码时，伪 SP 和硬件 SP 的区分方法是看该 SP 前是否有 symbol。如
    果有 symbol，那么即为伪寄存器，如果没有，那么说明是硬件 SP 寄存器。
 
-2. SP 和 FP 的相对位置是会变的，所以不应该尝试用伪 SP 寄存器去找那些用 FP + offset 来引用的值，例如
-   函数的入参和返回值。
+2. ~~SP 和 FP 的相对位置是会变的，所以不应该尝试用伪 SP 寄存器去找那些用 FP + offset 来引用的值，例如
+   函数的入参和返回值。~~ （不认同，理由见[<sup>a</sup>](#note-a)）
 
 3. 官方文档中说的伪 SP 指向 stack 的 top，是有问题的。其指向的局部变量位置实际上是整个栈的栈底(除 
    caller BP 之外)，所以说 bottom 更合适一些。
@@ -1168,6 +1168,15 @@ go compile -S:
 
 参考资料[4]需要特别注意，在该 slide 中给出的 callee stack frame 中把 caller 的 return address 也包含
 进去了，个人认为不是很合适。
+
+## Read Note
+<ul>
+<li><a name="note-a"></a>
+a. 我的理解是 FP 与 伪SP 的位置是固定的，它们之间仅隔着 caller 返回地址，及保存 caller ebp 的堆
+   栈单元，如果当前函数为 Leaf Function，那么并不需要保存 caller ebp，而 伪SP 也无用武之处。至于是否需
+   要保存 call ebp，对于汇编器而言就是看是否是 Leaf Function。如果非 Leaf Function 则需要保存，汇编
+   器会自动调整原始汇编码中需要调整的偏移，这对于汇编编码编写者而言是透明的。</li>
+</ul>
 
 
 [1]:https://quasilyte.github.io/blog/post/go-asm-complementary-reference/#external-resources
