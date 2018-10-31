@@ -1,7 +1,7 @@
 <!-- Copyright © 2018 Clement Rey <cr.rey.clement@gmail.com>. -->
 <!-- Licensed under the BY-NC-SA Creative Commons 4.0 International Public License. -->
 
-```Bash
+```bash
 $ go version
 go version go1.10 linux/amd64
 ```
@@ -177,22 +177,22 @@ compiler is doing.
    000000000044d980 g     F .text	000000000000000f main.add
    ```
 
-   > All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals)  
-   and SB (globals).<br>
-
-   > The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the  
-   name foo as an address in memory.</blockquote></li>
+   > All user-defined symbols are written as offsets to the pseudo-registers FP (arguments and locals)
+   > and SB (globals).<br>
+   >
+   > The SB pseudo-register can be thought of as the origin of memory, so the symbol foo(SB) is the
+   > name foo as an address in memory.</blockquote></li>
 
 - `NOSPLIT`:  
    Indicates to the compiler that it should *not* insert the *stack-split* preamble, which 
    checks whether the current stack needs to be grown.
 
-   In the case of our <code>add</code> function, the compiler has set the flag by itself: it is smart enough to 
-   figure that, since <code>add</code> has no local variables and no stack-frame of its own, it simply cannot 
+   In the case of our `add` function, the compiler has set the flag by itself: it is smart enough to 
+   figure that, since `add` has no local variables and no stack-frame of its own, it simply cannot 
    outgrow the current stack; thus it'd be a complete waste of CPU cycles to run these checks at each 
-   call site.  
+   call site.
 
-- `NOSPLIT`: 
+- `NOSPLIT`:  
    Don't insert the preamble to check if the stack must be split. The frame for the 
    routine, plus anything it calls, must fit in the spare space at the top of the stack segment. Used 
    to protect routines such as the stack splitting code itself.
@@ -201,7 +201,7 @@ compiler is doing.
 
 - `$0-16`:  
    `$0` denotes the size in bytes of the stack-frame that will be allocated; while `$16` 
-   specifies the size of the arguments passed in by the caller.  
+   specifies the size of the arguments passed in by the caller.
 
    > In the general case, the frame size is followed by an argument size, separated by a minus sign. 
    > (It's not a subtraction, just idiosyncratic syntax.) The frame size *$24-8* states that the function 
@@ -215,8 +215,8 @@ compiler is doing.
 0x0000 FUNCDATA $1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
 ```
 
-> The FUNCDATA and PCDATA directives contain information for use by the garbage collector; they are 
-introduced by the compiler.
+> The FUNCDATA and PCDATA directives contain information for use by the garbage collector; they are  
+  introduced by the compiler.
 
 Don't worry about this for now; we'll come back to it when diving into garbage collection later in 
 the book.
@@ -234,11 +234,11 @@ It is the caller's responsibility to grow (and shrink back) the stack appropriat
 arguments can be passed to the callee, and potential return-values passed back to the caller.
 
 The Go compiler never generates instructions from the PUSH/POP family: the stack is grown or shrunk 
-by respectively decrementing or incrementing the ~virtual~ hardware stack pointer <code>SP</code>.  
+by respectively decrementing or incrementing the ~virtual~ hardware stack pointer `SP`.  
 *[UPDATE: We've discussed about this matter in [issue #21: about SP register](https://github.com/teh-cmc/go-internals/issues/21).]*  
 > The SP pseudo-register is a virtual stack pointer used to refer to frame-local variables and the 
-arguments being prepared for function calls. It points to the top of the local stack frame, so 
-references should use negative offsets in the range &#91;−framesize, 0): x-8(SP), y-4(SP), and so on.
+> arguments being prepared for function calls. It points to the top of the local stack frame, so 
+> references should use negative offsets in the range &#91;−framesize, 0): x-8(SP), y-4(SP), and so on.
 
 Although the official documentation states that "<i>All user-defined symbols are written as offsets to 
 the pseudo-register FP (arguments and locals)</i>", this is only ever true for hand-written code.  
@@ -249,9 +249,9 @@ Have a look at <i>Stack frame layout on x86-64</i> in the links at the end of th
 this kind of nitty gritty details.  
 <i>[UPDATE: We've discussed about this matter in [issue #2: Frame pointer](https://github.com/teh-cmc/go-internals/issues/2).]</i>
 
-<code>"".b+12(SP)</code> and <code>"".a+8(SP)</code> respectively refer to the addresses 12 bytes and 8 bytes below the 
+`"".b+12(SP)` and `"".a+8(SP)` respectively refer to the addresses 12 bytes and 8 bytes below the 
 top of the stack (remember: it grows downwards!).  
-<code>.a</code> and <code>.b</code> are arbitrary aliases given to the referred locations; although <i>they have absolutely 
+`.a` and `.b` are arbitrary aliases given to the referred locations; although <i>they have absolutely 
 no semantic meaning</i> whatsoever, they are mandatory when using relative addressing on virtual 
 registers.
 The documentation about the virtual frame-pointer has some to say about this:
@@ -264,11 +264,11 @@ offset —offset from the frame pointer— distinct from its use with SB, where 
 symbol.) The assembler enforces this convention, rejecting plain 0(FP) and 8(FP). The actual name is 
 semantically irrelevant but should be used to document the argument's name.
 
-<b>Finally, there are two important things to note here:</b>
-1. The first argument <code>a</code> is not located at <code>0(SP)</code>, but rather at <code>8(SP)</code>; that's because the 
-caller stores its return-address in <code>0(SP)</code> via the <code>CALL</code> pseudo-instruction.
+**Finally, there are two important things to note here:**
+1. The first argument `a` is not located at `0(SP)`, but rather at `8(SP)`; that's because the 
+   caller stores its return-address in `0(SP)` via the `CALL` pseudo-instruction.
 2. Arguments are passed in reverse-order; i.e. the first argument is the closest to the top of the 
-stack.
+   stack.
 
 <br>
 
@@ -301,12 +301,13 @@ Most likely this will cause the code to pop off the return-address stored at `0(
 to it.
 
 > The last instruction in a TEXT block must be some sort of jump, usually a RET 
-(pseudo-)instruction.
+> (pseudo-)instruction.
 > (If it's not, the linker will append a jump-to-itself instruction; there is no fallthrough in 
-TEXTs.)
+> TEXTs.)
 
 That's a lot of syntax and semantics to ingest all at once. Here's a quick inlined summary of what 
 we've just covered:
+
 ```asm
 ;; Declare global function symbol "".add (actually main.add once linked)
 ;; Do not insert stack-split preamble
@@ -314,14 +315,12 @@ we've just covered:
 ;; func add(a, b int32) (int32, bool)
 0x0000 TEXT	"".add(SB), NOSPLIT, $0-16
   ;; ...omitted FUNCDATA stuff...
-  0x0000 MOVL	"".b+12(SP), AX	    ;; move second Long-word (4B) argument from caller's stack-frame 
-into AX
-  0x0004 MOVL	"".a+8(SP), CX	    ;; move first Long-word (4B) argument from caller's stack-frame 
-into CX
-  0x0008 ADDL	CX, AX		    ;; compute AX=CX+AX
+  0x0000 MOVL	"".b+12(SP), AX	    ;; move second Long-word (4B) argument from caller's stack-frame into AX
+  0x0004 MOVL	"".a+8(SP), CX	    ;; move first Long-word (4B) argument from caller's stack-frame into CX
+  0x0008 ADDL	CX, AX		        ;; compute AX=CX+AX
   0x000a MOVL	AX, "".~r2+16(SP)   ;; move addition result (AX) into caller's stack-frame
   0x000e MOVB	$1, "".~r3+20(SP)   ;; move `true` boolean (constant) into caller's stack-frame
-  0x0013 RET			    ;; jump to return address stored at 0(SP)
+  0x0013 RET			            ;; jump to return address stored at 0(SP)
 ```
 
 All in all, here's a visual representation of what the stack looks like when `main.add` has finished 
@@ -386,7 +385,7 @@ like:
 
 Nothing new here:
 - `"".main` (`main.main` once linked) is a global function symbol in the `.text` section, whose 
-address is some constant offset from the beginning of our address-space.
+   address is some constant offset from the beginning of our address-space.
 - It allocates a 24 bytes stack-frame and doesn't receive any argument nor does it return any value.
 
 <br>
@@ -434,7 +433,7 @@ $ echo 'obase=2;137438953482' | bc
 
 <br>
 
-```Assembly
+```asm
 0x002b CALL     "".add(SB)
 ```
 
@@ -490,7 +489,7 @@ possibly outgrow their stack are marked as `NOSPLIT` as a hint for the compiler 
 checks.
 
 Let's look at our main function from earlier, this time without omitting the stack-split preamble:
-```Assembly
+```asm
 0x0000 TEXT	"".main(SB), $24-0
   ;; stack-split prologue
   0x0000 MOVQ	(TLS), CX
@@ -526,7 +525,7 @@ This creates a feedback loop that goes on for as long as a large enough stack ha
 for our starved goroutine.
 
 **Prologue**
-```Assembly
+```asm
 0x0000 MOVQ	(TLS), CX   ;; store current *g in CX
 0x0009 CMPQ	SP, 16(CX)  ;; compare SP and g.stackguard0
 0x000d JLS	58	    ;; jumps to 0x3a if SP <= g.stackguard0
@@ -554,7 +553,7 @@ The prologue thus checks if the current `SP` value is less than or equal to the 
 threshold (that is, it's bigger), then jumps to the epilogue if it happens to be the case.
 
 **Epilogue**
-```Assembly
+```asm
 0x003a NOP
 0x003a CALL	runtime.morestack_noctxt(SB)
 0x003f JMP	0
