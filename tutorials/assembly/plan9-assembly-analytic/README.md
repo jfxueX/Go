@@ -708,71 +708,72 @@ TEXT ·mul(SB), NOSPLIT, $0-24
 
 ### 伪寄存器 SP 、伪寄存器 FP 和硬件寄存器 SP 
 
-~~来写一段简单的代码证明伪 SP、伪 FP 和硬件 SP 的位置关系。~~
-~~spspfp.s:~~
-
-~~```asm~~
-~~#include "textflag.h"~~
-
-~~// func output(int) (int, int, int)~~
-~~TEXT ·output(SB), $8-48~~
-~~    MOVQ 24(SP), DX // 不带 symbol，这里的 SP 是硬件寄存器 SP~~
-~~    MOVQ DX, ret3+24(FP) // 第三个返回值~~
-~~    MOVQ perhapsArg1+16(SP), BX // 当前函数栈大小 > 0，所以 FP 在 SP 的上方 16 字节处~~
-~~    MOVQ BX, ret2+16(FP) // 第二个返回值~~
-~~    MOVQ arg1+0(FP), AX~~
-~~    MOVQ AX, ret1+8(FP)  // 第一个返回值~~
-~~    RET~~
-~~```~~
-
-~~spspfp.go:~~
-
-~~```go~~
-~~package main~~
-
-~~import (~~
-~~    "fmt"~~
-~~)~~
-
-~~func output(int) (int, int, int) // 汇编函数声明~~
-
-~~func main() {~~
-~~    a, b, c := output(987654321)~~
-~~    fmt.Println(a, b, c)~~
-~~}~~
-~~```~~
-
-~~执行上面的代码，可以得到输出:~~
-
-~~```shell~~
-~~987654321 987654321 987654321~~
-~~```~~~
-
-~~和代码结合思考，可以知道我们当前的栈结构是这样的:~~
-
-~~```shell~~
-~~------~~
-~~ret2 (8 bytes)~~
-~~------~~
-~~ret1 (8 bytes)~~
-~~------~~
-~~ret0 (8 bytes)~~
-~~------~~
-~~arg0 (8 bytes)~~
-~~------ FP~~
-~~ret addr (8 bytes)~~
-~~------~~
-~~caller BP (8 bytes)~~
-~~------ pseudo SP~~
-~~frame content (8 bytes)~~
-~~------ hardware SP~~
-~~```~~
-
-~~本小节例子的 framesize 是大于 0 的，读者可以尝试修改 framesize 为 0，然后调整代码中引用伪 SP 和硬件 ~~
-~~SP 时的 offset，来研究 framesize 为 0 时，伪 FP，伪 SP 和硬件 SP 三者之间的相对位置。~~
-
-~~本小节的例子是为了告诉大家，伪 SP 和伪 FP 的相对位置是会变化的，手写时不应该用伪 SP 和 >0 的 offset ~~
-~~来引用数据，否则结果可能会出乎你的预料。~~
+来写一段简单的代码证明伪 SP、伪 FP 和硬件 SP 的位置关系。
+> spspfp.s:
+> 
+> ```asm
+> #include "textflag.h"
+> 
+> // func output(int) (int, int, int)
+> TEXT ·output(SB), $8-48
+>     MOVQ 24(SP), DX // 不带 symbol，这里的 SP 是硬件寄存器 SP
+>     MOVQ DX, ret3+24(FP) // 第三个返回值
+>     MOVQ perhapsArg1+16(SP), BX // 当前函数栈大小 > 0，所以 FP 在 SP 的上方 16 字节处
+>     MOVQ BX, ret2+16(FP) // 第二个返回值
+>     MOVQ arg1+0(FP), AX
+>     MOVQ AX, ret1+8(FP)  // 第一个返回值
+>     RET
+> 
+> ```
+> 
+> spspfp.go:
+> 
+> ```go
+> package main
+> 
+> import (
+>     "fmt"
+> )
+> 
+> func output(int) (int, int, int) // 汇编函数声明
+> 
+> func main() {
+>     a, b, c := output(987654321)
+>     fmt.Println(a, b, c)
+> }
+> ```
+> 
+> 执行上面的代码，可以得到输出:
+> 
+> ```shell
+> 987654321 987654321 987654321
+> ```
+> 
+> 和代码结合思考，可以知道我们当前的栈结构是这样的:
+> 
+> ```shell
+> ------
+> ret2 (8 bytes)
+> ------
+> ret1 (8 bytes)
+> ------
+> ret0 (8 bytes)
+> ------
+> arg0 (8 bytes)
+> ------ FP
+> ret addr (8 bytes)
+> ------
+> caller BP (8 bytes)
+> ------ pseudo SP
+> frame content (8 bytes)
+> ------ hardware SP
+> ```
+> 
+> 本小节例子的 framesize 是大于 0 的，读者可以尝试修改 framesize 为 0，然后调整代码中引用伪 SP 和硬件 
+> SP 时的 offset，来研究 framesize 为 0 时，伪 FP，伪 SP 和硬件 SP 三者之间的相对位置。
+> 
+> 本小节的例子是为了告诉大家，伪 SP 和伪 FP 的相对位置是会变化的，手写时不应该用伪 SP 和 >0 的 offset 
+> 来引用数据，否则结果可能会出乎你的预料。
 
 还是前面提到的，写汇编代码时不要管 BP，知道原理就够了，请当它是透明的。请不要用 real SP 访问局部变量
 和参数。用下面的代码来说明伪寄存器 FP，SP 的用法，以及 real SP, BP 等寄存器间的关系：
