@@ -251,6 +251,7 @@ func main() {
     type printFunc func()
     unsafePrintFunc := (uintptr)(unsafe.Pointer(&executablePrintFunc))
     printer := *(*printFunc)(unsafe.Pointer(&unsafePrintFunc))
+    fmt.Printf("%x, %x\n", &executablePrintFunc, &unsafePrintFunc)
     printer()
 }
 ```
