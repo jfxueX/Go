@@ -235,24 +235,17 @@ GLOBL runtime·tlsoffset(SB), NOPTR, $4 ;; 声明一个全局变量 tlsoffset，
 
 类似 `RODATA`/`NOPTR` 的特殊声明还有：
 
-> -  NOPROF = 1 (For TEXT items.) Don’t profile the marked function. This flag is deprecated.
-> 
-> -  DUPOK = 2 It is legal to have multiple instances of this symbol in a single binary. The linker 
+> - `NOPROF = 1 (For TEXT items.)` Don’t profile the marked function. This flag is deprecated.
+> - `DUPOK = 2` It is legal to have multiple instances of this symbol in a single binary. The linker 
 >    will choose one of the duplicates to use.
-> 
-> -  NOSPLIT = 4 (For TEXT items.) Don’t insert the preamble to check if the stack must be split. The 
+> - `NOSPLIT = 4 (For TEXT items.)` Don’t insert the preamble to check if the stack must be split. The 
 >    frame for the routine, plus anything it calls, must fit in the spare space at the top of the stack 
 >    segment. Used to protect routines such as the stack splitting code itself.
-> 
-> -  RODATA = 8 (For DATA and GLOBL items.) Put this data in a read-only section.
-> 
-> -  NOPTR = 16 (For DATA and GLOBL items.) This data contains no pointers and therefore does not need 
+> - `RODATA = 8 (For DATA and GLOBL items.)` Put this data in a read-only section.
+> - `NOPTR = 16 (For DATA and GLOBL items.)` This data contains no pointers and therefore does not need 
 >    to be scanned by the garbage collector.
-> 
-> -  WRAPPER = 32 (For TEXT items.) This is a wrapper function and should not count as disabling recover.
-> 
-> -  NEEDCTXT = 64 (For TEXT items.) This function is a closure so it uses its incoming context register.
-
+> - `WRAPPER = 32 (For TEXT items.)` This is a wrapper function and should not count as disabling recover.
+> - `NEEDCTXT = 64 (For TEXT items.)` This function is a closure so it uses its incoming context register.
 
 #### 局部变量声明
 
@@ -265,113 +258,117 @@ GLOBL runtime·tlsoffset(SB), NOPTR, $4 ;; 声明一个全局变量 tlsoffset，
 在 golang 汇编中，没有 `struct/slice/string/map/chan/interface{}` 等类型，有的只是寄存器、内存。因此
 我们需要了解这些 类型对象在汇编中是如何表达的。
 
-
 #### `(u)int??/float??`
 
 `uint32` 就是 32bit 长的一段内存， `float64` 就是 64bit 长的一段内存，其他相似类型可以以此类推。
 
-
 #### `int/unsafe.Pointer/unint`
 
-在 32bit 系统中 `int` 等同于 `int32`，`uintptr` 等同于 `uint32` ，`unsafe.Pointer` 长度 32bit。
+在 32bit 系统中 `int` 等同于 `int32`，`uintptr` 等同于 `uint32`，`unsafe.Pointer` 长度 32bit。
 
-在64bit系统中`int`等同于`int64`，`uintptr`等同于 `uint64`，`unsafe.Pointer` 长度 64bit 。
+在 64bit 系统中 `int` 等同于 `int64`，`uintptr` 等同于 `uint64`，`unsafe.Pointer` 长度 64bit 。
 
-`byte`等同于`uint8`。`rune`等同于`int32`。
+`byte` 等同于 `uint8`。`rune` 等同于 `int32`。
 
 `string` 底层是[`StringHeader`][7] 这样一个结构体，`slice` 底层是[`SliceHeader`][8] 这样一个结构体。
-
-[7]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1783-L1786
-[8]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1800-L1804
-
 
 #### `map`
 
 `map` 是指向[`hmap`][9] 的一个 `unsafe.Pointer`
 
-[9]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/hashmap.go#L107-L122
-
-
 #### `chan`
 
 `chan` 是指向[`hchan`][10] 的一个 `unsafe.Pointer`
 
-[10]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/chan.go#L31-L50
-
-
 #### `interface{}`
 
-`interface{}`是[`eface`](https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/runtime2.go#L148-L151) 这样一个结构体。详细可以参考[深入解析GO](https://tiancaiamao.gitbooks.io/go-internals/content/zh/07.2.html)
+`interface{}` 是 [`eface`][11] 这样一个结构体。详细可以参考[深入解析GO][12].
 
-### go函数调用
+[7]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1783-L1786
+[8]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1800-L1804
+[9]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/hashmap.go#L107-L122
+[10]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/chan.go#L31-L50
+[11]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/runtime2.go#L148-L151
+[12]: https://tiancaiamao.gitbooks.io/go-internals/content/zh/07.2.html
 
-通常函数会有输入输出，我们要进行编程就需要掌握其ABI，了解其如何传递输入参数、返回值、调用函数。
 
-go汇编使用的是`caller-save`模式，因此被调用函数的参数、返回值、栈位置都需要由调用者维护、准备。因此 当你需要调用一个函数时，需要先将这些工作准备好，方能调用下一个函数，另外这些都需要进行内存对其，对其 的大小是`sizeof(uintptr)`。
+### go 函数调用
+
+通常函数会有输入输出，我们要进行编程就需要掌握其 ABI，了解其如何传递输入参数、返回值、调用函数。
+
+go 汇编使用的是 `caller-save` 模式，因此被调用函数的参数、返回值、栈位置都需要由调用者维护、准备。因此 
+当你需要调用一个函数时，需要先将这些工作准备好，方能调用下一个函数，另外这些都需要进行内存对齐，对齐 
+的大小是 `sizeof(uintptr)`。
 
 我们将结合一些函数来进行说明：
 
+
 #### 无局部变量的函数
 
-*注意:其实go函数的栈布局在是否有局部变量时，是没有区别的。在没有局部变量时，只是少了局部变量那部分空间。在当时研究的时候，未能抽象其共同部分，导致拆成2部分写了。*
+*注意：其实 go 函数的栈布局在是否有局部变量时，是没有区别的。在没有局部变量时，只是少了局部变量那部分空
+间。在当时研究的时候，未能抽象其共同部分，导致拆成 2 部分写了。*
 
-对于手写汇编来说，所有参数通过栈来传递，通过伪寄存器`FP`偏移进行访问。函数的返回值跟随在输入参数 后面，并且对其到指针大小。amd64平台上指针大小为8byte。如果输入参数为20byte。则返回值会在从24byte其， 中间跳过4byte用以对其。
+对于手写汇编来说，所有参数通过栈来传递，通过伪寄存器 `FP` 偏移进行访问。函数的返回值跟随在输入参数 后
+面，并且对其到指针大小。amd64 平台上指针大小为 8byte。如果输入参数为 20byte。则返回值会在从 24byte 起， 
+中间跳过 4byte 用以对齐。
 
-``` highlight
+```go
 func xxx(a, b, c int) (e, f, g int) {
     e, f, g = a, b, c
     return
 }
 ```
 
-该函数有3个输入参数、3个返回值，假设我们使用x86\_64平台，因此一个int占用8byte。则其函数栈空间为：
+该函数有 3 个输入参数、3 个返回值，假设我们使用 x86\_64 平台，因此一个 int 占用 8byte。则其函数栈空间为：
 
-``` highlight
+```
 高地址位
-                ┼───────────┼
-                │  返回值g   │
-                ┼───────────┼
-                │  返回值f   │
-                ┼───────────┼
-                │  返回值e   │
-                ┼───────────┼
-                │  参数之c   │
-                ┼───────────┼
-                │  参数之b   │
-                ┼───────────┼
-                │  参数之a   │
-                ┼───────────┼     <-- 伪FP
-                │ 函数返回地址│
-                ┼───────────┼     <-- 伪SP 和 硬件SP
+                ┼──────────────┼
+                │    返回值g   │
+                ┼──────────────┼
+                │    返回值f   │
+                ┼──────────────┼
+                │    返回值e   │
+                ┼──────────────┼
+                │    参数之c   │
+                ┼──────────────┼
+                │    参数之b   │
+                ┼──────────────┼
+                │    参数之a   │
+                ┼──────────────┼     <-- 伪FP
+                │ 函数返回地址 │
+                ┼──────────────┼     <-- 伪SP 和 硬件SP
 低地址位
 ```
 
-各个输入参数和返回值将以倒序的方式从高地址位分布于栈空间上，由于没有局部变量，则xxx的函数栈空间为 0，根据前面的描述，该函数应该为：
+各个输入参数和返回值将以倒序的方式从高地址位分布于栈空间上，由于没有局部变量，则 fb 的函数栈空间为 
+0，根据前面的描述，该函数应该为：
 
-``` highlight
+```asm
 #include "textflag.h"
 
-TEXT ·xxx(SB),NOSPLIT,$0-48
-   MOVQ a+0(FP), AX           // FP+0  为参数a，将其值拷贝到寄存器AX中
-   MOVQ AX, e+24(FP)          // FP+24 为返回值e，将寄存器AX赋值给返回值e
-   MOVQ b+8(FP), AX           // FP+8  为参数b
-   MOVQ AX, f+32(FP)          // FP+24 为返回值f
-   MOVQ c+16(FP), AX          // FP+16 为参数c
-   MOVQ AX, g+40(FP)          // FP+24 为返回值g
-   RET                        // return
+TEXT ·fb(SB),NOSPLIT,$0-48
+   MOVQ a+0(FP), AX           ;; FP+0  为参数 a，将其值拷贝到寄存器 AX 中
+   MOVQ AX, e+24(FP)          ;; FP+24 为返回值 e，将寄存器 AX 赋值给返回值e
+   MOVQ b+8(FP), AX           ;; FP+8  为参数b
+   MOVQ AX, f+32(FP)          ;; FP+24 为返回值 f 
+   MOVQ c+16(FP), AX          ;; FP+16 为参数 c 
+   MOVQ AX, g+40(FP)          ;; FP+24 为返回值 g 
+   RET                        ;; return
 ```
 
-然后在一个go源文件(.go)中声明该函数即可
+然后在一个 go 源文件(.go)中声明该函数即可
 
-``` highlight
-func xxx(a, b, c int) (e, f, g int)
+```asm
+func fb(a, b, c int) (e, f, g int)
 ```
+
 
 #### 有局部变量的函数
 
 当函数中有局部变量时，函数的栈空间就应该留出足够的空间：
 
-``` highlight
+```go
 func zzz(a, b, c int) [3]int{
     var d [3]int
     d[0], d[1], d[2] = a, b, c
@@ -379,97 +376,115 @@ func zzz(a, b, c int) [3]int{
 }
 ```
 
-当函数中有局部变量时，我们就需要移动函数栈帧来进行栈内存分配，因此我们就需要了解相关平台计算机体系 的一些设计问题，在此我们只讲解x86平台的相关要求，我们先需要参考：
+当函数中有局部变量时，我们就需要移动函数栈帧来进行栈内存分配，因此我们就需要了解相关平台计算机体系 
+的一些设计问题，在此我们只讲解x86平台的相关要求，我们先需要参考：
 
-1.  [Where the top of the stack is on x86](https://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86/)
-2.  [Stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64)
-3.  [x86 Assembly Guide](http://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
+1. [Where the top of the stack is on x86](https://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86/)
+2. [Stack frame layout on x86-64](https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64)
+3. [x86 Assembly Guide](http://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
 
-其中讲到x86平台上`BP`寄存器，通常用来指示函数栈的起始位置，仅仅其一个指示作用，现代编译器生成的代码 通常不会用到`BP`寄存器，但是可能某些debug工具会用到该寄存器来寻找函数参数、局部变量等。因此我们写汇编 代码时，也最好将栈起始位置存储在`BP`寄存器中。因此在amd64平台上，会在函数返回值之后插入8byte来放置`CALLER BP`寄存器。
+其中讲到 x86 平台上 `BP` 寄存器，通常用来指示函数栈的起始位置，仅仅其一个指示作用，现代编译器生成的代码 
+通常不会用到 `BP` 寄存器，但是可能某些 debug 工具会用到该寄存器来寻找函数参数、局部变量等。因此我们写汇
+编 代码时，也最好将栈起始位置存储在 `BP` 寄存器中。因此在 amd64 平台上，会在函数返回值之后插入 8byte 来放
+置 `CALLER BP` 寄存器。
 
-此外需要注意的是，`CALLER BP`是在编译期由编译器插入的，用户手写代码时，计算`framesize`时是不包括这个 `CALLER BP`部分的，但是要计算函数返回值的8byte。是否插入`CALLER BP`的主要判断依据是:
+此外需要注意的是，`CALLER BP` 是在编译期由编译器插入的，用户手写代码时，计算 `framesize` 时是不包括这个 
+`CALLER BP` 部分的，但是要计算函数返回值的 8byte。是否插入 `CALLER BP` 的主要判断依据是:
 
--   函数的栈帧大小大于`0`
--   下述函数返回`true`
-    ``` highlight
-    func Framepointer_enabled(goos, goarch string) bool {
-      return framepointer_enabled != 0 && goarch == "amd64" && goos != "nacl"
-    }
-    ```
+-  函数的栈帧大小大于 `0`
+-  下述函数返回 `true`
 
-此处需要注意，go编译器会将函数栈空间自动加8，用于存储BP寄存器，跳过这8字节后才是函数栈上局部变量的内存。 逻辑上的FP/SP位置就是我们在写汇编代码时，计算偏移量时，FP/SP的基准位置，因此局部变量的内存在逻辑SP的低地 址侧，因此我们访问时，需要向负方向偏移。
+```go
+func Framepointer_enabled(goos, goarch string) bool {
+  return framepointer_enabled != 0 && goarch == "amd64" && goos != "nacl"
+}
+```
 
-实际上，在该函数被调用后，编译器会添加`SUBQ`/`LEAQ`代码修改物理SP指向的位置。我们在反汇编的代码中能看到这部分操作，因此我们需要注意物理SP与伪SP指向位置的差别。
+此处需要注意，go 编译器会将函数栈空间自动加 8，用于存储 BP 寄存器，跳过这 8 字节后才是函数栈上局部变量的内
+存。 逻辑上的 FP/SP 位置就是我们在写汇编代码时，计算偏移量时，FP/SP 的基准位置，因此局部变量的内存在逻
+辑 SP 的低地址侧，因此我们访问时，需要向负方向偏移。
 
-``` highlight
+实际上，在该函数被调用后，编译器会添加 `SUBQ` / `LEAQ` 代码修改物理 SP 指向的位置。我们在反汇编的代码中能
+看到这部分操作，因此我们需要注意物理 SP 与伪 SP 指向位置的差别。
+
+```
 高地址位
-          ┼───────────┼
-          │  返回值g   │
-          ┼───────────┼
-          │  返回值f   │
-          ┼───────────┼
-          │  返回值e   │
-          ┼───────────┼
-          │  参数之c   │
-          ┼───────────┼
-          │  参数之b   │
-          ┼───────────┼
-          │  参数之a   │
-          ┼───────────┼    <-- 伪FP
+          ┼─────────────┼
+          │   返回值g   │
+          ┼─────────────┼
+          │   返回值f   │
+          ┼─────────────┼
+          │   返回值e   │
+          ┼─────────────┼
+          │   参数之c   │
+          ┼─────────────┼
+          │   参数之b   │
+          ┼─────────────┼
+          │   参数之a   │
+          ┼─────────────┼    <-- 伪 FP
           │ 函数返回地址│
-          ┼───────────┼
-          │ CALLER BP │
-          ┼───────────┼    <-- 伪SP
-          │  变量之[2] │    <-- d0-8(SP)
-          ┼───────────┼
-          │  变量之[1] │    <-- d1-16(SP)
-          ┼───────────┼
-          │  变量之[0] │    <-- d2-24(SP)
-          ┼───────────┼    <-- 硬件SP
+          ┼─────────────┼
+          │  CALLER BP  │
+          ┼─────────────┼    <-- 伪 SP
+          │  变量之[2]  │    <-- d0-8(SP)
+          ┼─────────────┼
+          │  变量之[1]  │    <-- d1-16(SP)
+          ┼─────────────┼
+          │  变量之[0]  │    <-- d2-24(SP)
+          ┼─────────────┼    <-- 硬件 SP
 低地址位
 ```
 
-图中的`函数返回地址`使用的是调用者的栈空间，`CALLER BP`由编辑器“透明”插入，因此，不算在当前函数的栈空间内。我们实现该函数的汇编代码：
+图中的`函数返回地址`使用的是调用者的栈空间，`CALLER BP`由编辑器“透明”插入，因此，不算在当前函数的栈
+空间内。我们实现该函数的汇编代码：
 
-``` highlight
+```asm
 #include "textflag.h"
 
-TEXT ·zzz(SB),NOSPLIT,$24-48    // $24值栈空间24byte，- 后面的48跟上面的含义一样，
-                                // 在编译后，栈空间会被+8用于存储BP寄存器，这步骤由编译器自动添加
-   MOVQ    $0, d-24(SP)         // 初始化d[0]
-   MOVQ    $0, d-16(SP)         // 初始化d[1]
-   MOVQ    $0, d-8(SP)          // 初始化d[2]
-   MOVQ    a+0(FP), AX          // d[0] = a
-   MOVQ    AX, d-24(SP)         //
-   MOVQ    b+8(FP), AX          // d[1] = b
-   MOVQ    AX, d-16(SP)         //
-   MOVQ    c+16(FP), AX         // d[2] = c
-   MOVQ    AX, d-8(SP)          //
-   MOVQ    d-24(SP), AX         // d[0] = return [0]
-   MOVQ    AX, r+24(FP)         //
-   MOVQ    d-16(SP), AX         // d[1] = return [1]
-   MOVQ    AX, r+32(FP)         //
-   MOVQ    d-8(SP), AX          // d[2] = return [2]
-   MOVQ    AX, r+40(FP)         //
-   RET                          // return
+TEXT ·zzz(SB),NOSPLIT,$24-48    ;; $24 值栈空间 24byte，- 后面的 48 跟上面的含义一样，
+                                ;; 在编译后，栈空间会被 +8 用于存储 BP 寄存器，这步骤由编译器自动添加
+   MOVQ    $0, d-24(SP)         ;; 初始化 d[0]
+   MOVQ    $0, d-16(SP)         ;; 初始化 d[1]
+   MOVQ    $0, d-8(SP)          ;; 初始化 d[2]
+   MOVQ    a+0(FP), AX          ;; d[0] = a
+   MOVQ    AX, d-24(SP)         ;;
+   MOVQ    b+8(FP), AX          ;; d[1] = b
+   MOVQ    AX, d-16(SP)         ;;
+   MOVQ    c+16(FP), AX         ;; d[2] = c
+   MOVQ    AX, d-8(SP)          ;;
+   MOVQ    d-24(SP), AX         ;; d[0] = return [0]
+   MOVQ    AX, r+24(FP)         ;;
+   MOVQ    d-16(SP), AX         ;; d[1] = return [1]
+   MOVQ    AX, r+32(FP)         ;;
+   MOVQ    d-8(SP), AX          ;; d[2] = return [2]
+   MOVQ    AX, r+40(FP)         ;;
+   RET                          ;; return
 ```
 
-然后我们go源码中声明该函数：
+然后我们 go 源码中声明该函数：
 
-``` highlight
+```go
 func zzz(a, b, c int) [3]int
 ```
 
 #### 汇编中调用其他函数
 
-在汇编中调用其他函数通常可以使用2中方式：
+在汇编中调用其他函数通常可以使用两种方式：
 
--   `JMP` 含义为跳转，直接跳转时，与函数栈空间相关的几个寄存器`SP`/`FP`不会发生变化，可以理解为被调用函数 复用调用者的栈空间，此时，参数传递采用寄存器传递，调用者和被调用者协商好使用那些寄存传递参数，调用者将 参数写入这些寄存器，然后跳转到被调用者，被调用者从相关寄存器读出参数。具体实践可以参考[1](https://github.com/golang/go/blob/d1be0fd910758852584ab53d2c92c4caac3f5b7e/src/runtime/asm_amd64.s#L1516-L1522)。
--   `CALL` 通过`CALL`命令来调用其他函数时，栈空间会发生响应的变化，传递参数时，我们需要输入参数、返回值按 之前将的栈布局安排在调用者的栈顶(低地址段)，然后再调用`CALL`命令来调用其函数，调用`CALL`命令后，`SP`寄存 器会下移一个`WORD`(x86\_64上是8byte)，然后进入新函数的栈空间运行。
+- `JMP` 含义为跳转，直接跳转时，与函数栈空间相关的几个寄存器 `SP`/`FP` 不会发生变化，可以理解为被调用
+函数复用调用者的栈空间，此时，参数传递采用寄存器传递，调用者和被调用者协商好使用那些寄存传递参数，
+调用者将参数写入这些寄存器，然后跳转到被调用者，被调用者从相关寄存器读出参数。具体实践可以参考
+[bytes.Compare][13]
 
-下面演示一个`CALL`方法调用的例子：
+- `CALL` 通过 `CALL` 命令来调用其他函数时，栈空间会发生响应的变化，传递参数时，我们需要输入参数、返回
+值按 之前将的栈布局安排在调用者的栈顶(低地址段)，然后再调用 `CALL` 命令来调用其函数，调用 `CALL` 命令
+后，`SP` 寄存器会下移一个 `WORD` (x86\_64 上字长是 8byte)，然后进入新函数的栈空间运行。
 
-``` highlight
+[13]: https://github.com/golang/go/blob/d1be0fd910758852584ab53d2c92c4caac3f5b7e/src/runtime/asm_amd64.s#L1516-L1522
+
+下面演示一个 `CALL` 方法调用的例子：
+
+```go
 func yyy(a, b, c int) [3]int {
     return zzz(a, b, c)
 }
@@ -477,25 +492,27 @@ func yyy(a, b, c int) [3]int {
 
 该函数使用汇编实现就是：
 
-    TEXT ·yyy0(SB), $48-48
-       MOVQ a+0(FP), AX
-       MOVQ AX, ia-48(SP)
-       MOVQ b+8(FP), AX
-       MOVQ AX, ib-40(SP)
-       MOVQ c+16(FP), AX
-       MOVQ AX, ic-32(SP)
-       CALL ·zzz(SB)
-       MOVQ z2-24(SP), AX
-       MOVQ AX, r2+24(FP)
-       MOVQ z1-16(SP), AX
-       MOVQ AX, r1+32(FP)
-       MOVQ z1-8(SP), AX
-       MOVQ AX, r2+40(FP)
-       RET
+```asm
+TEXT ·yyy0(SB), $48-48
+   MOVQ a+0(FP), AX
+   MOVQ AX, ia-48(SP)
+   MOVQ b+8(FP), AX
+   MOVQ AX, ib-40(SP)
+   MOVQ c+16(FP), AX
+   MOVQ AX, ic-32(SP)
+   CALL ·zzz(SB)
+   MOVQ z2-24(SP), AX
+   MOVQ AX, r2+24(FP)
+   MOVQ z1-16(SP), AX
+   MOVQ AX, r1+32(FP)
+   MOVQ z1-8(SP), AX
+   MOVQ AX, r2+40(FP)
+   RET
+```
 
-然后在go文件中声明`yyy0`，并且在`main`函数中调用：
+然后在 go 文件中声明 `yyy0`，并且在 `main` 函数中调用：
 
-``` highlight
+```go
 func yyy0(a, b, c int) [3]int
 
 //go:noinline
@@ -511,45 +528,45 @@ func main() {
 }
 ```
 
-在函数`yyy0`的栈空间分布为：
+在函数 `yyy0` 的栈空间分布为：
 
-``` highlight
+```
 高地址位
-          ┼───────────┼
-          │ 返回值[2]  │    <-- r2+40(FP)
-          ┼───────────┼
-          │ 返回值[1]  │    <-- r1+32(FP)
-          ┼───────────┼
-          │ 返回值[0]  │    <-- r2+24(FP)
-          ┼───────────┼
-          │  参数之c   │    <-- c+16(FP)
-          ┼───────────┼
-          │  参数之b   │    <-- b+8(FP)
-          ┼───────────┼
-          │  参数之a   │    <-- a+0(FP)
-          ┼───────────┼    <-- 伪FP
-          │ 函数返回地址│    <-- yyy0函数返回值
-          ┼───────────┼
-          │ CALLER BP │
-          ┼───────────┼    <-- 伪SP
-          │ 返回值[2]  │    <-- z1-8(SP)
-          ┼───────────┼
-          │ 返回值[1]  │    <-- z1-16(SP)
-          ┼───────────┼
-          │ 返回值[0]  │    <-- z2-24(SP)
-          ┼───────────┼
-          │  参数之c   │    <-- ic-32(SP)
-          ┼───────────┼
-          │  参数之b   │    <-- ib-40(SP)
-          ┼───────────┼
-          │  参数之a   │    <-- ia-48(SP)
-          ┼───────────┼    <-- 硬件SP
+          ┼─────────────┼
+          │  返回值[2]  │    <-- r2+40(FP)
+          ┼─────────────┼
+          │  返回值[1]  │    <-- r1+32(FP)
+          ┼─────────────┼
+          │  返回值[0]  │    <-- r2+24(FP)
+          ┼─────────────┼
+          │   参数之c   │    <-- c+16(FP)
+          ┼─────────────┼
+          │   参数之b   │    <-- b+8(FP)
+          ┼─────────────┼
+          │   参数之a   │    <-- a+0(FP)
+          ┼─────────────┼    <-- 伪 FP
+          │ 函数返回地址│    <-- yyy0 函数返回值
+          ┼─────────────┼
+          │  CALLER BP  │
+          ┼─────────────┼    <-- 伪 SP
+          │  返回值[2]  │    <-- z1-8(SP)
+          ┼─────────────┼
+          │  返回值[1]  │    <-- z1-16(SP)
+          ┼─────────────┼
+          │  返回值[0]  │    <-- z2-24(SP)
+          ┼─────────────┼
+          │   参数之c   │    <-- ic-32(SP)
+          ┼─────────────┼
+          │   参数之b   │    <-- ib-40(SP)
+          ┼─────────────┼
+          │   参数之a   │    <-- ia-48(SP)
+          ┼─────────────┼    <-- 硬件 SP
 低地址位
 ```
 
 其调用者和被调用者的栈关系为（该图来自[plan9 assembly 完全解析](https://github.com/cch123/golang-notes/blob/master/assembly.md)）：
 
-``` highlight
+```
                                                                                                                               
                                        caller                                                                                 
                                  +------------------+                                                                         
@@ -604,28 +621,30 @@ func main() {
                                                               callee
 ```
 
-此外我们还可以做一些优化，其中中间的临时变量，让`zzz`的输入参数、返回值复用`yyy`的输入参数、返回值 这部分空间，其代码为：
+此外我们还可以做一些优化，其中中间的临时变量，让 `zzz` 的输入参数、返回值复用 `yyy` 的输入参数、返回
+值 这部分空间，其代码为：
 
+```asm
     TEXT ·yyy(SB),NOSPLIT,$0-48
-       MOVQ pc+0(SP),          AX            // 将PC寄存器中的值暂时保存在最后一个返回值的位置，因为在
-                                             // 调用zzz时，该位置不会参与计算
-       MOVQ AX,                ret_2+40(FP)  //
-       MOVQ a+0(FP),           AX            // 将输入参数a，放置在栈顶
-       MOVQ AX,                z_a+0(SP)     //
-       MOVQ b+8(FP),           AX            // 将输入参数b，放置在栈顶+8
-       MOVQ AX,                z_b+8(SP)     //
-       MOVQ c+16(FP),          AX            // 将输入参数c，放置在栈顶+16
-       MOVQ AX,                z_c+16(SP)    //
-       CALL ·zzz(SB)                         // 调用函数zzz
-       MOVQ ret_2+40(FP),      AX            // 将PC寄存器恢复
-       MOVQ AX,                pc+0(SP)      //
-       MOVQ z_ret_2+40(SP),    AX            // 将zzz的返回值[2]防止在yyy返回值[2]的位置
-       MOVQ AX,                ret_2+40(FP)  //
-       MOVQ z_ret_1+32(SP),    AX            // 将zzz的返回值[1]防止在yyy返回值[1]的位置
-       MOVQ AX,                ret_1+32(FP)  //
-       MOVQ z_ret_0+24(SP),    AX            // 将zzz的返回值[0]防止在yyy返回值[0]的位置
-       MOVQ AX,                ret_0+24(FP)  //
-       RET                                   // return
+       MOVQ pc+0(SP),          AX            ;; 将 PC 寄存器中的值暂时保存在最后一个返回值的位置，因为在
+       MOVQ AX,                ret_2+40(FP)  ;; 调用 zzz 时，该位置不会参与计算
+       MOVQ a+0(FP),           AX            ;; 将输入参数 a，放置在栈顶
+       MOVQ AX,                z_a+0(SP)     ;;
+       MOVQ b+8(FP),           AX            ;; 将输入参数 b，放置在栈顶+8
+       MOVQ AX,                z_b+8(SP)     ;;
+       MOVQ c+16(FP),          AX            ;; 将输入参数 c，放置在栈顶+16
+       MOVQ AX,                z_c+16(SP)    ;;
+       CALL ·zzz(SB)                         ;; 调用函数 zzz 
+       MOVQ ret_2+40(FP),      AX            ;; 将 PC 寄存器恢复
+       MOVQ AX,                pc+0(SP)      ;;
+       MOVQ z_ret_2+40(SP),    AX            ;; 将 zzz 的返回值[2]放在 yyy 返回值[2]的位置
+       MOVQ AX,                ret_2+40(FP)  ;;
+       MOVQ z_ret_1+32(SP),    AX            ;; 将 zzz 的返回值[1]放在 yyy 返回值[1]的位置
+       MOVQ AX,                ret_1+32(FP)  ;;
+       MOVQ z_ret_0+24(SP),    AX            ;; 将 zzz 的返回值[0]放在 yyy 返回值[0]的位置
+       MOVQ AX,                ret_0+24(FP)  ;;
+       RET                                   ;; return
+```
 
 整个函数调用过程为：
 
@@ -663,65 +682,70 @@ func main() {
 
 我们自己汇编的版本：
 
-    TEXT main.yyy(SB) go/asm/xx.s
-      xx.s:31               0x104f6b0               488b0424                MOVQ 0(SP), AX
-      xx.s:32               0x104f6b4               4889442430              MOVQ AX, 0x30(SP)
-      xx.s:33               0x104f6b9               488b442408              MOVQ 0x8(SP), AX
-      xx.s:34               0x104f6be               48890424                MOVQ AX, 0(SP)
-      xx.s:35               0x104f6c2               488b442410              MOVQ 0x10(SP), AX
-      xx.s:36               0x104f6c7               4889442408              MOVQ AX, 0x8(SP)
-      xx.s:37               0x104f6cc               488b442418              MOVQ 0x18(SP), AX
-      xx.s:38               0x104f6d1               4889442410              MOVQ AX, 0x10(SP)
-      xx.s:39               0x104f6d6               e865ffffff              CALL main.zzz(SB)
-      xx.s:40               0x104f6db               488b442430              MOVQ 0x30(SP), AX
-      xx.s:41               0x104f6e0               48890424                MOVQ AX, 0(SP)
-      xx.s:42               0x104f6e4               488b442428              MOVQ 0x28(SP), AX
-      xx.s:43               0x104f6e9               4889442430              MOVQ AX, 0x30(SP)
-      xx.s:44               0x104f6ee               488b442420              MOVQ 0x20(SP), AX
-      xx.s:45               0x104f6f3               4889442428              MOVQ AX, 0x28(SP)
-      xx.s:46               0x104f6f8               488b442418              MOVQ 0x18(SP), AX
-      xx.s:47               0x104f6fd               4889442420              MOVQ AX, 0x20(SP)
-      xx.s:48               0x104f702               c3                      RET
+```asm
+TEXT main.yyy(SB) go/asm/xx.s
+  xx.s:31               0x104f6b0               488b0424                MOVQ 0(SP), AX
+  xx.s:32               0x104f6b4               4889442430              MOVQ AX, 0x30(SP)
+  xx.s:33               0x104f6b9               488b442408              MOVQ 0x8(SP), AX
+  xx.s:34               0x104f6be               48890424                MOVQ AX, 0(SP)
+  xx.s:35               0x104f6c2               488b442410              MOVQ 0x10(SP), AX
+  xx.s:36               0x104f6c7               4889442408              MOVQ AX, 0x8(SP)
+  xx.s:37               0x104f6cc               488b442418              MOVQ 0x18(SP), AX
+  xx.s:38               0x104f6d1               4889442410              MOVQ AX, 0x10(SP)
+  xx.s:39               0x104f6d6               e865ffffff              CALL main.zzz(SB)
+  xx.s:40               0x104f6db               488b442430              MOVQ 0x30(SP), AX
+  xx.s:41               0x104f6e0               48890424                MOVQ AX, 0(SP)
+  xx.s:42               0x104f6e4               488b442428              MOVQ 0x28(SP), AX
+  xx.s:43               0x104f6e9               4889442430              MOVQ AX, 0x30(SP)
+  xx.s:44               0x104f6ee               488b442420              MOVQ 0x20(SP), AX
+  xx.s:45               0x104f6f3               4889442428              MOVQ AX, 0x28(SP)
+  xx.s:46               0x104f6f8               488b442418              MOVQ 0x18(SP), AX
+  xx.s:47               0x104f6fd               4889442420              MOVQ AX, 0x20(SP)
+  xx.s:48               0x104f702               c3                      RET
+```
 
-go源码版本生成的汇编：
+go 源码版本生成的汇编：
 
-    TEXT main.yyy(SB) go/asm/main.go
-      main.go:20            0x104f360               4883ec50                        SUBQ $0x50, SP
-      main.go:20            0x104f364               48896c2448                      MOVQ BP, 0x48(SP)
-      main.go:20            0x104f369               488d6c2448                      LEAQ 0x48(SP), BP
-      main.go:20            0x104f36e               48c744247000000000              MOVQ $0x0, 0x70(SP)
-      main.go:20            0x104f377               48c744247800000000              MOVQ $0x0, 0x78(SP)
-      main.go:20            0x104f380               48c784248000000000000000        MOVQ $0x0, 0x80(SP)
-      main.go:20            0x104f38c               488b442458                      MOVQ 0x58(SP), AX
-      main.go:21            0x104f391               48890424                        MOVQ AX, 0(SP)
-      main.go:20            0x104f395               488b442460                      MOVQ 0x60(SP), AX
-      main.go:21            0x104f39a               4889442408                      MOVQ AX, 0x8(SP)
-      main.go:20            0x104f39f               488b442468                      MOVQ 0x68(SP), AX
-      main.go:21            0x104f3a4               4889442410                      MOVQ AX, 0x10(SP)
-      main.go:21            0x104f3a9               e892020000                      CALL main.zzz(SB)
-      main.go:21            0x104f3ae               488b442418                      MOVQ 0x18(SP), AX
-      main.go:21            0x104f3b3               4889442430                      MOVQ AX, 0x30(SP)
-      main.go:21            0x104f3b8               0f10442420                      MOVUPS 0x20(SP), X0
-      main.go:21            0x104f3bd               0f11442438                      MOVUPS X0, 0x38(SP)
-      main.go:22            0x104f3c2               488b442430                      MOVQ 0x30(SP), AX
-      main.go:22            0x104f3c7               4889442470                      MOVQ AX, 0x70(SP)
-      main.go:22            0x104f3cc               0f10442438                      MOVUPS 0x38(SP), X0
-      main.go:22            0x104f3d1               0f11442478                      MOVUPS X0, 0x78(SP)
-      main.go:22            0x104f3d6               488b6c2448                      MOVQ 0x48(SP), BP
-      main.go:22            0x104f3db               4883c450                        ADDQ $0x50, SP
-      main.go:22            0x104f3df               c3                              RET
+```asm
+TEXT main.yyy(SB) go/asm/main.go
+  main.go:20            0x104f360               4883ec50                        SUBQ $0x50, SP
+  main.go:20            0x104f364               48896c2448                      MOVQ BP, 0x48(SP)
+  main.go:20            0x104f369               488d6c2448                      LEAQ 0x48(SP), BP
+  main.go:20            0x104f36e               48c744247000000000              MOVQ $0x0, 0x70(SP)
+  main.go:20            0x104f377               48c744247800000000              MOVQ $0x0, 0x78(SP)
+  main.go:20            0x104f380               48c784248000000000000000        MOVQ $0x0, 0x80(SP)
+  main.go:20            0x104f38c               488b442458                      MOVQ 0x58(SP), AX
+  main.go:21            0x104f391               48890424                        MOVQ AX, 0(SP)
+  main.go:20            0x104f395               488b442460                      MOVQ 0x60(SP), AX
+  main.go:21            0x104f39a               4889442408                      MOVQ AX, 0x8(SP)
+  main.go:20            0x104f39f               488b442468                      MOVQ 0x68(SP), AX
+  main.go:21            0x104f3a4               4889442410                      MOVQ AX, 0x10(SP)
+  main.go:21            0x104f3a9               e892020000                      CALL main.zzz(SB)
+  main.go:21            0x104f3ae               488b442418                      MOVQ 0x18(SP), AX
+  main.go:21            0x104f3b3               4889442430                      MOVQ AX, 0x30(SP)
+  main.go:21            0x104f3b8               0f10442420                      MOVUPS 0x20(SP), X0
+  main.go:21            0x104f3bd               0f11442438                      MOVUPS X0, 0x38(SP)
+  main.go:22            0x104f3c2               488b442430                      MOVQ 0x30(SP), AX
+  main.go:22            0x104f3c7               4889442470                      MOVQ AX, 0x70(SP)
+  main.go:22            0x104f3cc               0f10442438                      MOVUPS 0x38(SP), X0
+  main.go:22            0x104f3d1               0f11442478                      MOVUPS X0, 0x78(SP)
+  main.go:22            0x104f3d6               488b6c2448                      MOVQ 0x48(SP), BP
+  main.go:22            0x104f3db               4883c450                        ADDQ $0x50, SP
+  main.go:22            0x104f3df               c3                              RET
+```
 
 经过对比可以看出我们的优点:
 
--   没有额外分配栈空间
--   没有中间变量，减少了拷贝次数
--   没有中间变量的初始化，节省操作
+-  没有额外分配栈空间
+-  没有中间变量，减少了拷贝次数
+-  没有中间变量的初始化，节省操作
 
-go源码版本的优点：
+go 源码版本的优点：
 
--   对于连续内存使用了`MOVUPS`命令优化，（此处不一定是优化，有时还会劣化，因为X86\_64不同 指令集混用时，会产生[额外开销](https://software.intel.com/en-us/articles/intel-avx-state-transitions-migrating-sse-code-to-avx)）
+-  对于连续内存使用了`MOVUPS`命令优化，（此处不一定是优化，有时还会劣化，因为X86\_64不同 指令集混用
+   时，会产生[额外开销](https://software.intel.com/en-us/articles/intel-avx-state-transitions-migrating-sse-code-to-avx)）
 
-我们可以运行一下`go benchmark`来比较一下两个版本，可以看出自己的汇编版本速度上明显快于go源码版本。
+我们可以运行一下 `go benchmark` 来比较一下两个版本，可以看出自己的汇编版本速度上明显快于 go 源码版本。
 
 ``` highlight
 go test -bench=. -v -count=3
@@ -739,27 +763,28 @@ ok      go/asm    13.005s
 
 ### 编译/反编译
 
-因为go汇编的资料很少，所以我们需要通过编译、反汇编来学习。
+因为 `go` 汇编的资料很少，所以我们需要通过编译、反汇编来学习。
 
-``` highlight
-// 编译
+```bash
+# 编译
 go build -gcflags="-S"
 go tool compile -S hello.go
-go tool compile -N -S hello.go // 禁止优化
-// 反编译
+go tool compile -N -S hello.go # 禁止优化
+# 反编译
 go tool objdump <binary>
 ```
 
 总结
 ----
 
-了解go汇编并不是一定要去手写它，因为汇编总是不可移植和难懂的。但是它能够帮助我们了解go的一些底层机制， 了解计算机结构体系，同时我们需要做一些hack的事时可以用得到。
+了解 go 汇编并不是一定要去手写它，因为汇编总是不可移植和难懂的。但是它能够帮助我们了解 go 的一些底层机
+制，了解计算机结构体系，同时我们需要做一些 hack 的事时可以用得到。
 
-比如，我们可以使用`go:noescape`来减少内存的分配：
+比如，我们可以使用 `go:noescape` 来减少内存的分配：
 
 很多时候，我们可以使函数内计算过程使用栈上的空间做缓存，这样可以减少对内存的使用，并且是计算速度更快：
 
-``` highlight
+```go
 func xxx() int{
     var buf [1024]byte
     data := buf[:]
@@ -767,22 +792,26 @@ func xxx() int{
 }
 ```
 
-但是，很多时候，go编译器的逃逸分析并不让人满意，经常会使`buf`移动到堆内存上，造成不必要的内存分配。 这是我们可以使用`sync.Pool`，但是总让人不爽。因此我们使用汇编完成一个`noescape`函数，绕过go编译器的 逃逸检测，使`buf`不会移动到堆内存上。
+但是，很多时候，go 编译器的逃逸分析并不让人满意，经常会使 `buf` 移动到堆内存上，造成不必要的内存分配。 
+这时我们可以使用 `sync.Pool` ，但是总让人不爽。因此我们使用汇编完成一个 `noescape` 函数，绕过 go 编译器的 
+逃逸检测，使 `buf` 不会移动到堆内存上。
 
-    // asm_amd64.s
-    #include "textflag.h"
+```asm
+;; asm_amd64.s
+#include "textflag.h"
 
-    TEXT ·noescape(SB),NOSPLIT,$0-48
-            MOVQ    d_base+0(FP),   AX
-            MOVQ    AX,     b_base+24(FP)
-            MOVQ    d_len+8(FP),    AX
-            MOVQ    AX,     b_len+32(FP)
-            MOVQ    d_cap+16(FP),AX
-            MOVQ    AX,     b_cap+40(FP)
-            RET
+TEXT ·noescape(SB),NOSPLIT,$0-48
+        MOVQ    d_base+0(FP),   AX
+        MOVQ    AX,     b_base+24(FP)
+        MOVQ    d_len+8(FP),    AX
+        MOVQ    AX,     b_len+32(FP)
+        MOVQ    d_cap+16(FP),AX
+        MOVQ    AX,     b_cap+40(FP)
+        RET
+```
 
-``` highlight
-//此处使用go编译器的指示
+```go
+// 此处使用 go 编译器的指示
 //go:noescape
 func noescape(d []byte) (b []byte)
 
@@ -790,29 +819,63 @@ func xxx() int {
     var buf [1024]byte
     data := noescape(buf[:])
     // do something in data
-    // 这样可以确保buf一定分配在xxx的函数栈上
+    // 这样可以确保 buf 一定分配在 xxx 的函数栈上
 }
 ```
 
 ### c2goasm
 
-当我们需要做一些密集的数列运算或实现其他算法时，我们可以使用先进CPU的向量扩展指令集进行加速，如`sse4_2/avx/avx2/avx-512`等。有些人觉得通常可以遇不见这样的场景，其实能够用到这些的场景还是很多的。比如，我们常用的监控采集[go-metrics](https://github.com/rcrowley/go-metrics)库，其中就有很多可以优化的地方，如[SampleSum](https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L374-L381)、[SampleMax](https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L235-L247)、[SampleMin](https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L257-L269)这些函数都可以进行加速。
+当我们需要做一些密集的数列运算或实现其他算法时，我们可以使用先进 CPU 的向量扩展指令集进行加速，如
+`sse4_2/avx/avx2/avx-512` 等。有些人觉得通常可能遇不见这样的场景，其实能够用到这些的场景还是很多的。
+比如，我们常用的监控采集[go-metrics][14]库，其中就有很多可以优化的地方，如[SampleSum][15]、
+[SampleMax][16]、[SampleMin][17] 这些函数都可以进行加速。
 
-但是，虽然这些方法很简单，但是对于汇编基础很弱的人来说，手写这些`sse4_2/avx/avx2/avx-512`指令代码，仍然是很困难的。但是，我们可以利用`clang/gcc`这些深度优化过的C语言编译器来帮我们生成对于的汇编代码。
+[14]: https://github.com/rcrowley/go-metrics
+[15]: https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L374-L381
+[16]: https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L235-L247
+[17]: https://github.com/rcrowley/go-metrics/blob/d932a24a8ccb8fcadc993e5c6c58f93dac168294/sample.go#L257-L26
 
-所幸，这项工作已经有人帮我们很好的完成了，那就是[c2goasm](https://github.com/minio/c2goasm)。`c2goasm`可以将C/C++编译器生成的汇编代码转换为golang汇编代码。在这里，我们可以学习该工具如何使用。它可以帮助我们在代码利用上`sse4_2/avx/avx2/avx-512`等这些先进指令。但是这些执行需要得到CPU的支持。因此我们先要判断使用的CPU代码是否支持。
+但是，虽然这些方法很简单，但是对于汇编基础很弱的人来说，手写这些 `sse4_2/avx/avx2/avx-512` 指令代码，
+仍然是很困难的。但是，我们可以利用 `clang/gcc` 这些深度优化过的 C 语言编译器来帮我们生成对于的汇编代码。
 
-注意`c2goasm`中其中有很多默认规则需要我们去遵守：
+所幸，这项工作已经有人帮我们很好的完成了，那就是[c2goasm][18]。`c2goasm` 可以将 C/C++ 编译器生成的汇编
+代码转换为 golang 汇编代码。在这里，我们可以学习该工具如何使用。它可以帮助我们在代码利用上
+`sse4_2/avx/avx2/avx-512` 等这些先进指令。但是这些执行需要得到 CPU 的支持。因此我们先要判断使用的 CPU 代
+码是否支持。
 
--   我们先需要使用`clang`将c源文件编译成汇编代码`clang_c.s`（该文件名随意）；
--   然后我们可以使用`c2goasm`将汇编代码`clang_c.s`转换成go汇编源码`xxx.s`；
--   我们每使用`c2goasm`生成一个go汇编文件`xxx.s`之前，我们先添加一个对应的`xxx.go`的源码文件，其中需要包含`xxx.s`中函数的声明。
--   当c源码或者`clang_c.s`源码中函数名称为`func_xxx`时，经过`c2goasm`转成的汇编函数会增加`_`前缀，变成`_func_xxx`，因此在`xxx.go`中的函数声明为`_func_xxx`。要求声明的`_func_xxx`函数的入参个数与原来C源码中的入参个数相等，且为每个64bit大小。此时go声明函数中需要需要使用`slice`/`map`时，需要进行[额外的转化](https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/sample_avx2_amd64.go#L14-L17)。如果函数有返回值，则声明对应的go函数时，返回值必须为`named return`，即返回值需要由`()`包裹，否则会报错：`Badly formatted return argument ....`
--   如果我们需要生成多种指令的go汇编实现时，我们需要实现对应的多个c函数，因此我们可以使用c的[宏](https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/lib/sample.c#L3-L11)辅助我们声明对应的c函数，避免重复的书写。
+[18]: https://github.com/minio/c2goasm
 
-在linux上，我们可以使用命令`cat /proc/cpuinfo |grep flags`来查看CPU支持的指令集。但是在工作环境中，我们的代码需要在多个环境中运行，比如开发环境、和生产环境，这些环境之间可能会有很大差别，因此我们希望我们的代码可以动态支持不同的CPU环境。这里，我们可以用到[intel-go/cpuid](https://github.com/intel-go/cpuid)，我们可以实现多个指令版本的代码，然后根据运行环境中CPU的支持情况，选择实际实行哪一段逻辑：
+注意 `c2goasm` 中其中有很多默认规则需要我们去遵守：
 
-``` highlight
+-  我们先需要使用 `clang` 将 c 源文件编译成汇编代码 `clang_c.s`（该文件名随意）；
+
+-  然后我们可以使用 `c2goasm` 将汇编代码 `clang_c.s` 转换成 go 汇编源码 `xxx.s` ；
+
+-  我们每使用 `c2goasm` 生成一个 go 汇编文件 `xxx.s` 之前，我们先添加一个对应的 `xxx.go` 的源码文件，其
+   中需要包含 `xxx.s` 中函数的声明。
+
+-  当 c 源码或者 `clang_c.s` 源码中函数名称为 `func_xxx` 时，经过 `c2goasm` 转成的汇编函数会增加 `_` 前缀，
+   变成 `_func_xxx`，因此在 `xxx.go` 中的函数声明为 `_func_xxx`。要求声明的 `_func_xxx` 函数的入参个数与原来 C 
+   源码中的入参个数相等，且为每个 64bit 大小。此时 go 声明函数中需要使用 `slice` / `map` 时，需要进行
+   [额外的转化][18]。如果函数有返回值，则声明对应的 go 函数时，返回值必须为 `named return` ，即返回值需
+   要由 `()` 包裹，否则会报错：`Badly formatted return argument ....`
+
+-  如果我们需要生成多种指令的 go 汇编实现时，我们需要实现对应的多个 c 函数，因此我们可以使用 c 的[宏][19] 
+   辅助我们声明对应的 c 函数，避免重复的书写。
+
+[18]: https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/sample_avx2_amd64.go#L14-L17
+[19]: https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/lib/sample.c#L3-L11
+
+
+在 linux上，我们可以使用命令 `cat /proc/cpuinfo |grep flags` 来查看 CPU 支持的指令集。但是在工作环境中，
+我们的代码需要在多个环境中运行，比如开发环境、和生产环境，这些环境之间可能会有很大差别，因此我们希望
+我们的代码可以动态支持不同的 CPU 环境。这里，我们可以用到[intel-go/cpuid][20]，我们可以实现多个指令版
+本的代码，然后根据运行环境中 CPU 的支持情况，选择实际实行哪一段逻辑：
+
+[20]: https://github.com/intel-go/cpuid
+
+
+```go
 package main
 
 import (
@@ -831,17 +894,18 @@ func main() {
 }
 ```
 
-然后，我们可以先使用C来实现这3个函数：
+然后，我们可以先使用 C 来实现这 3 个函数：
 
-``` highlight
+```c
 #include <stdint.h>
-/* 我们要实现3中指令的汇编实现，因此我们需要生成3个版本的C代码，此处使用宏来辅助添加后缀，避免生成的函数名冲突 */
+/* 我们要实现 3 种指令的汇编实现，因此我们需要生成 3 个版本的 C 代码，
+   此处使用宏来辅助添加后缀，避免生成的函数名冲突 */
 #if defined ENABLE_AVX2
-#define NAME(x) x##_avx2
+#   define NAME(x) x##_avx2
 #elif defined ENABLE_AVX
-#define NAME(x) x##_avx
+#   define NAME(x) x##_avx
 #elif defined ENABLE_SSE4_2
-#define NAME(x) x##_sse4_2
+#   define NAME(x) x##_sse4_2
 #endif
 
 int64_t NAME(sample_sum)(int64_t *beg, int64_t len) {
@@ -884,21 +948,56 @@ int64_t NAME(sample_min)(int64_t *beg, int64_t len) {
 }
 ```
 
-然后使用`clang`生成三中指令的汇编代码：
+然后使用 `clang` 生成三种指令的汇编代码：
 
-``` highlight
-clang -S -DENABLE_SSE4_2 -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm -inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin -ffast-math -msse4 lib/sample.c -o lib/sample_sse4.s
-clang -S -DENABLE_AVX -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm -inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin -ffast-math -mavx lib/sample.c -o lib/sample_avx.s
-clang -S -DENABLE_AVX2 -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm -inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin -ffast-math -mavx2 lib/sample.c -o lib/sample_avx2.s
+```bash
+clang -S -DENABLE_SSE4_2 -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm \
+-inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin \
+-ffast-math -msse4 lib/sample.c -o lib/sample_sse4.s
+
+clang -S -DENABLE_AVX -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm \
+-inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin \
+-ffast-math -mavx lib/sample.c -o lib/sample_avx.s
+
+clang -S -DENABLE_AVX2 -target x86_64-unknown-none -masm=intel -mno-red-zone -mstackrealign -mllvm \
+-inline-threshold=1000 -fno-asynchronous-unwind-tables -fno-exceptions -fno-rtti -O3 -fno-builtin \
+-ffast-math -mavx2 lib/sample.c -o lib/sample_avx2.s
 ```
 
-*注意*:此处目前有一个待解决的问题[issues8](https://github.com/minio/c2goasm/issues/8)，如果谁指定如何解决，请帮助我一下。使用`clang`生成的AVX2汇编代码，其中局部变量`0x8000000000000000`/`0x7FFFFFFFFFFFFFFF`会被分片到`RODATA`段，并且使用32byte对其。使用`c2goasm`转换时，会生成一个很大的全局变量(几个G…，此处会运行很久)。目前的解决方式是，将生成
+*注意*：此处目前有一个待解决的问题[issues8][21]，如果谁指定如何解决，请帮助我一下。使用 `clang` 生成的
+AVX2 汇编代码，其中局部变量 `0x8000000000000000` / `0x7FFFFFFFFFFFFFFF` 会被分片到 `RODATA` 段，并且使用
+32byte 对其。使用 `c2goasm` 转换时，会生成一个很大的全局变量(几个 G…，此处会运行很久)。目前的解决方式
+是，将生成
 
-    .LCPI1_0:
+
+```asm
+.LCPI1_0:
+    .quad   -9223372036854775808    # 0x8000000000000000
+    .section    .rodata,"a",@progbits
+    .align  32
+.LCPI1_1:
+    .long   0                       # 0x0
+    .long   2                       # 0x2
+    .long   4                       # 0x4
+    .long   6                       # 0x6
+    .zero   4
+    .zero   4
+    .zero   4
+    .zero   4
+    .text
+    .globl  sample_max_avx2
+```
+
+改为：
+
+```asm
+.LCPI1_0:
         .quad   -9223372036854775808    # 0x8000000000000000
-        .section    .rodata,"a",@progbits
-        .align  32
-    .LCPI1_1:
+        .quad   -9223372036854775808    # 0x8000000000000000
+        .quad   -9223372036854775808    # 0x8000000000000000
+        .quad   -9223372036854775808    # 0x8000000000000000
+        .section        .rodata,"a",@progbits
+.LCPI1_1:
         .long   0                       # 0x0
         .long   2                       # 0x2
         .long   4                       # 0x4
@@ -909,39 +1008,26 @@ clang -S -DENABLE_AVX2 -target x86_64-unknown-none -masm=intel -mno-red-zone -ms
         .zero   4
         .text
         .globl  sample_max_avx2
+        .align  16, 0x90
+        .type   sample_max_avx2,@function
+```
 
-改为：
+另一处同理，具体修改后的结果为：[sample\_avx2.s][22]
 
-    .LCPI1_0:
-            .quad   -9223372036854775808    # 0x8000000000000000
-            .quad   -9223372036854775808    # 0x8000000000000000
-            .quad   -9223372036854775808    # 0x8000000000000000
-            .quad   -9223372036854775808    # 0x8000000000000000
-            .section        .rodata,"a",@progbits
-    .LCPI1_1:
-            .long   0                       # 0x0
-            .long   2                       # 0x2
-            .long   4                       # 0x4
-            .long   6                       # 0x6
-            .zero   4
-            .zero   4
-            .zero   4
-            .zero   4
-            .text
-            .globl  sample_max_avx2
-            .align  16, 0x90
-            .type   sample_max_avx2,@function
+[21]: https://github.com/minio/c2goasm/issues/8
+[22]: https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/lib/sample_avx2.s
 
-另一处同理，具体修改后的结果为：[sample\_avx2.s](https://github.com/lrita/c2goasm-example/blob/63792901a050e7ff24208c7759d6e0463f23ffeb/lib/sample_avx2.s)
+回归正题，添加对应的 go 函数声明，我们要生成的 3 个 go 汇编文件为：`sample_sse4_amd64.s`，
+`sample_avx_amd64.s` 和 `sample_avx2_amd64.s`，因此对应的 3 个 go 文件为：`sample_sse4_amd64.go`，
+`sample_avx_amd64.go` 和 `sample_avx2_amd64.go`。 其中声明的 go 函数为下面，我们挑其中一个文件说，其他两
+个类似：
 
-回归正题，添加对应的go函数声明，我们要生成的三个go汇编文件为：`sample_sse4_amd64.s`，`sample_avx_amd64.s`和`sample_avx2_amd64.s`，因此对应的三个go文件为：`sample_sse4_amd64.go`，`sample_avx_amd64.go`和`sample_avx2_amd64.go`。 其中声明的go函数为下面，我们挑其中一个文件说，其他两个类似：
-
-``` highlight
+```go
 package sample
 
 import "unsafe"
 
-// 声明的go汇编函数，不支持go buildin 数据类型，参数个数要与c实现的参数个数相等，最多支持14个。
+// 声明的 go 汇编函数，不支持 go buildin 数据类型，参数个数要与 c 实现的参数个数相等，最多支持 14 个。
 //go:noescape
 func _sample_sum_sse4_2(addr unsafe.Pointer, len int64) (x int64)
 
@@ -951,7 +1037,7 @@ func _sample_max_sse4_2(addr unsafe.Pointer, len int64) (x int64)
 //go:noescape
 func _sample_min_sse4_2(addr unsafe.Pointer, len int64) (x int64)
 
-// 因为我们希望输入参数为一个slice，则我们在下面进行3个封装。
+// 因为我们希望输入参数为一个 slice，则我们在下面进行 3 个封装。
 
 func sample_sum_sse4_2(v []int64) int64 {
     x := (*slice)(unsafe.Pointer(&v))
@@ -969,17 +1055,17 @@ func sample_min_sse4_2(v []int64) int64 {
 }
 ```
 
-有了这些函数声明，我们就可以使用`c2goasm`进行转换了：
+有了这些函数声明，我们就可以使用 `c2goasm` 进行转换了：
 
-``` highlight
+```bash
 c2goasm -a -f lib/sample_sse4.s sample_sse4_amd64.s
 c2goasm -a -f lib/sample_avx.s sample_avx_amd64.s
 c2goasm -a -f lib/sample_avx2.s sample_avx2_amd64.s
 ```
 
-然后我们添加一段初始化逻辑，根据CPU支持的指令集来选择使用对应的实现：
+然后我们添加一段初始化逻辑，根据 CPU 支持的指令集来选择使用对应的实现：
 
-``` highlight
+```go
 import (
     "math"
     "unsafe"
@@ -1011,7 +1097,7 @@ func init() {
         SampleMax = sample_max_sse4_2
         SampleMin = sample_min_sse4_2
   default:
-    // 纯go实现
+    // 纯 go 实现
         SampleSum = sampleSum
         SampleMax = sampleMax
         SampleMin = sampleMin
@@ -1019,42 +1105,29 @@ func init() {
 }
 ```
 
-此时我们的工作就完成了，我们可以使用`go test`的benchmark来进行比较，看看跟之前的纯go实现，性能提升了多少：
+此时我们的工作就完成了，我们可以使用 `go test` 的 benchmark 来进行比较，看看跟之前的纯 go 实现，性能提升了
+多少：
 
-``` highlight
+```
 name         old time/op  new time/op  delta
 SampleSum-4   519ns ± 1%    53ns ± 2%  -89.72%  (p=0.000 n=10+9)
 SampleMax-4   676ns ± 2%   183ns ± 2%  -73.00%  (p=0.000 n=10+10)
 SampleMin-4   627ns ± 1%   180ns ± 1%  -71.27%  (p=0.000 n=10+9)
 ```
 
-我们可以看出，sum方法得到10倍的提升，max/min得到了3倍多的提升，可能是因为max/min方法中每次循环中都有一次分支判断的原因，导致其提升效果不如sum方法那么多。
+我们可以看出，sum 方法得到 10 倍的提升，max/min 得到了 3 倍多的提升，可能是因为 max/min 方法中每次循环中都有
+一次分支判断的原因，导致其提升效果不如 sum 方法那么多。
 
 完整的实现在[lrita/c2goasm-example](https://github.com/lrita/c2goasm-example)
 
 参考
 ----
 
--   [A Quick Guide to Go’s Assembler](https://golang.org/doc/asm)
--   [解析 Go 中的函数调用](https://juejin.im/post/58f579b58d6d81006491c7c0/)
--   [A Manual for the Plan 9 assembler](http://doc.cat-v.org/plan_9/4th_edition/papers/asm)
--   [Golang中的Plan9汇编器](https://github.com/yangyuqian/technical-articles/blob/master/asm/golang-plan9-assembly-cn.md)
--   [GoFunctionsInAssembly](https://github.com/golang/go/files/447163/GoFunctionsInAssembly.pdf)
--   [plan9 assembly 完全解析](https://github.com/cch123/golang-notes/blob/master/assembly.md)
--   [InfluxData is Building a Fast Implementation of Apache Arrow in Go Using c2goasm and SIMD](https://www.influxdata.com/blog/influxdata-apache-arrow-go-implementation/)
+-  [A Quick Guide to Go’s Assembler](https://golang.org/doc/asm)
+-  [解析 Go 中的函数调用](https://juejin.im/post/58f579b58d6d81006491c7c0/)
+-  [A Manual for the Plan 9 assembler](http://doc.cat-v.org/plan_9/4th_edition/papers/asm)
+-  [Golang中的Plan9汇编器](https://github.com/yangyuqian/technical-articles/blob/master/asm/golang-plan9-assembly-cn.md)
+-  [GoFunctionsInAssembly](https://github.com/golang/go/files/447163/GoFunctionsInAssembly.pdf)
+-  [plan9 assembly 完全解析](https://github.com/cch123/golang-notes/blob/master/assembly.md)
+-  [InfluxData is Building a Fast Implementation of Apache Arrow in Go Using c2goasm and SIMD](https://www.influxdata.com/blog/influxdata-apache-arrow-go-implementation/)
 
-### Search
-
-### Table of Contents
-
-© 2017 <span title="Neal Hu">Neal Hu</span> <a href="javascript:window.scrollTo(0,0)" class="right mobile-visible">TOP</a>
-
--   [TOP](javascript:window.scrollTo(0,0))
-
-[<span class="mega-octicon octicon-mark-github" title="GitHub"></span>](https://github.com/lrita/lrita.github.io)
--   [首页](/ "首页")
--   [分类](/categories/ "分类")
--   [维基](/wiki/ "维基")
--   [链接](/links/ "链接")
--   [关于](/about/ "关于")
--   [<span class="octicon octicon-rss" style="color:orange;"></span>](/feed.xml)
