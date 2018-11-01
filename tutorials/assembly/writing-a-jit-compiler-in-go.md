@@ -2,6 +2,7 @@ Writing a JIT compiler in Golang
 ================================
 
 Sidhartha Mani
+
 Dec 25, 2017
 
 
@@ -17,6 +18,7 @@ type to any other type.
 As a side note, If you’re interested in hearing more about Type Magic, please leave a comment below 
 and I’ll write about it next.
 
+
 ### Generating Code for x64
 
 Machine code is a sequence of bytes that have a special meaning to the processor. The machine used 
@@ -24,6 +26,7 @@ to write this blog and test out the code uses a x64 processor, therefore I’ve 
 instruction set.
 
 This code will not run unless you’re running it on a x64 processor.
+
 
 ### Generating x64 code to print "Hello World!"
 
@@ -49,9 +52,9 @@ Putting all of this together, here’s a sequence of bytes that represent the in
 initialize some of the registers.
 
 ```asm
-0:  48 c7 c0 01 00 00 00    mov    rax,0x1 
-7:  48 c7 c7 01 00 00 00    mov    rdi,0x1
-e:  48 c7 c2 0c 00 00 00    mov    rdx,0xc
+0:  48 c7 c0 01 00 00 00    mov    $0x1, %rax 
+7:  48 c7 c7 01 00 00 00    mov    $0x1, %rdi
+e:  48 c7 c2 0c 00 00 00    mov    $0xc, %rdx
 ```
 
 -  The first instruction sets `rax` to `1` — to denote the `write` syscall.
@@ -76,7 +79,7 @@ data is known. This is the exact procedure followed by linkers. The process of l
 out these addresses to point to the correct data or function.
 
 ```asm
-15: 48 8d 35 00 00 00 00    lea    rsi,[rip+0x0]      # 0x15
+15: 48 8d 35 00 00 00 00    lea    0x0(%rip), %rsi      # 0x15
 1c: 0f 05                   syscall
 1e: c3                      ret
 ```
@@ -97,10 +100,10 @@ With the whole program laid out, now we can update the `lea` instruction to poin
 the updated code:
 
 ```asm
-0:  48 c7 c0 01 00 00 00    mov    rax,0x1
-7:  48 c7 c7 01 00 00 00    mov    rdi,0x1
-e:  48 c7 c2 0c 00 00 00    mov    rdx,0xc
-15: 48 8d 35 03 00 00 00    lea    rsi,[rip+0x3]        # 0x1f
+0:  48 c7 c0 01 00 00 00    mov    $0x1, %rax
+7:  48 c7 c7 01 00 00 00    mov    $0x1, %rdi
+e:  48 c7 c2 0c 00 00 00    mov    $0xc, %rdx
+15: 48 8d 35 03 00 00 00    lea    0x3(%rip), %rsi        # 0x1f
 1c: 0f 05                   syscall
 1e: c3                      ret
 1f: 48 65 6c 6c 6f 20 57 6f 72 6c 64 21   // Hello World! 
@@ -113,9 +116,9 @@ while still remaining readable. Here’s the `[]uint16` data structure holding t
 
 ```go
 printFunction := []uint16{
-    0x48c7, 0xc001, 0x0,                // mov %rax,$0x1
-    0x48, 0xc7c7, 0x100, 0x0,           // mov %rdi,$0x1
-    0x48c7, 0xc20c, 0x0,                // mov 0x13, %rdx
+    0x48c7, 0xc001, 0x0,                // mov $0x1, %rax
+    0x48, 0xc7c7, 0x100, 0x0,           // mov $0x1, %rdi
+    0x48c7, 0xc20c, 0x0,                // mov $0xc, %rdx
     0x48, 0x8d35, 0x400, 0x0,           // lea 0x4(%rip), %rsi
     0xf05,                              // syscall
     0xc3cc,                             // ret
@@ -132,7 +135,9 @@ Therefore, I used the filler instruction `cc` instruction (no-op) to push the st
 section to the next entry in the slice. I have also updated the `lea` to point to a location 4 bytes 
 away to reflect this change.
 
-*Note: You can find the syscall numbers for various syscalls at this link.*
+*Note: You can find the syscall numbers for various syscalls at this [link][1].*
+
+[1]: https://filippo.io/linux-syscall-table/
 
 
 ### Converting Slice to function
@@ -156,9 +161,9 @@ can be typecast into the desired function type.
 This approach only works for functions without arguments or return values. A stack frame needs to be 
 created for calling functions with arguments or return values. The function definition should always 
 start with instructions to dynamically allocate the stack frame to support variadic functions. More 
-information about different function types are available [here](1).
+information about different function types are available [here][2].
 
-[1]: https://docs.google.com/document/d/1bMwCey-gmqZVTpRax-ESeVuZGmjwbocYs1iHplK-cjo/pub
+[2]: https://docs.google.com/document/d/1bMwCey-gmqZVTpRax-ESeVuZGmjwbocYs1iHplK-cjo/pub
 
 *If you’d like me to write about generating more complex functions in Golang, please comment below.*
 
@@ -166,10 +171,10 @@ information about different function types are available [here](1).
 ### Making the function executable
 
 The above function will not actually run. This is because Golang stores all data structures in the 
-data section of the binary. The data in this section has the [No-Execute][2] flag set on it, preventing 
+data section of the binary. The data in this section has the [No-Execute][3] flag set on it, preventing 
 it from being executed.
 
-[2]: https://en.wikipedia.org/wiki/NX_bit
+[3]: https://en.wikipedia.org/wiki/NX_bit
 
 The data in the `printFunction` slice needs to be stored in a piece of memory that is executable. This 
 can be achieved by either removing the No-Execute flag on the `printFunction` slice or by copying it 
@@ -215,38 +220,38 @@ import (
 type printFunc func()
 
 func main() {
-	printFunction := []uint16{
-	    0x48c7, 0xc001, 0x0,        // mov %rax,$0x1
-	    0x48, 0xc7c7, 0x100, 0x0,   // mov %rdi,$0x1
-	    0x48c7, 0xc20c, 0x0,        // mov 0x13, %rdx
-	    0x48, 0x8d35, 0x400, 0x0,   // lea 0x4(%rip), %rsi
-	    0xf05,                      // syscall
-	    0xc3cc,                     // ret
-	    0x4865, 0x6c6c, 0x6f20,     // Hello_(whitespace)
-	    0x576f, 0x726c, 0x6421, 0xa,// World!
-	}
-
-	executablePrintFunc, err := syscall.Mmap(
-	    -1,
-	    0,
-	    128,
-	    syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC,
-	    syscall.MAP_PRIVATE|syscall.MAP_ANONYMOUS)
-	if err != nil {
-	    fmt.Printf("mmap err: %v", err)
-	}
-
-	j := 0
-	for i := range printFunction {
-	    executablePrintFunc[j] = byte(printFunction[i] >> 8)
-	    executablePrintFunc[j+1] = byte(printFunction[i])
-	    j = j + 2
-	}
-
-	type printFunc func()
-	unsafePrintFunc := (uintptr)(unsafe.Pointer(&executablePrintFunc))
-	printer := *(*printFunc)(unsafe.Pointer(&unsafePrintFunc))
-	printer()
+    printFunction := []uint16{
+        0x48c7, 0xc001, 0x0,        // mov $0x1, %rax
+        0x48, 0xc7c7, 0x100, 0x0,   // mov $0x1, %rdi
+        0x48c7, 0xc20c, 0x0,        // mov $0xc, %rdx
+        0x48, 0x8d35, 0x400, 0x0,   // lea 0x4(%rip), %rsi
+        0xf05,                      // syscall
+        0xc3cc,                     // ret
+        0x4865, 0x6c6c, 0x6f20,     // Hello_(whitespace)
+        0x576f, 0x726c, 0x6421, 0xa,// World!
+    }
+    
+    executablePrintFunc, err := syscall.Mmap(
+        -1,
+        0,
+        128,
+        syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC,
+        syscall.MAP_PRIVATE|syscall.MAP_ANONYMOUS)
+    if err != nil {
+        fmt.Printf("mmap err: %v", err)
+    }
+    
+    j := 0
+    for i := range printFunction {
+        executablePrintFunc[j] = byte(printFunction[i] >> 8)
+        executablePrintFunc[j+1] = byte(printFunction[i])
+        j = j + 2
+    }
+    
+    type printFunc func()
+    unsafePrintFunc := (uintptr)(unsafe.Pointer(&executablePrintFunc))
+    printer := *(*printFunc)(unsafe.Pointer(&unsafePrintFunc))
+    printer()
 }
 ```
 
