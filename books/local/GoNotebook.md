@@ -2277,7 +2277,7 @@ func SignalHandler(c chan os.Signal) {
         case os.Interrupt:
             Println("interrupt - continue running")
         case syscall.SIGABRT:
-            Println("abnormal exit")
+-  Println("abnormal exit")
             os.Exit(1)
         case syscall.SIGTERM, syscall.SIGQUIT:
             Println("clean shutdown")
