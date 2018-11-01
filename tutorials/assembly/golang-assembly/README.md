@@ -279,22 +279,25 @@ GLOBL runtime·tlsoffset(SB), NOPTR, $4 ;; 声明一个全局变量 tlsoffset，
 
 `byte`等同于`uint8`。`rune`等同于`int32`。
 
-`string` 底层是[`StringHeader`][1] 这样一个结构体，`slice` 底层是[`SliceHeader`][2] 这样一个结构体。
+`string` 底层是[`StringHeader`][7] 这样一个结构体，`slice` 底层是[`SliceHeader`][8] 这样一个结构体。
 
-[1]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1783-L1786
-[2]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1800-L1804
+[7]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1783-L1786
+[8]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/reflect/value.go#L1800-L1804
 
 
 #### `map`
 
-`map` 是指向[`hmap`][1] 的一个 `unsafe.Pointer`
+`map` 是指向[`hmap`][9] 的一个 `unsafe.Pointer`
 
-[1]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/hashmap.go#L107-L122
+[9]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/hashmap.go#L107-L122
 
 
 #### `chan`
 
-`chan`是指向[`hchan`](https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/chan.go#L31-L50) 的一个`unsafe.Pointer`
+`chan` 是指向[`hchan`][10] 的一个 `unsafe.Pointer`
+
+[10]: https://github.com/golang/go/blob/d1fa58719e171afedfbcdf3646ee574afc08086c/src/runtime/chan.go#L31-L50
+
 
 #### `interface{}`
 
