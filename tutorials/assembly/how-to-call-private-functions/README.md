@@ -18,8 +18,8 @@ From the good old days, there are 2 ways of achieving this bypassing compiler ch
 to unexported name pkg.symbol`:
 
 -  the old one, currently not used - assembly level implicit linkage to needed symbols, referred as 
-   `assembly stubs`, i.e. [go runtime, os/signal: use //go:linkname instead of assembly stubs to get 
-   access to runtime functions][1];
+   `assembly stubs`, i.e. *[[go runtime, os/signal: use //go:linkname instead of assembly stubs to get 
+   access to runtime functions][1]]*;
 
 -  the actual one - go compiler level support for link names redirection via `go:linkname`, since 
    11.11.14 [dev.cc code review 169360043: cmd/gc: changes for removing runtime C code (issue 169360043 
@@ -222,8 +222,6 @@ available at <https://github.com/sitano/gsysint>.
 ## Related Posts
 
 -  [How to solve behemoth1 task or stack overflow showcase 28 Mar 2018](/2018/03/28/behemoth1/)
-
 -  [How to solve behemoth0 task 25 Mar 2018](/2018/03/25/behemoth0/)
-
 -  [How to read GoLang static single-assignment (SSA) form intermediate representation 18 Mar 2018](/2018/03/18/howto-read-gossa/)
 
