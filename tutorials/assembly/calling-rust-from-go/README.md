@@ -269,11 +269,11 @@ The Go calling convention is described [here][20] and [here][21]. For Rust we'll
 To keep going we're going to need a debugger. (LLDB supports Go, but [breakpoints are somehow broken 
 on macOS][23], so I had to play inside a privileged Docker container.)
 
-![Zelda dangerous to go alone](/content/images/2017/08/zelda-2.png)
+![Zelda dangerous to go alone](./zelda-2.png)
 
 ### The Go calling convention
 
-![Go calling convention diagram](/content/images/2017/08/Go-stack-layout-3.png)
+![Go calling convention diagram](./Go-stack-layout-3.png)
 
 The Go calling convention is mostly [undocumented][24], but we'll need to understand it to proceed, 
 so here is what we can learn from a disassembly (amd64 specific). Let's look at a very simple 
