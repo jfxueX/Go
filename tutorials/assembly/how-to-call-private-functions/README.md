@@ -22,9 +22,9 @@ to unexported name pkg.symbol`:
    access to runtime functions][1]]*;
 
 -  the actual one - go compiler level support for link names redirection via `go:linkname`, since 
-   11.11.14 [dev.cc code review 169360043: cmd/gc: changes for removing runtime C code (issue 169360043 
-   by r…@golang.org)][2], mentioned on a github issue [cmd/compile: “missing function body” error when 
-   using the //go:linkname compiler directive \#15006][3].
+   11.11.14 *[[dev.cc code review 169360043: cmd/gc: changes for removing runtime C code (issue 169360043 
+   by r…@golang.org)][2]]*, mentioned on a github issue *[[cmd/compile: “missing function body” error when 
+   using the //go:linkname compiler directive \#15006][3]]*.
 
 Using these techniques I have managed to bind to internal golang runtime schedule related functions 
 to over use goroutines threads parking and internal locking mechanisms.
