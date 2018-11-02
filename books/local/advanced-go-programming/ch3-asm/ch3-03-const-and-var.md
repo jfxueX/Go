@@ -9,7 +9,7 @@
 Go 汇编语言中常量以 `$` 美元符号为前缀。常量的类型有整数常量、浮点数常量、字符常量和字符串常量等几种
 类型。以下是几种类型常量的例子：
 
-```
+```asm
 $1           // 十进制
 $0xf4f8fcff  // 十六进制
 $1.5         // 浮点数
@@ -22,7 +22,7 @@ $"abcd"      // 字符串
 
 对于数值型常量，可以通过常量表达式构成新的常量：
 
-```
+```asm
 $2+2      // 常量表达式
 $3&1<<2   // == $4
 $(3&1)<<2 // == $4
@@ -35,7 +35,7 @@ Go 汇编语言中的常量其实不仅仅只有编译时常量，还包含运�
 
 下面是本章第一节用汇编定义的字符串代码：
 
-```
+```asm
 GLOBL ·NameData(SB),$8
 DATA  ·NameData(SB)/8,$"gopher"
 
@@ -67,14 +67,14 @@ DATA  ·Name+8(SB)/8,$6
 
 要定义全局变量，首先要声明一个变量对应的符号，以及变量对应的内存大小。导出变量符号的语法如下：
 
-```
+```asm
 GLOBL symbol(SB), width
 ```
 
 GLOBL 汇编指令用于定义名为 symbol 的变量，变量对应的内存宽度为 width，内存宽度部分必须用常量初始化。
 下面的代码通过汇编定义一个 int32 类型的 count 变量：
 
-```
+```asm
 GLOBL ·count(SB),$4
 ```
 
@@ -85,7 +85,7 @@ GLOBL ·count(SB),$4
 
 变量定义之后，我们可以通过 DATA 汇编指令指定对应内存中的数据，语法如下：
 
-```
+```asm
 DATA symbol+offset(SB)/width, value
 ```
 
@@ -94,7 +94,7 @@ DATA symbol+offset(SB)/width, value
 
 对于 int32 类型的 count 变量来说，我们既可以逐个字节初始化，也可以一次性初始化：
 
-```
+```asm
 DATA ·count+0(SB)/1,$1
 DATA ·count+1(SB)/1,$2
 DATA ·count+2(SB)/1,$3
@@ -125,7 +125,7 @@ var num [2]int
 
 然后在汇编中定义一个对应 16 字节大小的变量，并用零值进行初始化：
 
-```
+```asm
 GLOBL ·num(SB),$16
 DATA ·num+0(SB)/8,$0
 DATA ·num+8(SB)/8,$0
@@ -157,7 +157,7 @@ var (
 
 在 Go 语言中声明的变量不能含有初始化语句。然后下面是 amd64 环境的汇编定义：
 
-```
+```asm
 GLOBL ·boolValue(SB),$1   // 未初始化
 
 GLOBL ·trueValue(SB),$1   // var trueValue = true
@@ -184,7 +184,7 @@ var uint32Value uint32
 
 在 Go 语言中声明的变量不能含有初始化语句。然后下面是 amd64 环境的汇编定义：
 
-```
+```asm
 GLOBL ·int32Value(SB),$4
 DATA ·int32Value+0(SB)/1,$0x01  // 第0字节
 DATA ·int32Value+1(SB)/1,$0x02  // 第1字节
@@ -225,7 +225,7 @@ var float64Value float64
 
 然后在汇编中定义并初始化上面声明的两个浮点数：
 
-```
+```asm
 GLOBL ·float32Value(SB),$4
 DATA ·float32Value+0(SB)/4,$1.5      // var float32Value = 1.5
 
@@ -255,14 +255,14 @@ type reflect.StringHeader struct {
 var helloworld string
 ```
 
-```
+```asm
 GLOBL ·helloworld(SB),$16
 ```
 
 同时我们可以为字符串准备真正的数据。在下面的汇编代码中，我们定义了一个 text 当前文件内的私有变量（以 
 `<>` 为后缀名），内容为 "Hello World!"：
 
-```
+```asm
 GLOBL text<>(SB),$16
 DATA text<>+0(SB)/8,$"Hello Wo"
 DATA text<>+8(SB)/8,$"rld!"
@@ -274,7 +274,7 @@ DATA text<>+8(SB)/8,$"rld!"
 然后使用 text 私有变量对应的内存地址对应的常量来初始化字符串头结构体中的 Data 部分，并且手工指定 Len 
 部分为字符串的长度：
 
-```
+```asm
 DATA ·helloworld+0(SB)/8,$text<>(SB) // StringHeader.Data
 DATA ·helloworld+8(SB)/8,$12         // StringHeader.Len
 ```
@@ -300,7 +300,7 @@ Cap 成员就成了切片类型了：
 var helloworld []byte
 ```
 
-```
+```asm
 GLOBL ·helloworld(SB),$24            // var helloworld []byte("Hello World!")
 DATA ·helloworld+0(SB)/8,$text<>(SB) // StringHeader.Data
 DATA ·helloworld+8(SB)/8,$12         // StringHeader.Len
@@ -324,7 +324,7 @@ var m map[string]int
 var ch chan int
 ```
 
-```
+```asm
 GLOBL ·m(SB),$8  // var m map[string]int
 DATA  ·m+0(SB)/8,$0
 
@@ -377,7 +377,7 @@ Go 语言的标识符可以由绝对的包路径加标识符本身定位，因�
 
 下面是汇编中常见的几种标识符的使用方式（通常也适用于函数标识符）：
 
-```
+```asm
 GLOBL ·pkg_name1(SB),$1
 GLOBL main·pkg_name2(SB),$1
 GLOBL my/pkg·pkg_name(SB),$1
@@ -386,7 +386,7 @@ GLOBL my/pkg·pkg_name(SB),$1
 此外，Go 汇编中可以定义仅当前文件可以访问的私有标识符（类似 C 语言中文件内 static 修饰的变量），以 
 `<>` 为后缀名：
 
-```
+```asm
 GLOBL file_private<>(SB),$1
 ```
 
@@ -405,7 +405,7 @@ GLOBL file_private<>(SB),$1
 var const_id int // readonly
 ```
 
-```
+```asm
 #include "textflag.h"
 
 GLOBL ·const_id(SB),NOPTR|RODATA,$8
@@ -425,4 +425,3 @@ DATA  ·const_id+0(SB)/8,$9527
 Go 语言定义变量更加简单和安全。在 Go 语言中定义变量，编译器可以帮助我们计算好变量的大小，生成变量的
 初始值，同时也包含了足够的类型信息。汇编语言的优势是挖掘机器的特性和性能，用汇编定义变量则无法发挥这
 些优势。因此在理解了汇编定义变量的用法后，建议大家谨慎使用。
-
