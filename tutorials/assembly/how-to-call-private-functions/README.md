@@ -214,16 +214,16 @@ func main() {
 }
 ```
 
-### Sources
+## Sources
 
 available at <https://github.com/sitano/gsysint>.
 
 
-### Related Posts
+## Related Posts
 
--  ### [How to solve behemoth1 task or stack overflow showcase 28 Mar 2018](/2018/03/28/behemoth1/)
+-  [How to solve behemoth1 task or stack overflow showcase 28 Mar 2018](/2018/03/28/behemoth1/)
 
--  ### [How to solve behemoth0 task 25 Mar 2018](/2018/03/25/behemoth0/)
+-  [How to solve behemoth0 task 25 Mar 2018](/2018/03/25/behemoth0/)
 
--  ### [How to read GoLang static single-assignment (SSA) form intermediate representation 18 Mar 2018](/2018/03/18/howto-read-gossa/)
+-  [How to read GoLang static single-assignment (SSA) form intermediate representation 18 Mar 2018](/2018/03/18/howto-read-gossa/)
 
