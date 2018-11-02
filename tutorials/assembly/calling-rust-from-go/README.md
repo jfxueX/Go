@@ -288,7 +288,7 @@ function.
 
 ```asm
 // func foo(x, y uint64) uint64
-TEXT ·foo(SB), 0, $256-24  
+TEXT ·foo(SB), 0, $256-24
     MOVQ x+0(FP), DX
     MOVQ DX, ret+16(FP)
     RET
@@ -303,11 +303,11 @@ func main() {
 ```
 
 ```asm
-rustgo[0x49d785]:  movabsq $-0xf0f0f0f0f0f0f10, %rax  
-rustgo[0x49d78f]:  movq   %rax, (%rsp)  
-rustgo[0x49d793]:  movabsq $0x5555555555555555, %rax  
-rustgo[0x49d79d]:  movq   %rax, 0x8(%rsp)  
-rustgo[0x49d7a2]:  callq  0x49d8a0                  ; main.foo at hello.s:14  
+rustgo[0x49d785]:  movabsq $-0xf0f0f0f0f0f0f10, %rax
+rustgo[0x49d78f]:  movq   %rax, (%rsp)
+rustgo[0x49d793]:  movabsq $0x5555555555555555, %rax
+rustgo[0x49d79d]:  movq   %rax, 0x8(%rsp)
+rustgo[0x49d7a2]:  callq  0x49d8a0                  ; main.foo at hello.s:14
 ```
 
 The caller, seen above, does very little: it places the arguments on the stack in reverse order, at 
@@ -318,24 +318,24 @@ just a plain `RET`.
 Notice that `rsp` is fixed, and we have `movq`s, not `push`s.
 
 ```asm
-rustgo`main.foo at hello.s:14:  
-rustgo[0x49d8a0]:  movq   %fs:-0x8, %rcx  
-rustgo[0x49d8a9]:  leaq   -0x88(%rsp), %rax  
-rustgo[0x49d8b1]:  cmpq   0x10(%rcx), %rax  
-rustgo[0x49d8b5]:  jbe    0x49d8ee                  ; main.foo + 78 at hello.s:14  
+rustgo`main.foo at hello.s:14:
+rustgo[0x49d8a0]:  movq   %fs:-0x8, %rcx
+rustgo[0x49d8a9]:  leaq   -0x88(%rsp), %rax
+rustgo[0x49d8b1]:  cmpq   0x10(%rcx), %rax
+rustgo[0x49d8b5]:  jbe    0x49d8ee                  ; main.foo + 78 at hello.s:14
                    [...]
-rustgo[0x49d8ee]:  callq  0x495d10                  ; runtime.morestack_noctxt at asm_amd64.s:405  
-rustgo[0x49d8f3]:  jmp    0x49d8a0                  ; main.foo at hello.s:14  
+rustgo[0x49d8ee]:  callq  0x495d10                  ; runtime.morestack_noctxt at asm_amd64.s:405
+rustgo[0x49d8f3]:  jmp    0x49d8a0                  ; main.foo at hello.s:14
 ```
 
 The first 4 and last 2 instructions of the function are checking if there is enough space for the 
 stack, and if not calling `runtime.morestack`. They are probably skipped for `NOSPLIT` functions.
 
 ```asm
-rustgo[0x49d8b7]:  subq   $0x108, %rsp  
+rustgo[0x49d8b7]:  subq   $0x108, %rsp
                    [...]
-rustgo[0x49d8e6]:  addq   $0x108, %rsp  
-rustgo[0x49d8ed]:  retq  
+rustgo[0x49d8e6]:  addq   $0x108, %rsp
+rustgo[0x49d8ed]:  retq
 ```
 
 Then there's the `rsp` management, which subtracts 0x108, making space for the entire 0x100 bytes of 
@@ -344,10 +344,10 @@ function frame, and is callee managed. Before returning, `rsp` is returned to wh
 past the return pointer).
 
 ```asm
-rustgo[0x49d8be]:  movq   %rbp, 0x100(%rsp)  
-rustgo[0x49d8c6]:  leaq   0x100(%rsp), %rbp  
+rustgo[0x49d8be]:  movq   %rbp, 0x100(%rsp)
+rustgo[0x49d8c6]:  leaq   0x100(%rsp), %rbp
                    [...]
-rustgo[0x49d8de]:  movq   0x100(%rsp), %rbp  
+rustgo[0x49d8de]:  movq   0x100(%rsp), %rbp
 ```
 
 Finally the [frame pointer][25], which is effectively pushed to the stack just after the return 
@@ -857,8 +857,8 @@ answer is to stop hacking `.a`s together and actually reading the [linker man pa
 
 [45]: https://linux.die.net/man/1/ld
 
-We can build a `.o` containing a given symbol and all the symbols it references with `ld -r --gc-
-sections -u $SYMBOL`. `-r` makes the object reusable for a later link, and `-u` marks a symbol as 
+We can build a `.o` containing a given symbol and all the symbols it references with `ld -r 
+--gc-sections -u $SYMBOL`. `-r` makes the object reusable for a later link, and `-u` marks a symbol as 
 needed, or everything would end up garbage collected. `$SYMBOL` is `scalar_base_mult` in our case.
 
 Why wasn't this a problem on macOS? It would have been if we linked manually, but the macOS compiler 
