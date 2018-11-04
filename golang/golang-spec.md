@@ -1,86 +1,20 @@
-<div id="lowframe" style="position: fixed; bottom: 0; left: 0; height: 0; width: 100%; border-top: thin solid grey; background-color: white; overflow: auto;">
-
-...
-
-</div>
-
-<div id="topbar" class="wide">
-
-<div class="container">
-
-<div id="heading-wide" class="top-heading">
-
-[The Go Programming Language](/)
-
-</div>
-
-<div id="heading-narrow" class="top-heading">
-
-[Go](/)
-
-</div>
-
-[<span id="menu-button-arrow">▽</span>](#)
-
-<div id="menu">
-
-[Documents](/doc/) [Packages](/pkg/) [The Project](/project/)
-[Help](/help/) [Blog](/blog/)
-[Play](http://play.golang.org/ "Show Go Playground")
-
-submit search
-
-</div>
-
-</div>
-
-</div>
-
-<div id="playground" class="play">
-
-<div class="input">
-
-package main import "fmt" func main() { fmt.Println("Hello, 世界") }
-
-</div>
-
-<div class="output">
-
-</div>
-
-<div class="buttons">
-
-<span class="run">Run</span> <span class="fmt">Format</span>
-<span class="share">Share</span>
-
-</div>
-
-</div>
-
-<div id="page" class="wide">
-
-<div class="container">
 
 # The Go Programming Language Specification <span class="text-muted"></span>
 
 ## Version of May 9, 2018
 
-<div id="nav">
-
-</div>
-
 ## Introduction
 
-This is a reference manual for the Go programming language. For more
-information and other documents, see [golang.org](/).
+This is a reference manual for the Go programming language. For more information 
+and other documents, see [golang.org](https://golang.org/).
 
-Go is a general-purpose language designed with systems programming in
-mind. It is strongly typed and garbage-collected and has explicit
-support for concurrent programming. Programs are constructed from
-*packages*, whose properties allow efficient management of dependencies.
+Go is a general-purpose language designed with systems programming in mind. It 
+is strongly typed and garbage-collected and has explicit support for concurrent 
+programming. Programs are constructed from *packages*, whose properties allow 
+efficient management of dependencies.
 
-The grammar is compact and regular, allowing for easy analysis by
-automatic tools such as integrated development environments.
+The grammar is compact and regular, allowing for easy analysis by automatic 
+tools such as integrated development environments.
 
 ## Notation
 
@@ -96,8 +30,8 @@ Option      = "[" Expression "]" .
 Repetition  = "{" Expression "}" .
 ```
 
-Productions are expressions constructed from terms and the following
-operators, in increasing precedence:
+Productions are expressions constructed from terms and the following operators, 
+in increasing precedence:
 
 ``` grammar
 |   alternation
@@ -106,15 +40,15 @@ operators, in increasing precedence:
 {}  repetition (0 to n times)
 ```
 
-Lower-case production names are used to identify lexical tokens.
-Non-terminals are in CamelCase. Lexical tokens are enclosed in double
-quotes `""` or back quotes ` `` `.
+Lower-case production names are used to identify lexical tokens.  Non-terminals 
+are in CamelCase. Lexical tokens are enclosed in double quotes `""` or back 
+quotes ` `` `.
 
-The form `a … b` represents the set of characters from `a` through `b`
-as alternatives. The horizontal ellipsis `…` is also used elsewhere in
-the spec to informally denote various enumerations or code snippets that
-are not further specified. The character `…` (as opposed to the three
-characters `...`) is not a token of the Go language.
+The form `a … b` represents the set of characters from `a` through `b` as 
+alternatives. The horizontal ellipsis `…` is also used elsewhere in the spec to 
+informally denote various enumerations or code snippets that are not further 
+specified. The character `…` (as opposed to the three characters `...`) is not a 
+token of the Go language.
 
 ## Source code representation
 
@@ -126,21 +60,20 @@ treated as two code points. For simplicity, this document will use the
 unqualified term *character* to refer to a Unicode code point in the
 source text.
 
-Each code point is distinct; for instance, upper and lower case letters
-are different characters.
+Each code point is distinct; for instance, upper and lower case letters are 
+different characters.
 
-Implementation restriction: For compatibility with other tools, a
-compiler may disallow the NUL character (U+0000) in the source text.
+Implementation restriction: For compatibility with other tools, a compiler may 
+disallow the NUL character (U+0000) in the source text.
 
-Implementation restriction: For compatibility with other tools, a
-compiler may ignore a UTF-8-encoded byte order mark (U+FEFF) if it is
-the first Unicode code point in the source text. A byte order mark may
-be disallowed anywhere else in the source.
+Implementation restriction: For compatibility with other tools, a compiler may 
+ignore a UTF-8-encoded byte order mark (U+FEFF) if it is the first Unicode code 
+point in the source text. A byte order mark may be disallowed anywhere else in 
+the source.
 
 ### Characters
 
-The following terms are used to denote specific Unicode character
-classes:
+The following terms are used to denote specific Unicode character classes:
 
 ``` ebnf
 newline        = /* the Unicode code point U+000A */ .
@@ -177,52 +110,51 @@ Comments serve as program documentation. There are two forms:
 2.  *General comments* start with the character sequence `/*` and stop
     with the first subsequent character sequence `*/`.
 
-A comment cannot start inside a [rune](#Rune_literals) or [string
-literal](#String_literals), or inside a comment. A general comment
-containing no newlines acts like a space. Any other comment acts like a
-newline.
+A comment cannot start inside a [rune](#Rune-literals) or [string
+literal](#String-literals), or inside a comment. A general comment containing no 
+newlines acts like a space. Any other comment acts like a newline.
 
 ### Tokens
 
-Tokens form the vocabulary of the Go language. There are four classes:
-*identifiers*, *keywords*, *operators and punctuation*, and *literals*.
-*White space*, formed from spaces (U+0020), horizontal tabs (U+0009),
-carriage returns (U+000D), and newlines (U+000A), is ignored except as
-it separates tokens that would otherwise combine into a single token.
-Also, a newline or end of file may trigger the insertion of a
-[semicolon](#Semicolons). While breaking the input into tokens, the next
-token is the longest sequence of characters that form a valid token.
+Tokens form the vocabulary of the Go language. There are four classes: 
+*identifiers*, *keywords*, *operators and punctuation*, and *literals*.  *White 
+space*, formed from spaces (U+0020), horizontal tabs (U+0009), carriage returns 
+(U+000D), and newlines (U+000A), is ignored except as it separates tokens that 
+would otherwise combine into a single token.  Also, a newline or end of file may 
+trigger the insertion of a [semicolon](#Semicolons). While breaking the input 
+into tokens, the next token is the longest sequence of characters that form a 
+valid token.
 
 ### Semicolons
 
-The formal grammar uses semicolons `";"` as terminators in a number of
-productions. Go programs may omit most of these semicolons using the
-following two rules:
+The formal grammar uses semicolons `";"` as terminators in a number of 
+productions. Go programs may omit most of these semicolons using the following 
+two rules:
 
 1.  When the input is broken into tokens, a semicolon is automatically
     inserted into the token stream immediately after a line's final
     token if that token is
       - an [identifier](#Identifiers)
-      - an [integer](#Integer_literals),
-        [floating-point](#Floating-point_literals),
-        [imaginary](#Imaginary_literals), [rune](#Rune_literals), or
-        [string](#String_literals) literal
+      - an [integer](#Integer-literals),
+        [floating-point](#Floating-point-literals),
+        [imaginary](#Imaginary-literals), [rune](#Rune-literals), or
+        [string](#String-literals) literal
       - one of the [keywords](#Keywords) `break`, `continue`,
         `fallthrough`, or `return`
       - one of the [operators and
-        punctuation](#Operators_and_punctuation) `++`, `--`, `)`, `]`,
+        punctuation](#Operators-and-punctuation) `++`, `--`, `)`, `]`,
         or `}`
 2.  To allow complex statements to occupy a single line, a semicolon may
     be omitted before a closing `")"` or `"}"`.
 
-To reflect idiomatic use, code examples in this document elide
-semicolons using these rules.
+To reflect idiomatic use, code examples in this document elide semicolons using 
+these rules.
 
 ### Identifiers
 
-Identifiers name program entities such as variables and types. An
-identifier is a sequence of one or more letters and digits. The first
-character in an identifier must be a letter.
+Identifiers name program entities such as variables and types. An identifier is 
+a sequence of one or more letters and digits. The first character in an 
+identifier must be a letter.
 
 ``` ebnf
 identifier = letter { letter | unicode_digit } .
@@ -233,7 +165,7 @@ identifier = letter { letter | unicode_digit } .
     ThisVariableIsExported
     αβ
 
-Some identifiers are [predeclared](#Predeclared_identifiers).
+Some identifiers are [predeclared](#Predeclared-identifiers).
 
 ### Keywords
 
@@ -249,8 +181,8 @@ continue     for          import       return       var
 
 ### Operators and punctuation
 
-The following character sequences represent [operators](#Operators)
-(including [assignment operators](#assign_op)) and punctuation:
+The following character sequences represent [operators](#Operators) (including 
+[assignment operators](#assign-op)) and punctuation:
 
 ``` grammar
 +    &     +=    &=     &&    ==    !=    (    )
@@ -263,10 +195,10 @@ The following character sequences represent [operators](#Operators)
 
 ### Integer literals
 
-An integer literal is a sequence of digits representing an [integer
-constant](#Constants). An optional prefix sets a non-decimal base: `0`
-for octal, `0x` or `0X` for hexadecimal. In hexadecimal literals,
-letters `a-f` and `A-F` represent values 10 through 15.
+An integer literal is a sequence of digits representing an [integer constant
+](#Constants). An optional prefix sets a non-decimal base: `0` for octal, `0x` or 
+`0X` for hexadecimal. In hexadecimal literals, letters `a-f` and `A-F` represent 
+values 10 through 15.
 
 ``` ebnf
 int_lit     = decimal_lit | octal_lit | hex_lit .
@@ -282,13 +214,12 @@ hex_lit     = "0" ( "x" | "X" ) hex_digit { hex_digit } .
 
 ### Floating-point literals
 
-A floating-point literal is a decimal representation of a
-[floating-point constant](#Constants). It has an integer part, a decimal
-point, a fractional part, and an exponent part. The integer and
-fractional part comprise decimal digits; the exponent part is an `e` or
-`E` followed by an optionally signed decimal exponent. One of the
-integer part or the fractional part may be elided; one of the decimal
-point or the exponent may be elided.
+A floating-point literal is a decimal representation of a [floating-point 
+constant](#Constants). It has an integer part, a decimal point, a fractional 
+part, and an exponent part. The integer and fractional part comprise decimal 
+digits; the exponent part is an `e` or `E` followed by an optionally signed 
+decimal exponent. One of the integer part or the fractional part may be elided; 
+one of the decimal point or the exponent may be elided.
 
 ``` ebnf
 float_lit = decimals "." [ decimals ] [ exponent ] |
@@ -310,10 +241,10 @@ exponent  = ( "e" | "E" ) [ "+" | "-" ] decimals .
 
 ### Imaginary literals
 
-An imaginary literal is a decimal representation of the imaginary part
-of a [complex constant](#Constants). It consists of a [floating-point
-literal](#Floating-point_literals) or decimal integer followed by the
-lower-case letter `i`.
+An imaginary literal is a decimal representation of the imaginary part of a 
+[complex constant](#Constants). It consists of a [floating-point literal
+](#Floating-point-literals) or decimal integer followed by the lower-case letter 
+`i`.
 
 ``` ebnf
 imaginary_lit = (decimals | float_lit) "i" .
@@ -331,38 +262,36 @@ imaginary_lit = (decimals | float_lit) "i" .
 
 ### Rune literals
 
-A rune literal represents a [rune constant](#Constants), an integer
-value identifying a Unicode code point. A rune literal is expressed as
-one or more characters enclosed in single quotes, as in `'x'` or `'\n'`.
-Within the quotes, any character may appear except newline and unescaped
-single quote. A single quoted character represents the Unicode value of
-the character itself, while multi-character sequences beginning with a
-backslash encode values in various formats.
+A rune literal represents a [rune constant](#Constants), an integer value 
+identifying a Unicode code point. A rune literal is expressed as one or more 
+characters enclosed in single quotes, as in `'x'` or `'\n'`.  Within the quotes, 
+any character may appear except newline and unescaped single quote. A single 
+quoted character represents the Unicode value of the character itself, while 
+multi-character sequences beginning with a backslash encode values in various 
+formats.
 
-The simplest form represents the single character within the quotes;
-since Go source text is Unicode characters encoded in UTF-8, multiple
-UTF-8-encoded bytes may represent a single integer value. For instance,
-the literal `'a'` holds a single byte representing a literal `a`,
-Unicode U+0061, value `0x61`, while `'ä'` holds two bytes (`0xc3`
-`0xa4`) representing a literal `a`-dieresis, U+00E4, value `0xe4`.
+The simplest form represents the single character within the quotes; since Go 
+source text is Unicode characters encoded in UTF-8, multiple UTF-8-encoded bytes 
+may represent a single integer value. For instance, the literal `'a'` holds a 
+single byte representing a literal `a`, Unicode U+0061, value `0x61`, while 
+`'ä'` holds two bytes (`0xc3` `0xa4`) representing a literal `a`-dieresis, 
+U+00E4, value `0xe4`.
 
-Several backslash escapes allow arbitrary values to be encoded as ASCII
-text. There are four ways to represent the integer value as a numeric
-constant: `\x` followed by exactly two hexadecimal digits; `\u` followed
-by exactly four hexadecimal digits; `\U` followed by exactly eight
-hexadecimal digits, and a plain backslash <code>&#92;</code> followed by exactly three
-octal digits. In each case the value of the literal is the value
-represented by the digits in the corresponding base.
+Several backslash escapes allow arbitrary values to be encoded as ASCII text. 
+There are four ways to represent the integer value as a numeric constant: `\x` 
+followed by exactly two hexadecimal digits; `\u` followed by exactly four 
+hexadecimal digits; `\U` followed by exactly eight hexadecimal digits, and a 
+plain backslash <code>&#92;</code> followed by exactly three octal digits. In 
+each case the value of the literal is the value represented by the digits in the 
+corresponding base.
 
-Although these representations all result in an integer, they have
-different valid ranges. Octal escapes must represent a value between 0
-and 255 inclusive. Hexadecimal escapes satisfy this condition by
-construction. The escapes `\u` and `\U` represent Unicode code points so
-within them some values are illegal, in particular those above
-`0x10FFFF` and surrogate halves.
+Although these representations all result in an integer, they have different 
+valid ranges. Octal escapes must represent a value between 0 and 255 inclusive. 
+Hexadecimal escapes satisfy this condition by construction. The escapes `\u` and 
+`\U` represent Unicode code points so within them some values are illegal, in 
+particular those above `0x10FFFF` and surrogate halves.
 
-After a backslash, certain single-character escapes represent special
-values:
+After a backslash, certain single-character escapes represent special values:
 
 ```grammar
 \a   U+0007 alert or bell
@@ -377,8 +306,7 @@ values:
 \"   U+0022 double quote  (valid escape only within string literals)
 ```
 
-All other sequences starting with a backslash are illegal inside rune
-literals.
+All other sequences starting with a backslash are illegal inside rune literals.
 
 ``` ebnf
 rune_lit         = "'" ( unicode_value | byte_value ) "'" .
@@ -412,31 +340,28 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 
 ### String literals
 
-A string literal represents a [string constant](#Constants) obtained
-from concatenating a sequence of characters. There are two forms: raw
-string literals and interpreted string literals.
+A string literal represents a [string constant](#Constants) obtained from 
+concatenating a sequence of characters. There are two forms: raw string literals 
+and interpreted string literals.
 
-Raw string literals are character sequences between back quotes, as in
-`` `foo` ``. Within the quotes, any character may appear except back
-quote. The value of a raw string literal is the string composed of the
-uninterpreted (implicitly UTF-8-encoded) characters between the quotes;
-in particular, backslashes have no special meaning and the string may
-contain newlines. Carriage return characters ('\\r') inside raw string
-literals are discarded from the raw string value.
+Raw string literals are character sequences between back quotes, as in `` `foo` 
+``. Within the quotes, any character may appear except back quote. The value of 
+a raw string literal is the string composed of the uninterpreted (implicitly 
+UTF-8-encoded) characters between the quotes; in particular, backslashes have no 
+special meaning and the string may contain newlines. Carriage return characters 
+('\\r') inside raw string literals are discarded from the raw string value.
 
-Interpreted string literals are character sequences between double
-quotes, as in `"bar"`. Within the quotes, any character may appear
-except newline and unescaped double quote. The text between the quotes
-forms the value of the literal, with backslash escapes interpreted as
-they are in [rune literals](#Rune_literals) (except that `\'` is illegal
-and `\"` is legal), with the same restrictions. The three-digit octal
-(`&#92;`*nnn*) and two-digit hexadecimal (`\x`*nn*) escapes represent
-individual *bytes* of the resulting string; all other escapes represent
-the (possibly multi-byte) UTF-8 encoding of individual *characters*.
-Thus inside a string literal `\377` and `\xFF` represent a single byte
-of value `0xFF`=255, while `ÿ`, `\u00FF`, `\U000000FF` and `\xc3\xbf`
-represent the two bytes `0xc3` `0xbf` of the UTF-8 encoding of character
-U+00FF.
+Interpreted string literals are character sequences between double quotes, as in 
+`"bar"`. Within the quotes, any character may appear except newline and 
+unescaped double quote. The text between the quotes forms the value of the 
+literal, with backslash escapes interpreted as they are in [rune literals
+](#Rune-literals) (except that `\'` is illegal and `\"` is legal), with the same 
+restrictions. The three-digit octal (`&#92;`*nnn*) and two-digit hexadecimal 
+(`\x`*nn*) escapes represent individual *bytes* of the resulting string; all 
+other escapes represent the (possibly multi-byte) UTF-8 encoding of individual 
+*characters*.  Thus inside a string literal `\377` and `\xFF` represent a single 
+byte of value `0xFF`=255, while `ÿ`, `\u00FF`, `\U000000FF` and `\xc3\xbf` 
+represent the two bytes `0xc3` `0xbf` of the UTF-8 encoding of character U+00FF.
 
 ``` ebnf
 string_lit             = raw_string_lit | interpreted_string_lit .
@@ -444,67 +369,67 @@ raw_string_lit         = "`" { unicode_char | newline } "`" .
 interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
 ```
 
-    `abc`                // same as "abc"
-    `\n
-    \n`                  // same as "\\n\n\\n"
-    "\n"
-    "\""                 // same as `"`
-    "Hello, world!\n"
-    "日本語"
-    "\u65e5本\U00008a9e"
-    "\xff\u00FF"
-    "\uD800"             // illegal: surrogate half
-    "\U00110000"         // illegal: invalid Unicode code point
+```go
+`abc`                // same as "abc"
+`\n
+\n`                  // same as "\\n\n\\n"
+"\n"
+"\""                 // same as `"`
+"Hello, world!\n"
+"日本語"
+"\u65e5本\U00008a9e"
+"\xff\u00FF"
+"\uD800"             // illegal: surrogate half
+"\U00110000"         // illegal: invalid Unicode code point
+```
 
 These examples all represent the same string:
 
-    "日本語"                                 // UTF-8 input text
-    `日本語`                                 // UTF-8 input text as a raw literal
-    "\u65e5\u672c\u8a9e"                    // the explicit Unicode code points
-    "\U000065e5\U0000672c\U00008a9e"        // the explicit Unicode code points
-    "\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // the explicit UTF-8 bytes
+```go
+"日本語"                                 // UTF-8 input text
+`日本語`                                 // UTF-8 input text as a raw literal
+"\u65e5\u672c\u8a9e"                    // the explicit Unicode code points
+"\U000065e5\U0000672c\U00008a9e"        // the explicit Unicode code points
+"\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // the explicit UTF-8 bytes
+```
 
-If the source code represents a character as two code points, such as a
-combining form involving an accent and a letter, the result will be an
-error if placed in a rune literal (it is not a single code point), and
-will appear as two code points if placed in a string literal.
+If the source code represents a character as two code points, such as a 
+combining form involving an accent and a letter, the result will be an error if 
+placed in a rune literal (it is not a single code point), and will appear as two 
+code points if placed in a string literal.
 
 ## Constants
 
-There are *boolean constants*, *rune constants*, *integer constants*,
-*floating-point constants*, *complex constants*, and *string constants*.
-Rune, integer, floating-point, and complex constants are collectively
-called *numeric constants*.
+There are *boolean constants*, *rune constants*, *integer constants*, *floating-
+point constants*, *complex constants*, and *string constants*.  Rune, integer, 
+floating-point, and complex constants are collectively called *numeric 
+constants*.
 
-A constant value is represented by a [rune](#Rune_literals),
-[integer](#Integer_literals),
-[floating-point](#Floating-point_literals),
-[imaginary](#Imaginary_literals), or [string](#String_literals) literal,
-an identifier denoting a constant, a [constant
-expression](#Constant_expressions), a [conversion](#Conversions) with a
-result that is a constant, or the result value of some built-in
-functions such as `unsafe.Sizeof` applied to any value, `cap` or `len`
-applied to [some expressions](#Length_and_capacity), `real` and `imag`
-applied to a complex constant and `complex` applied to numeric
-constants. The boolean truth values are represented by the predeclared
-constants `true` and `false`. The predeclared identifier [iota](#Iota)
-denotes an integer constant.
+A constant value is represented by a [rune](#Rune-literals), 
+[integer](#Integer-literals), [floating-point](#Floating-point-literals), 
+[imaginary](#Imaginary-literals), or [string](#String-literals) literal, an 
+identifier denoting a constant, a [constant expression](#Constant-expressions), 
+a [conversion](#Conversions) with a result that is a constant, or the result 
+value of some built-in functions such as `unsafe.Sizeof` applied to any value, 
+`cap` or `len` applied to [some expressions](#Length-and-capacity), `real` and 
+`imag` applied to a complex constant and `complex` applied to numeric constants. 
+The boolean truth values are represented by the predeclared constants `true` and 
+`false`. The predeclared identifier [iota](#Iota) denotes an integer constant.
 
 In general, complex constants are a form of [constant
-expression](#Constant_expressions) and are discussed in that section.
+expression](#Constant-expressions) and are discussed in that section.
 
-Numeric constants represent exact values of arbitrary precision and do
-not overflow. Consequently, there are no constants denoting the IEEE-754
-negative zero, infinity, and not-a-number values.
+Numeric constants represent exact values of arbitrary precision and do not 
+overflow. Consequently, there are no constants denoting the IEEE-754 negative 
+zero, infinity, and not-a-number values.
 
-Constants may be [typed](#Types) or *untyped*. Literal constants,
-`true`, `false`, `iota`, and certain [constant
-expressions](#Constant_expressions) containing only untyped constant
-operands are untyped.
+Constants may be [typed](#Types) or *untyped*. Literal constants, `true`, 
+`false`, `iota`, and certain [constant expressions](#Constant-expressions) 
+containing only untyped constant operands are untyped.
 
 A constant may be given a type explicitly by a [constant
-declaration](#Constant_declarations) or [conversion](#Conversions), or
-implicitly when used in a [variable declaration](#Variable_declarations)
+declaration](#Constant-declarations) or [conversion](#Conversions), or
+implicitly when used in a [variable declaration](#Variable-declarations)
 or an [assignment](#Assignments) or as an operand in an
 [expression](#Expressions). It is an error if the constant value cannot
 be [represented](#Representability) as a value of the respective type.
@@ -512,7 +437,7 @@ be [represented](#Representability) as a value of the respective type.
 An untyped constant has a *default type* which is the type to which the
 constant is implicitly converted in contexts where a typed value is
 required, for instance, in a [short variable
-declaration](#Short_variable_declarations) such as `i := 0` where there
+declaration](#Short-variable-declarations) such as `i := 0` where there
 is no explicit type. The default type of an untyped constant is `bool`,
 `rune`, `int`, `float64`, `complex128` or `string` respectively,
 depending on whether it is a boolean, rune, integer, floating-point,
@@ -534,25 +459,25 @@ implementation must:
     floating-point or complex constant due to limits on precision.
 
 These requirements apply both to literal constants and to the result of
-evaluating [constant expressions](#Constant_expressions).
+evaluating [constant expressions](#Constant-expressions).
 
 ## Variables
 
 A variable is a storage location for holding a *value*. The set of
 permissible values is determined by the variable's *[type](#Types)*.
 
-A [variable declaration](#Variable_declarations) or, for function
+A [variable declaration](#Variable-declarations) or, for function
 parameters and results, the signature of a [function
-declaration](#Function_declarations) or [function
-literal](#Function_literals) reserves storage for a named variable.
+declaration](#Function-declarations) or [function
+literal](#Function-literals) reserves storage for a named variable.
 Calling the built-in function [`new`](#Allocation) or taking the address
-of a [composite literal](#Composite_literals) allocates storage for a
+of a [composite literal](#Composite-literals) allocates storage for a
 variable at run time. Such an anonymous variable is referred to via a
-(possibly implicit) [pointer indirection](#Address_operators).
+(possibly implicit) [pointer indirection](#Address-operators).
 
-*Structured* variables of [array](#Array_types), [slice](#Slice_types),
-and [struct](#Struct_types) types have elements and fields that may be
-[addressed](#Address_operators) individually. Each such element acts
+*Structured* variables of [array](#Array-types), [slice](#Slice-types),
+and [struct](#Struct-types) types have elements and fields that may be
+[addressed](#Address-operators) individually. Each such element acts
 like a variable.
 
 The *static type* (or just *type*) of a variable is the type given in
@@ -575,7 +500,7 @@ x = v              // x has value (*T)(nil) and dynamic type *T
 A variable's value is retrieved by referring to the variable in an
 [expression](#Expressions); it is the most recent value
 [assigned](#Assignments) to the variable. If a variable has not yet been
-assigned a value, its value is the [zero value](#The_zero_value) for its
+assigned a value, its value is the [zero value](#The-zero-value) for its
 type.
 
 ## Types
@@ -592,8 +517,8 @@ TypeLit   = ArrayType | StructType | PointerType | FunctionType | InterfaceType 
         SliceType | MapType | ChannelType .
 ```
 
-The language [predeclares](#Predeclared_identifiers) certain type names.
-Others are introduced with [type declarations](#Type_declarations).
+The language [predeclares](#Predeclared-identifiers) certain type names.
+Others are introduced with [type declarations](#Type-declarations).
 *Composite types*—array, struct, pointer, function, interface, slice,
 map, and channel types—may be constructed using type literals.
 
@@ -601,7 +526,7 @@ Each type `T` has an *underlying type*: If `T` is one of the predeclared
 boolean, numeric, or string types, or a type literal, the corresponding
 underlying type is `T` itself. Otherwise, `T`'s underlying type is the
 underlying type of the type to which `T` refers in its [type
-declaration](#Type_declarations).
+declaration](#Type-declarations).
 
 ```go
 type (
@@ -623,26 +548,26 @@ The underlying type of `[]B1`, `B3`, and `B4` is `[]B1`.
 ### Method sets
 
 A type may have a *method set* associated with it. The method set of an
-[interface type](#Interface_types) is its interface. The method set of
-any other type `T` consists of all [methods](#Method_declarations)
+[interface type](#Interface-types) is its interface. The method set of
+any other type `T` consists of all [methods](#Method-declarations)
 declared with receiver type `T`. The method set of the corresponding
-[pointer type](#Pointer_types) `*T` is the set of all methods declared
+[pointer type](#Pointer-types) `*T` is the set of all methods declared
 with receiver `*T` or `T` (that is, it also contains the method set of
 `T`). Further rules apply to structs containing embedded fields, as
-described in the section on [struct types](#Struct_types). Any other
+described in the section on [struct types](#Struct-types). Any other
 type has an empty method set. In a method set, each method must have a
-[unique](#Uniqueness_of_identifiers) non-[blank](#Blank_identifier)
+[unique](#Uniqueness-of-identifiers) non-[blank](#Blank-identifier)
 [method name](#MethodName).
 
 The method set of a type determines the interfaces that the type
-[implements](#Interface_types) and the methods that can be
+[implements](#Interface-types) and the methods that can be
 [called](#Calls) using a receiver of that type.
 
 ### Boolean types
 
 A *boolean type* represents the set of Boolean truth values denoted by
 the predeclared constants `true` and `false`. The predeclared boolean
-type is `bool`; it is a [defined type](#Type_definitions).
+type is `bool`; it is a [defined type](#Type-definitions).
 
 ### Numeric types
 
@@ -683,8 +608,8 @@ int      same size as uint
 uintptr  an unsigned integer large enough to store the uninterpreted bits of a pointer value
 ```
 
-To avoid portability issues all numeric types are [defined types](#Type_definitions) 
-and thus distinct except `byte`, which is an[alias](#Alias_declarations) for 
+To avoid portability issues all numeric types are [defined types](#Type-definitions) 
+and thus distinct except `byte`, which is an[alias](#Alias-declarations) for 
 `uint8`, and `rune`, which is an alias for `int32`. Conversions are required 
 when different numeric types are mixed in an expression or assignment. For 
 instance, `int32` and `int` are not the same type even though they may have the 
@@ -695,12 +620,12 @@ same size on a particular architecture.
 A *string type* represents the set of string values. A string value is
 a(possibly empty) sequence of bytes. Strings are immutable: once created, it is
 impossible to change the contents of a string. The predeclared string type is
-`string`; it is a [defined type](#Type_definitions).
+`string`; it is a [defined type](#Type-definitions).
 
 The length of a string `s` (its size in bytes) can be discovered using the
-built-in function [`len`](#Length_and_capacity). The length is a compile-time
+built-in function [`len`](#Length-and-capacity). The length is a compile-time
 constant if the string is a constant. A string's bytes can be accessed by
-integer [indices](#Index_expressions) 0 through`len(s)-1`. It is illegal to take
+integer [indices](#Index-expressions) 0 through`len(s)-1`. It is illegal to take
 the address of such an element; if`s[i]` is the `i`'th byte of a string, `&s[i]`
 is invalid.
 
@@ -718,8 +643,8 @@ ElementType = Type .
 The length is part of the array's type; it must evaluate to a non-negative
 [constant](#Constants) [representable](#Representability) by a value of type
 `int`. The length of array `a` can be discovered using the built-in function
-[`len`](#Length_and_capacity). The elements can be addressed by integer
-[indices](#Index_expressions) 0 through`len(a)-1`. Array types are always one-
+[`len`](#Length-and-capacity). The elements can be addressed by integer
+[indices](#Index-expressions) 0 through`len(a)-1`. Array types are always one-
 dimensional but may be composed to form multi-dimensional types.
 
 ```go
@@ -742,9 +667,9 @@ SliceType = "[" "]" ElementType .
 ```
 
 Like arrays, slices are indexable and have a length. The length of a slice `s`
-can be discovered by the built-in function[`len`](#Length_and_capacity); unlike
+can be discovered by the built-in function[`len`](#Length-and-capacity); unlike
 with arrays it may change during execution. The elements can be addressed by
-integer[indices](#Index_expressions) 0 through `len(s)-1`. The slice index of a
+integer[indices](#Index-expressions) 0 through `len(s)-1`. The slice index of a
 given element may be less than the index of the same element in the underlying
 array.
 
@@ -756,12 +681,12 @@ distinct storage.
 The array underlying a slice may extend past the end of the slice. The*capacity*
 is a measure of that extent: it is the sum of the length of the slice and the
 length of the array beyond the slice; a slice of length up to that capacity can
-be created by[*slicing*](#Slice_expressions) a new one from the original slice.
+be created by[*slicing*](#Slice-expressions) a new one from the original slice.
 The capacity of a slice `a` can be discovered using the built-in
-function[`cap(a)`](#Length_and_capacity).
+function[`cap(a)`](#Length-and-capacity).
 
 A new, initialized slice value for a given element type `T` is made using the
-built-in function [`make`](#Making_slices_maps_and_channels), which takes a
+built-in function [`make`](#Making-slices-maps-and-channels), which takes a
 slice type and parameters specifying the length and optionally the capacity. A
 slice created with `make` always allocates a new, hidden array to which the
 returned slice value refers. That is, executing
@@ -770,7 +695,7 @@ returned slice value refers. That is, executing
 make([]T, length, capacity)
 ```
 
-produces the same slice as allocating an array and[slicing](#Slice_expressions) 
+produces the same slice as allocating an array and[slicing](#Slice-expressions) 
 it, so these two expressions are equivalent:
 
 ```go
@@ -788,8 +713,8 @@ must be initialized individually.
 
 A struct is a sequence of named elements, called fields, each of which has a 
 name and a type. Field names may be specified explicitly(IdentifierList) or 
-implicitly (EmbeddedField). Within a struct, non-[blank](#Blank_identifier) 
-field names must be[unique](#Uniqueness_of_identifiers).
+implicitly (EmbeddedField). Within a struct, non-[blank](#Blank-identifier) 
+field names must be[unique](#Uniqueness-of-identifiers).
 
 ``` ebnf
 StructType    = "struct" "{" { FieldDecl ";" } "}" .
@@ -839,18 +764,18 @@ struct {
 }
 ```
 
-A field or [method](#Method_declarations) `f` of an embedded field in a struct 
+A field or [method](#Method-declarations) `f` of an embedded field in a struct 
 `x` is called *promoted* if `x.f` is a legal[selector](#Selectors) that denotes 
 that field or method `f`.
 
 Promoted fields act like ordinary fields of a struct except that they cannot be 
-used as field names in [composite literals](#Composite_literals) of the struct.
+used as field names in [composite literals](#Composite-literals) of the struct.
 
-Given a struct type `S` and a [defined type](#Type_definitions) `T`, promoted 
+Given a struct type `S` and a [defined type](#Type-definitions) `T`, promoted 
 methods are included in the method set of the struct as follows:
 
   - If `S` contains an embedded field `T`, the [method
-    sets](#Method_sets) of `S` and `*S` both include promoted methods
+    sets](#Method-sets) of `S` and `*S` both include promoted methods
     with receiver `T`. The method set of `*S` also includes promoted
     methods with receiver `*T`.
   - If `S` contains an embedded field `*T`, the method sets of `S` and
@@ -860,7 +785,7 @@ A field declaration may be followed by an optional string literal *tag*, which
 becomes an attribute for all the fields in the corresponding field declaration. 
 An empty tag string is equivalent to an absent tag. The tags are made visible 
 through a [reflection interface](/pkg/reflect/#StructTag) and take part in [type 
-identity](#Type_identity) for structs but are otherwise ignored.
+identity](#Type-identity) for structs but are otherwise ignored.
 
 ```go
 struct {
@@ -910,8 +835,8 @@ ParameterDecl  = [ IdentifierList ] [ "..." ] Type .
 
 Within a list of parameters or results, the names (IdentifierList) must either
 all be present or all be absent. If present, each name stands for one item
-(parameter or result) of the specified type and all non-[blank](#Blank_identifier)
-names in the signature must be[unique](#Uniqueness_of_identifiers). If absent,
+(parameter or result) of the specified type and all non-[blank](#Blank-identifier)
+names in the signature must be[unique](#Uniqueness-of-identifiers). If absent,
 each type stands for one item of that type. Parameter and result lists are
 always parenthesized except that if there is exactly one unnamed result it may
 be written as an unparenthesized type.
@@ -933,7 +858,7 @@ func(n int) func(p *T)
 
 ### Interface types
 
-An interface type specifies a [method set](#Method_sets) called its*interface*. 
+An interface type specifies a [method set](#Method-sets) called its*interface*. 
 A variable of interface type can store a value of any type with a method set 
 that is any superset of the interface. Such a type is said to *implement the 
 interface*. The value of an uninitialized variable of interface type is `nil`.
@@ -946,7 +871,7 @@ InterfaceTypeName  = TypeName .
 ```
 
 As with all method sets, in an interface type, each method must have a
-[unique](#Uniqueness_of_identifiers) non-[blank](#Blank_identifier) name.
+[unique](#Uniqueness-of-identifiers) non-[blank](#Blank-identifier) name.
 
 ```go
 // A simple File interface
@@ -979,7 +904,7 @@ interface{}
 ```
 
 Similarly, consider this interface specification, which appears within a[type 
-declaration](#Type_declarations) to define an interface called`Locker`:
+declaration](#Type-declarations) to define an interface called`Locker`:
 
 ```go
 type Locker interface {
@@ -1049,25 +974,25 @@ MapType     = "map" "[" KeyType "]" ElementType .
 KeyType     = Type .
 ```
 
-The [comparison operators](#Comparison_operators) `==` and `!=` must be fully 
+The [comparison operators](#Comparison-operators) `==` and `!=` must be fully 
 defined for operands of the key type; thus the key type must not be a function, 
 map, or slice. If the key type is an interface type, these comparison operators 
 must be defined for the dynamic key values; failure will cause a [run-time 
-panic](#Run_time_panics).
+panic](#Run-time-panics).
 
     map[string]int
     map[*T]struct{ x, y float64 }
     map[string]interface{}
 
 The number of map elements is called its length. For a map `m`, it can be 
-discovered using the built-in function [`len`](#Length_and_capacity) and may 
+discovered using the built-in function [`len`](#Length-and-capacity) and may 
 change during execution. Elements may be added during execution using 
 [assignments](#Assignments) and retrieved with [index expressions
-](#Index_expressions); they may be removed with the [`delete`
-](#Deletion_of_map_elements) built-in function.
+](#Index-expressions); they may be removed with the [`delete`
+](#Deletion-of-map-elements) built-in function.
 
 A new, empty map value is made using the built-in function
-[`make`](#Making_slices_maps_and_channels), which takes the map type and
+[`make`](#Making-slices-maps-and-channels), which takes the map type and
 an optional capacity hint as arguments:
 
 ```go
@@ -1082,8 +1007,8 @@ equivalent to an empty map except that no elements may be added.
 ### Channel types
 
 A channel provides a mechanism for [concurrently executing functions
-](#Go_statements) to communicate by [sending](#Send_statements) and [receiving]
-(#Receive_operator) values of a specified element type. The value of an 
+](#Go-statements) to communicate by [sending](#Send-statements) and [receiving]
+(#Receive-operator) values of a specified element type. The value of an 
 uninitialized channel is `nil`.
 
 ``` ebnf
@@ -1111,7 +1036,7 @@ chan (<-chan int)
 ```
 
 A new, initialized channel value can be made using the built-in function 
-[`make`](#Making_slices_maps_and_channels), which takes the channel type and an 
+[`make`](#Making-slices-maps-and-channels), which takes the channel type and an 
 optional *capacity* as arguments:
 
 ```go
@@ -1126,12 +1051,12 @@ full (sends) or not empty (receives). A `nil` channel is never ready for
 communication.
 
 A channel may be closed with the built-in function [`close`](#Close).  The 
-multi-valued assignment form of the [receive operator](#Receive_operator) 
+multi-valued assignment form of the [receive operator](#Receive-operator) 
 reports whether a received value was sent before the channel was closed.
 
-A single channel may be used in [send statements](#Send_statements), [receive 
-operations](#Receive_operator), and calls to the built-in functions [`cap`]
-(#Length_and_capacity) and [`len`](#Length_and_capacity) by any number of 
+A single channel may be used in [send statements](#Send-statements), [receive 
+operations](#Receive-operator), and calls to the built-in functions [`cap`]
+(#Length-and-capacity) and [`len`](#Length-and-capacity) by any number of 
 goroutines without further synchronization. Channels act as first-in-first-out 
 queues. For example, if one goroutine sends values on a channel and a second 
 goroutine receives them, the values are received in the order sent.
@@ -1142,7 +1067,7 @@ goroutine receives them, the values are received in the order sent.
 
 Two types are either *identical* or *different*.
 
-A [defined type](#Type_definitions) is always different from any other type. 
+A [defined type](#Type-definitions) is always different from any other type. 
 Otherwise, two types are identical if their [underlying](#Types) type literals 
 are structurally equivalent; that is, they have the same literal structure and 
 corresponding components have identical types. In detail:
@@ -1153,7 +1078,7 @@ corresponding components have identical types. In detail:
   - Two struct types are identical if they have the same sequence of
     fields, and if corresponding fields have the same names, and
     identical types, and identical tags.
-    [Non-exported](#Exported_identifiers) field names from different
+    [Non-exported](#Exported-identifiers) field names from different
     packages are always different.
   - Two pointer types are identical if they have identical base types.
   - Two function types are identical if they have the same number of
@@ -1162,7 +1087,7 @@ corresponding components have identical types. In detail:
     neither is. Parameter and result names are not required to match.
   - Two interface types are identical if they have the same set of
     methods with the same names and identical function types.
-    [Non-exported](#Exported_identifiers) method names from different
+    [Non-exported](#Exported-identifiers) method names from different
     packages are always different. The order of the methods is
     irrelevant.
   - Two map types are identical if they have identical key and element
@@ -1209,7 +1134,7 @@ func(x int, y float64) *[]string, func(int, float64) (result *[]string), and A5
 ```
 
 `B0` and `B1` are different because they are new types created by distinct [type 
-definitions](#Type_definitions); `func(int, float64) *B0` and `func(x int, y 
+definitions](#Type-definitions); `func(int, float64) *B0` and `func(x int, y 
 float64) *[]string` are different because `B0` is different from `[]string`.
 
 ### Assignability
@@ -1219,9 +1144,9 @@ assignable to `T`") if one of the following conditions applies:
 
   - `x`'s type is identical to `T`.
   - `x`'s type `V` and `T` have identical [underlying types](#Types) and
-    at least one of `V` or `T` is not a [defined](#Type_definitions)
+    at least one of `V` or `T` is not a [defined](#Type-definitions)
     type.
-  - `T` is an interface type and `x` [implements](#Interface_types) `T`.
+  - `T` is an interface type and `x` [implements](#Interface-types) `T`.
   - `x` is a bidirectional channel value, `T` is a channel type, `x`'s
     type `V` and `T` have identical element types, and at least one of
     `V` or `T` is not a defined type.
@@ -1241,7 +1166,7 @@ the following conditions applies:
     rules but with an IEEE negative zero further simplified to an
     unsigned zero. Note that constant values never result in an IEEE
     negative zero, NaN, or infinity.
-  - `T` is a complex type, and `x`'s [components](#Complex_numbers)
+  - `T` is a complex type, and `x`'s [components](#Complex-numbers)
     `real(x)` and `imag(x)` are representable by values of `T`'s
     component type (`float32` or
     `float64`).
@@ -1288,27 +1213,27 @@ In addition to explicit blocks in the source code, there are implicit blocks:
     source text for that package.
 3.  Each file has a *file block* containing all Go source text in that
     file.
-4.  Each ["if"](#If_statements), ["for"](#For_statements), and
-    ["switch"](#Switch_statements) statement is considered to be in its
+4.  Each ["if"](#If-statements), ["for"](#For-statements), and
+    ["switch"](#Switch-statements) statement is considered to be in its
     own implicit block.
-5.  Each clause in a ["switch"](#Switch_statements) or
-    ["select"](#Select_statements) statement acts as an implicit block.
+5.  Each clause in a ["switch"](#Switch-statements) or
+    ["select"](#Select-statements) statement acts as an implicit block.
 
-Blocks nest and influence [scoping](#Declarations_and_scope).
+Blocks nest and influence [scoping](#Declarations-and-scope).
 
 ## Declarations and scope
 
-A *declaration* binds a non-[blank](#Blank_identifier) identifier to a 
-[constant](#Constant_declarations), [type](#Type_declarations), [variable
-](#Variable_declarations), [function](#Function_declarations), [label
-](#Labeled_statements), or [package](#Import_declarations). Every identifier in a 
+A *declaration* binds a non-[blank](#Blank-identifier) identifier to a 
+[constant](#Constant-declarations), [type](#Type-declarations), [variable
+](#Variable-declarations), [function](#Function-declarations), [label
+](#Labeled-statements), or [package](#Import-declarations). Every identifier in a 
 program must be declared. No identifier may be declared twice in the same block, 
 and no identifier may be declared in both the file and package block.
 
-The [blank identifier](#Blank_identifier) may be used like any other identifier 
+The [blank identifier](#Blank-identifier) may be used like any other identifier 
 in a declaration, but it does not introduce a binding and thus is not declared. 
 In the package block, the identifier `init` may only be used for [`init` 
-function](#Package_initialization) declarations, and like the blank identifier 
+function](#Package-initialization) declarations, and like the blank identifier 
 it does not introduce a new binding.
 
 ``` ebnf
@@ -1322,7 +1247,7 @@ package.
 
 Go is lexically scoped using [blocks](#Blocks):
 
-1.  The scope of a [predeclared identifier](#Predeclared_identifiers) is
+1.  The scope of a [predeclared identifier](#Predeclared-identifiers) is
     the universe block.
 2.  The scope of an identifier denoting a constant, type, variable, or
     function (but not method) declared at top level (outside any
@@ -1343,16 +1268,16 @@ An identifier declared in a block may be redeclared in an inner block.
 While the identifier of the inner declaration is in scope, it denotes
 the entity declared by the inner declaration.
 
-The [package clause](#Package_clause) is not a declaration; the package name 
+The [package clause](#Package-clause) is not a declaration; the package name 
 does not appear in any scope. Its purpose is to identify the files belonging to 
 the same [package](#Packages) and to specify the default package name for import 
 declarations.
 
 ### Label scopes
 
-Labels are declared by [labeled statements](#Labeled_statements) and are used in 
-the ["break"](#Break_statements), ["continue"](#Continue_statements), and 
-["goto"](#Goto_statements) statements. It is illegal to define a label that is 
+Labels are declared by [labeled statements](#Labeled-statements) and are used in 
+the ["break"](#Break-statements), ["continue"](#Continue-statements), and 
+["goto"](#Goto-statements) statements. It is illegal to define a label that is 
 never used. In contrast to other identifiers, labels are not block scoped and do 
 not conflict with identifiers that are not labels. The scope of a label is the 
 body of the function in which it is declared and excludes the body of any nested 
@@ -1362,7 +1287,7 @@ function.
 
 The *blank identifier* is represented by the underscore character `_`.  It 
 serves as an anonymous placeholder instead of a regular (non-blank) identifier 
-and has special meaning in [declarations](#Declarations_and_scope), as an 
+and has special meaning in [declarations](#Declarations-and-scope), as an 
 [operand](#Operands), and in [assignments](#Assignments).
 
 ### Predeclared identifiers
@@ -1395,7 +1320,7 @@ identifier is exported if both:
 1.  the first character of the identifier's name is a Unicode upper case
     letter (Unicode class "Lu"); and
 2.  the identifier is declared in the [package block](#Blocks) or it is
-    a [field name](#Struct_types) or [method name](#MethodName).
+    a [field name](#Struct-types) or [method name](#MethodName).
 
 All other identifiers are not exported.
 
@@ -1404,12 +1329,12 @@ All other identifiers are not exported.
 Given a set of identifiers, an identifier is called *unique* if it is 
 *different* from every other in the set. Two identifiers are different if they 
 are spelled differently, or if they appear in different [packages](#Packages) 
-and are not [exported](#Exported_identifiers).  Otherwise, they are the same.
+and are not [exported](#Exported-identifiers).  Otherwise, they are the same.
 
 ### Constant declarations
 
 A constant declaration binds a list of identifiers (the names of the constants) 
-to the values of a list of [constant expressions](#Constant_expressions). The 
+to the values of a list of [constant expressions](#Constant-expressions). The 
 number of identifiers must be equal to the number of expressions, and the *n*th 
 identifier on the left is bound to the value of the *n*th expression on the 
 right.
@@ -1464,7 +1389,7 @@ values:
 
 ### Iota
 
-Within a [constant declaration](#Constant_declarations), the predeclared
+Within a [constant declaration](#Constant-declarations), the predeclared
 identifier `iota` represents successive untyped integer
 [constants](#Constants). Its value is the index of the respective
 [ConstSpec](#ConstSpec) in that constant declaration, starting at zero.
@@ -1503,7 +1428,7 @@ the same value:
     )
 
 This last example exploits the [implicit
-repetition](#Constant_declarations) of the last non-empty expression
+repetition](#Constant-declarations) of the last non-empty expression
 list.
 
 ### Type declarations
@@ -1525,7 +1450,7 @@ An alias declaration binds an identifier to the given type.
 AliasDecl = identifier "=" Type .
 ```
 
-Within the [scope](#Declarations_and_scope) of the identifier, it serves
+Within the [scope](#Declarations-and-scope) of the identifier, it serves
 as an *alias* for the type.
 
     type (
@@ -1544,7 +1469,7 @@ TypeDef = identifier Type .
 ```
 
 The new type is called a *defined type*. It is
-[different](#Type_identity) from any other type, including the type it
+[different](#Type-identity) from any other type, including the type it
 is created from.
 
     type (
@@ -1563,9 +1488,9 @@ is created from.
         Decrypt(src, dst []byte)
     }
 
-A defined type may have [methods](#Method_declarations) associated with
+A defined type may have [methods](#Method-declarations) associated with
 it. It does not inherit any methods bound to the given type, but the
-[method set](#Method_sets) of an interface type or of elements of a
+[method set](#Method-sets) of an interface type or of elements of a
 composite type remains unchanged:
 
     // A Mutex is a data type with two methods, Lock and Unlock.
@@ -1630,7 +1555,7 @@ VarSpec     = IdentifierList ( Type [ "=" ExpressionList ] | "=" ExpressionList 
 If a list of expressions is given, the variables are initialized with
 the expressions following the rules for [assignments](#Assignments).
 Otherwise, each variable is initialized to its [zero
-value](#The_zero_value).
+value](#The-zero-value).
 
 If a type is present, each variable is given that type. Otherwise, each
 variable is given the type of the corresponding initialization value in
@@ -1646,7 +1571,7 @@ explicit type.
     var n = nil            // illegal
 
 Implementation restriction: A compiler may make it illegal to declare a
-variable inside a [function body](#Function_declarations) if the
+variable inside a [function body](#Function-declarations) if the
 variable is never used.
 
 ### Short variable declarations
@@ -1658,7 +1583,7 @@ ShortVarDecl = IdentifierList ":=" ExpressionList .
 ```
 
 It is shorthand for a regular [variable
-declaration](#Variable_declarations) with initializer expressions but no
+declaration](#Variable-declarations) with initializer expressions but no
 types:
 
 ``` grammar
@@ -1675,7 +1600,7 @@ Unlike regular variable declarations, a short variable declaration may
 *redeclare* variables provided they were originally declared earlier in
 the same block (or the parameter lists if the block is the function
 body) with the same type, and at least one of the
-non-[blank](#Blank_identifier) variables is new. As a consequence,
+non-[blank](#Blank-identifier) variables is new. As a consequence,
 redeclaration can only appear in a multi-variable short declaration.
 Redeclaration does not introduce a new variable; it just assigns a new
 value to the original.
@@ -1685,8 +1610,8 @@ value to the original.
     a, a := 1, 2                              // illegal: double declaration of a or no new variable if a was declared elsewhere
 
 Short variable declarations may appear only inside functions. In some
-contexts such as the initializers for ["if"](#If_statements),
-["for"](#For_statements), or ["switch"](#Switch_statements) statements,
+contexts such as the initializers for ["if"](#If-statements),
+["for"](#For-statements), or ["switch"](#Switch-statements) statements,
 they can be used to declare local temporary variables.
 
 ### Function declarations
@@ -1700,9 +1625,9 @@ FunctionName = identifier .
 FunctionBody = Block .
 ```
 
-If the function's [signature](#Function_types) declares result
+If the function's [signature](#Function-types) declares result
 parameters, the function body's statement list must end in a
-[terminating statement](#Terminating_statements).
+[terminating statement](#Terminating-statements).
 
     func IndexRune(s string, r rune) int {
         for i, c := range s {
@@ -1728,7 +1653,7 @@ routine.
 
 ### Method declarations
 
-A method is a [function](#Function_declarations) with a *receiver*. A
+A method is a [function](#Function-declarations) with a *receiver*. A
 method declaration binds an identifier, the *method name*, to a method,
 and associates the method with the receiver's *base type*.
 
@@ -1742,19 +1667,19 @@ method name. That parameter section must declare a single non-variadic
 parameter, the receiver. Its type must be of the form `T` or `*T`
 (possibly using parentheses) where `T` is a type name. The type denoted
 by `T` is called the receiver *base type*; it must not be a pointer or
-interface type and it must be [defined](#Type_definitions) in the same
+interface type and it must be [defined](#Type-definitions) in the same
 package as the method. The method is said to be *bound* to the base type
 and the method name is visible only within [selectors](#Selectors) for
 type `T` or `*T`.
 
-A non-[blank](#Blank_identifier) receiver identifier must be
-[unique](#Uniqueness_of_identifiers) in the method signature. If the
+A non-[blank](#Blank-identifier) receiver identifier must be
+[unique](#Uniqueness-of-identifiers) in the method signature. If the
 receiver's value is not referenced inside the body of the method, its
 identifier may be omitted in the declaration. The same applies in
 general to parameters of functions and methods.
 
 For a base type, the non-blank names of methods bound to it must be
-unique. If the base type is a [struct type](#Struct_types), the
+unique. If the base type is a [struct type](#Struct-types), the
 non-blank method and field names must be distinct.
 
 Given type `Point`, the declarations
@@ -1786,12 +1711,12 @@ and functions to operands.
 ### Operands
 
 Operands denote the elementary values in an expression. An operand may
-be a literal, a (possibly [qualified](#Qualified_identifiers))
-non-[blank](#Blank_identifier) identifier denoting a
-[constant](#Constant_declarations), [variable](#Variable_declarations),
-or [function](#Function_declarations), or a parenthesized expression.
+be a literal, a (possibly [qualified](#Qualified-identifiers))
+non-[blank](#Blank-identifier) identifier denoting a
+[constant](#Constant-declarations), [variable](#Variable-declarations),
+or [function](#Function-declarations), or a parenthesized expression.
 
-The [blank identifier](#Blank_identifier) may appear as an operand only
+The [blank identifier](#Blank-identifier) may appear as an operand only
 on the left-hand side of an [assignment](#Assignments).
 
 ``` ebnf
@@ -1805,15 +1730,15 @@ OperandName = identifier | QualifiedIdent.
 
 A qualified identifier is an identifier qualified with a package name
 prefix. Both the package name and the identifier must not be
-[blank](#Blank_identifier).
+[blank](#Blank-identifier).
 
 ``` ebnf
 QualifiedIdent = PackageName "." identifier .
 ```
 
 A qualified identifier accesses an identifier in a different package,
-which must be [imported](#Import_declarations). The identifier must be
-[exported](#Exported_identifiers) and declared in the [package
+which must be [imported](#Import-declarations). The identifier must be
+[exported](#Exported-identifiers) and declared in the [package
 block](#Blocks) of that package.
 
     math.Sin    // denotes the Sin function in package math
@@ -1846,7 +1771,7 @@ interpreted as a field name for struct literals, an index for array and
 slice literals, and a key for map literals. For map literals, all
 elements must have a key. It is an error to specify multiple elements
 with the same field name or constant key value. For non-constant map
-keys, see the section on [evaluation order](#Order_of_evaluation).
+keys, see the section on [evaluation order](#Order-of-evaluation).
 
 For struct literals the following rules apply:
 
@@ -1883,7 +1808,7 @@ For array and slice literals the following rules apply:
   - An element without a key uses the previous element's index plus one.
     If the first element has no key, its index is zero.
 
-[Taking the address](#Address_operators) of a composite literal
+[Taking the address](#Address-operators) of a composite literal
 generates a pointer to a unique [variable](#Variables) initialized with
 the literal's value.
 
@@ -1960,7 +1885,7 @@ Examples of valid array, slice, and map literals:
 ### Function literals
 
 A function literal represents an anonymous
-[function](#Function_declarations).
+[function](#Function-declarations).
 
 ``` ebnf
 FunctionLit = "func" Signature FunctionBody .
@@ -2013,20 +1938,20 @@ Arguments      = "(" [ ( ExpressionList | Type [ "," ExpressionList ] ) [ "..." 
 
 ### Selectors
 
-For a [primary expression](#Primary_expressions) `x` that is not a
-[package name](#Package_clause), the *selector expression*
+For a [primary expression](#Primary-expressions) `x` that is not a
+[package name](#Package-clause), the *selector expression*
 
     x.f
 
 denotes the field or method `f` of the value `x` (or sometimes `*x`; see
 below). The identifier `f` is called the (field or method) *selector*;
-it must not be the [blank identifier](#Blank_identifier). The type of
+it must not be the [blank identifier](#Blank-identifier). The type of
 the selector expression is the type of `f`. If `x` is a package name,
-see the section on [qualified identifiers](#Qualified_identifiers).
+see the section on [qualified identifiers](#Qualified-identifiers).
 
 A selector `f` may denote a field or method `f` of a type `T`, or it may
 refer to a field or method `f` of a nested [embedded
-field](#Struct_types) of `T`. The number of embedded fields traversed to
+field](#Struct-types) of `T`. The number of embedded fields traversed to
 reach `f` is called its *depth* in `T`. The depth of a field or method
 `f` declared in `T` is zero. The depth of a field or method `f` declared
 in an embedded field `A` in `T` is the depth of `f` in `A` plus one.
@@ -2036,23 +1961,23 @@ The following rules apply to selectors:
 1.  For a value `x` of type `T` or `*T` where `T` is not a pointer or
     interface type, `x.f` denotes the field or method at the shallowest
     depth in `T` where there is such an `f`. If there is not exactly
-    [one `f`](#Uniqueness_of_identifiers) with shallowest depth, the
+    [one `f`](#Uniqueness-of-identifiers) with shallowest depth, the
     selector expression is illegal.
 2.  For a value `x` of type `I` where `I` is an interface type, `x.f`
     denotes the actual method with name `f` of the dynamic value of `x`.
     If there is no method with name `f` in the [method
-    set](#Method_sets) of `I`, the selector expression is illegal.
+    set](#Method-sets) of `I`, the selector expression is illegal.
 3.  As an exception, if the type of `x` is a
-    [defined](#Type_definitions) pointer type and `(*x).f` is a valid
+    [defined](#Type-definitions) pointer type and `(*x).f` is a valid
     selector expression denoting a field (but not a method), `x.f` is
     shorthand for `(*x).f`.
 4.  In all other cases, `x.f` is illegal.
 5.  If `x` is of pointer type and has the value `nil` and `x.f` denotes
     a struct field, assigning to or evaluating `x.f` causes a [run-time
-    panic](#Run_time_panics).
+    panic](#Run-time-panics).
 6.  If `x` is of interface type and has the value `nil`,
-    [calling](#Calls) or [evaluating](#Method_values) the method `x.f`
-    causes a [run-time panic](#Run_time_panics).
+    [calling](#Calls) or [evaluating](#Method-values) the method `x.f`
+    causes a [run-time panic](#Run-time-panics).
 
 For example, given the declarations:
 
@@ -2105,7 +2030,7 @@ but the following is invalid:
 
 ### Method expressions
 
-If `M` is in the [method set](#Method_sets) of type `T`, `T.M` is a
+If `M` is in the [method set](#Method-sets) of type `T`, `T.M` is a
 function that is callable as a regular function with the same arguments
 as `M` prefixed by an additional argument that is the receiver of the
 method.
@@ -2173,7 +2098,7 @@ Function values derived from methods are called with function call
 syntax; the receiver is provided as the first argument to the call. That
 is, given `f := T.Mv`, `f` is invoked as `f(t, 7)` not `t.f(7)`. To
 construct a function that binds the receiver, use a [function
-literal](#Function_literals) or [method value](#Method_values).
+literal](#Function-literals) or [method value](#Method-values).
 
 It is legal to derive a function value from a method of an interface
 type. The resulting function takes an explicit receiver of that
@@ -2182,7 +2107,7 @@ interface type.
 ### Method values
 
 If the expression `x` has static type `T` and `M` is in the [method
-set](#Method_sets) of type `T`, `x.M` is called a *method value*. The
+set](#Method-sets) of type `T`, `x.M` is called a *method value*. The
 method value `x.M` is a function value that is callable with the same
 arguments as a method call of `x.M`. The expression `x` is evaluated and
 saved during the evaluation of the method value; the saved copy is then
@@ -2190,7 +2115,7 @@ used as the receiver in any calls, which may be executed later.
 
 The type `T` may be an interface or non-interface type.
 
-As in the discussion of [method expressions](#Method_expressions) above,
+As in the discussion of [method expressions](#Method-expressions) above,
 consider a struct type `T` with two methods, `Mv`, whose receiver is of
 type `T`, and `Mp`, whose receiver is of type `*T`.
 
@@ -2264,43 +2189,43 @@ If `a` is not a map:
   - the index `x` is *in range* if `0 <= x < len(a)`, otherwise it is
     *out of range*
 
-For `a` of [array type](#Array_types) `A`:
+For `a` of [array type](#Array-types) `A`:
 
   - a [constant](#Constants) index must be in range
   - if `x` is out of range at run time, a [run-time
-    panic](#Run_time_panics) occurs
+    panic](#Run-time-panics) occurs
   - `a[x]` is the array element at index `x` and the type of `a[x]` is
     the element type of `A`
 
-For `a` of [pointer](#Pointer_types) to array type:
+For `a` of [pointer](#Pointer-types) to array type:
 
   - `a[x]` is shorthand for `(*a)[x]`
 
-For `a` of [slice type](#Slice_types) `S`:
+For `a` of [slice type](#Slice-types) `S`:
 
   - if `x` is out of range at run time, a [run-time
-    panic](#Run_time_panics) occurs
+    panic](#Run-time-panics) occurs
   - `a[x]` is the slice element at index `x` and the type of `a[x]` is
     the element type of `S`
 
-For `a` of [string type](#String_types):
+For `a` of [string type](#String-types):
 
   - a [constant](#Constants) index must be in range if the string `a` is
     also constant
   - if `x` is out of range at run time, a [run-time
-    panic](#Run_time_panics) occurs
+    panic](#Run-time-panics) occurs
   - `a[x]` is the non-constant byte value at index `x` and the type of
     `a[x]` is `byte`
   - `a[x]` may not be assigned to
 
-For `a` of [map type](#Map_types) `M`:
+For `a` of [map type](#Map-types) `M`:
 
   - `x`'s type must be [assignable](#Assignability) to the key type of
     `M`
   - if the map contains an entry with key `x`, `a[x]` is the map element
     with key `x` and the type of `a[x]` is the element type of `M`
   - if the map is `nil` or does not contain such an entry, `a[x]` is the
-    [zero value](#The_zero_value) for the element type of `M`
+    [zero value](#The-zero-value) for the element type of `M`
 
 Otherwise `a[x]` is illegal.
 
@@ -2315,7 +2240,7 @@ yields an additional untyped boolean value. The value of `ok` is `true`
 if the key `x` is present in the map, and `false` otherwise.
 
 Assigning to an element of a `nil` map causes a [run-time
-panic](#Run_time_panics).
+panic](#Run-time-panics).
 
 ### Slice expressions
 
@@ -2363,14 +2288,14 @@ A [constant](#Constants) index must be non-negative and
 [representable](#Representability) by a value of type `int`; for arrays
 or constant strings, constant indices must also be in range. If both
 indices are constant, they must satisfy `low <= high`. If the indices
-are out of range at run time, a [run-time panic](#Run_time_panics)
+are out of range at run time, a [run-time panic](#Run-time-panics)
 occurs.
 
 Except for [untyped strings](#Constants), if the sliced operand is a
 string or slice, the result of the slice operation is a non-constant
 value of the same type as the operand. For untyped string operands the
 result is a non-constant value of type `string`. If the sliced operand
-is an array, it must be [addressable](#Address_operators) and the result
+is an array, it must be [addressable](#Address-operators) and the result
 of the slice operation is a slice with the same element type as the
 array.
 
@@ -2401,7 +2326,7 @@ the slice `t` has type `[]int`, length 2, capacity 4, and elements
 
 As for simple slice expressions, if `a` is a pointer to an array, `a[low
 : high : max]` is shorthand for `(*a)[low : high : max]`. If the sliced
-operand is an array, it must be [addressable](#Address_operators).
+operand is an array, it must be [addressable](#Address-operators).
 
 The indices are *in range* if `0 <= low <= high <= max <= cap(a)`,
 otherwise they are *out of range*. A [constant](#Constants) index must
@@ -2409,11 +2334,11 @@ be non-negative and [representable](#Representability) by a value of
 type `int`; for arrays, constant indices must also be in range. If
 multiple indices are constant, the constants that are present must be in
 range relative to each other. If the indices are out of range at run
-time, a [run-time panic](#Run_time_panics) occurs.
+time, a [run-time panic](#Run-time-panics) occurs.
 
 ### Type assertions
 
-For an expression `x` of [interface type](#Interface_types) and a type
+For an expression `x` of [interface type](#Interface-types) and a type
 `T`, the primary expression
 
     x.(T)
@@ -2422,8 +2347,8 @@ asserts that `x` is not `nil` and that the value stored in `x` is of
 type `T`. The notation `x.(T)` is called a *type assertion*.
 
 More precisely, if `T` is not an interface type, `x.(T)` asserts that
-the dynamic type of `x` is [identical](#Type_identity) to the type `T`.
-In this case, `T` must [implement](#Method_sets) the (interface) type of
+the dynamic type of `x` is [identical](#Type-identity) to the type `T`.
+In this case, `T` must [implement](#Method-sets) the (interface) type of
 `x`; otherwise the type assertion is invalid since it is not possible
 for `x` to store a value of type `T`. If `T` is an interface type,
 `x.(T)` asserts that the dynamic type of `x` implements the interface
@@ -2431,7 +2356,7 @@ for `x` to store a value of type `T`. If `T` is an interface type,
 
 If the type assertion holds, the value of the expression is the value
 stored in `x` and its type is `T`. If the type assertion is false, a
-[run-time panic](#Run_time_panics) occurs. In other words, even though
+[run-time panic](#Run-time-panics) occurs. In other words, even though
 the dynamic type of `x` is known only at run time, the type of `x.(T)`
 is known to be `T` in a correct program.
 
@@ -2456,7 +2381,7 @@ of the special form
 
 yields an additional untyped boolean value. The value of `ok` is `true`
 if the assertion holds. Otherwise it is `false` and the value of `v` is
-the [zero value](#The_zero_value) for type `T`. No run-time panic occurs
+the [zero value](#The-zero-value) for type `T`. No run-time panic occurs
 in this case.
 
 ### Calls
@@ -2477,14 +2402,14 @@ upon a value of the receiver type for the method.
     pt.Scale(3.5)     // method call with receiver pt
 
 In a function call, the function value and arguments are evaluated in
-[the usual order](#Order_of_evaluation). After they are evaluated, the
+[the usual order](#Order-of-evaluation). After they are evaluated, the
 parameters of the call are passed by value to the function and the
 called function begins execution. The return parameters of the function
 are passed by value back to the calling function when the function
 returns.
 
 Calling a `nil` function value causes a [run-time
-panic](#Run_time_panics).
+panic](#Run-time-panics).
 
 As a special case, if the return values of a function or method `g` are
 equal in number and individually assignable to the parameters of another
@@ -2507,9 +2432,9 @@ remain after assignment of regular parameters.
         log.Panic("test fails")
     }
 
-A method call `x.m()` is valid if the [method set](#Method_sets) of (the
+A method call `x.m()` is valid if the [method set](#Method-sets) of (the
 type of) `x` contains `m` and the argument list can be assigned to the
-parameter list of `m`. If `x` is [addressable](#Address_operators) and
+parameter list of `m`. If `x` is [addressable](#Address-operators) and
 `&x`'s method set contains `m`, `x.m()` is shorthand for `(&x).m()`:
 
     var p Point
@@ -2519,7 +2444,7 @@ There is no distinct method type and there are no method literals.
 
 ### Passing arguments to `...` parameters
 
-If `f` is [variadic](#Function_types) with a final parameter `p` of type
+If `f` is [variadic](#Function-types) with a final parameter `p` of type
 `...T`, then within `f` the type of `p` is equivalent to type `[]T`. If
 `f` is invoked with no actual arguments for `p`, the value passed to `p`
 is `nil`. Otherwise, the value passed is a new slice of type `[]T` with
@@ -2565,11 +2490,11 @@ mul_op     = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
 unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
 ```
 
-Comparisons are discussed [elsewhere](#Comparison_operators). For other
-binary operators, the operand types must be [identical](#Type_identity)
+Comparisons are discussed [elsewhere](#Comparison-operators). For other
+binary operators, the operand types must be [identical](#Type-identity)
 unless the operation involves shifts or untyped [constants](#Constants).
 For operations involving constants only, see the section on [constant
-expressions](#Constant_expressions).
+expressions](#Constant-expressions).
 
 Except for shift operations, if one operand is an untyped
 [constant](#Constants) and the other operand is not, the constant is
@@ -2672,7 +2597,7 @@ division"](https://en.wikipedia.org/wiki/Modulo_operation)).
 The one exception to this rule is that if the dividend `x` is the most
 negative value for the int type of `x`, the quotient `q = x / -1` is
 equal to `x` (and `r = 0`) due to two's-complement [integer
-overflow](#Integer_overflow):
+overflow](#Integer-overflow):
 
 ``` 
              x, q
@@ -2683,7 +2608,7 @@ int64    -9223372036854775808
 ```
 
 If the divisor is a [constant](#Constants), it must not be zero. If the
-divisor is zero at run time, a [run-time panic](#Run_time_panics)
+divisor is zero at run time, a [run-time panic](#Run-time-panics)
 occurs. If the dividend is non-negative and the divisor is a constant
 power of 2, the division may be replaced by a right shift, and computing
 the remainder may be replaced by a bitwise AND operation:
@@ -2716,7 +2641,7 @@ as follows:
 
 For unsigned integer values, the operations `+`, `-`, `*`, and `<<` are
 computed modulo 2<sup>*n*</sup>, where *n* is the bit width of the
-[unsigned integer](#Numeric_types)'s type. Loosely speaking, these
+[unsigned integer](#Numeric-types)'s type. Loosely speaking, these
 unsigned integer operations discard high bits upon overflow, and
 programs may rely on "wrap around".
 
@@ -2732,7 +2657,7 @@ instance, it may not assume that `x < x + 1` is always true.
 For floating-point and complex numbers, `+x` is the same as `x`, while
 `-x` is the negation of `x`. The result of a floating-point or complex
 division by zero is not specified beyond the IEEE-754 standard; whether
-a [run-time panic](#Run_time_panics) occurs is implementation-specific.
+a [run-time panic](#Run-time-panics) occurs is implementation-specific.
 
 An implementation may combine multiple floating-point operations into a
 single fused operation, possibly across statements, and produce a result
@@ -2802,14 +2727,14 @@ comparisons are defined as follows:
   - String values are comparable and ordered, lexically byte-wise.
   - Pointer values are comparable. Two pointer values are equal if they
     point to the same variable or if both have value `nil`. Pointers to
-    distinct [zero-size](#Size_and_alignment_guarantees) variables may
+    distinct [zero-size](#Size-and-alignment-guarantees) variables may
     or may not be equal.
   - Channel values are comparable. Two channel values are equal if they
     were created by the same call to
-    [`make`](#Making_slices_maps_and_channels) or if both have value
+    [`make`](#Making-slices-maps-and-channels) or if both have value
     `nil`.
   - Interface values are comparable. Two interface values are equal if
-    they have [identical](#Type_identity) dynamic types and equal
+    they have [identical](#Type-identity) dynamic types and equal
     dynamic values or if both have value `nil`.
   - A value `x` of non-interface type `X` and a value `t` of interface
     type `T` are comparable when values of type `X` are comparable and
@@ -2817,13 +2742,13 @@ comparisons are defined as follows:
     identical to `X` and `t`'s dynamic value is equal to `x`.
   - Struct values are comparable if all their fields are comparable. Two
     struct values are equal if their corresponding
-    non-[blank](#Blank_identifier) fields are equal.
+    non-[blank](#Blank-identifier) fields are equal.
   - Array values are comparable if values of the array element type are
     comparable. Two array values are equal if their corresponding
     elements are equal.
 
 A comparison of two interface values with identical dynamic types causes
-a [run-time panic](#Run_time_panics) if values of that type are not
+a [run-time panic](#Run-time-panics) if values of that type are not
 comparable. This behavior applies not only to direct interface value
 comparisons but also when comparing arrays of interface values or
 structs with interface-valued fields.
@@ -2848,7 +2773,7 @@ rules above.
 
 ### Logical operators
 
-Logical operators apply to [boolean](#Boolean_types) values and yield a
+Logical operators apply to [boolean](#Boolean-types) values and yield a
 result of the same type as the operands. The right operand is evaluated
 conditionally.
 
@@ -2866,14 +2791,14 @@ either a variable, pointer indirection, or slice indexing operation; or
 a field selector of an addressable struct operand; or an array indexing
 operation of an addressable array. As an exception to the addressability
 requirement, `x` may also be a (possibly parenthesized) [composite
-literal](#Composite_literals). If the evaluation of `x` would cause a
-[run-time panic](#Run_time_panics), then the evaluation of `&x` does
+literal](#Composite-literals). If the evaluation of `x` would cause a
+[run-time panic](#Run-time-panics), then the evaluation of `&x` does
 too.
 
 For an operand `x` of pointer type `*T`, the pointer indirection `*x`
 denotes the [variable](#Variables) of type `T` pointed to by `x`. If `x`
 is `nil`, an attempt to evaluate `*x` will cause a [run-time
-panic](#Run_time_panics).
+panic](#Run-time-panics).
 
     &x
     &a[f(2)]
@@ -2887,14 +2812,14 @@ panic](#Run_time_panics).
 
 ### Receive operator
 
-For an operand `ch` of [channel type](#Channel_types), the value of the
+For an operand `ch` of [channel type](#Channel-types), the value of the
 receive operation `<-ch` is the value received from the channel `ch`.
 The channel direction must permit receive operations, and the type of
 the receive operation is the element type of the channel. The expression
 blocks until a value is available. Receiving from a `nil` channel blocks
 forever. A receive operation on a [closed](#Close) channel can always
 proceed immediately, yielding the element type's [zero
-value](#The_zero_value) after any previously sent values have been
+value](#The-zero-value) after any previously sent values have been
 received.
 
     v1 := <-ch
@@ -2929,44 +2854,47 @@ If the type starts with the operator `*` or `<-`, or if the type starts
 with the keyword `func` and has no result list, it must be parenthesized
 when necessary to avoid ambiguity:
 
-    *Point(p)        // same as *(Point(p))
-    (*Point)(p)      // p is converted to *Point
-    <-chan int(c)    // same as <-(chan int(c))
-    (<-chan int)(c)  // c is converted to <-chan int
-    func()(x)        // function signature func() x
-    (func())(x)      // x is converted to func()
-    (func() int)(x)  // x is converted to func() int
-    func() int(x)    // x is converted to func() int (unambiguous)
+```go
+*Point(p)        // same as *(Point(p))
+(*Point)(p)      // p is converted to *Point
+<-chan int(c)    // same as <-(chan int(c))
+(<-chan int)(c)  // c is converted to <-chan int
+func()(x)        // function signature func() x
+(func())(x)      // x is converted to func()
+(func() int)(x)  // x is converted to func() int
+func() int(x)    // x is converted to func() int (unambiguous)
+```
 
-A [constant](#Constants) value `x` can be converted to type `T` if `x`
-is [representable](#Representability) by a value of `T`. As a special
-case, an integer constant `x` can be converted to a [string
-type](#String_types) using the [same
-rule](#Conversions_to_and_from_a_string_type) as for non-constant `x`.
+A [constant](#Constants) value `x` can be converted to type `T` if `x` is 
+[representable](#Representability) by a value of `T`. As a special case, an 
+integer constant `x` can be converted to a [string type](#String-types) using 
+the [same rule](#Conversions-to-and-from-a-string-type) as for non-constant `x`.
 
 Converting a constant yields a typed constant as result.
 
-    uint(iota)               // iota value of type uint
-    float32(2.718281828)     // 2.718281828 of type float32
-    complex128(1)            // 1.0 + 0.0i of type complex128
-    float32(0.49999999)      // 0.5 of type float32
-    float64(-1e-1000)        // 0.0 of type float64
-    string('x')              // "x" of type string
-    string(0x266c)           // "♬" of type string
-    MyString("foo" + "bar")  // "foobar" of type MyString
-    string([]byte{'a'})      // not a constant: []byte{'a'} is not a constant
-    (*int)(nil)              // not a constant: nil is not a constant, *int is not a boolean, numeric, or string type
-    int(1.2)                 // illegal: 1.2 cannot be represented as an int
-    string(65.0)             // illegal: 65.0 is not an integer constant
+```go
+uint(iota)               // iota value of type uint
+float32(2.718281828)     // 2.718281828 of type float32
+complex128(1)            // 1.0 + 0.0i of type complex128
+float32(0.49999999)      // 0.5 of type float32
+float64(-1e-1000)        // 0.0 of type float64
+string('x')              // "x" of type string
+string(0x266c)           // "♬" of type string
+MyString("foo" + "bar")  // "foobar" of type MyString
+string([]byte{'a'})      // not a constant: []byte{'a'} is not a constant
+(*int)(nil)              // not a constant: nil is not a constant, *int is not a boolean, numeric, or string type
+int(1.2)                 // illegal: 1.2 cannot be represented as an int
+string(65.0)             // illegal: 65.0 is not an integer constant
+```
 
 A non-constant value `x` can be converted to type `T` in any of these
 cases:
 
   - `x` is [assignable](#Assignability) to `T`.
   - ignoring struct tags (see below), `x`'s type and `T` have
-    [identical](#Type_identity) [underlying types](#Types).
+    [identical](#Type-identity) [underlying types](#Types).
   - ignoring struct tags (see below), `x`'s type and `T` are pointer
-    types that are not [defined types](#Type_definitions), and their
+    types that are not [defined types](#Type-definitions), and their
     pointer base types have identical underlying types.
   - `x`'s type and `T` are both integer or floating point types.
   - `x`'s type and `T` are both complex types.
@@ -2974,26 +2902,28 @@ cases:
     type.
   - `x` is a string and `T` is a slice of bytes or runes.
 
-[Struct tags](#Struct_types) are ignored when comparing struct types for
+[Struct tags](#Struct-types) are ignored when comparing struct types for
 identity for the purpose of conversion:
 
-    type Person struct {
-        Name    string
-        Address *struct {
-            Street string
-            City   string
-        }
+```go
+type Person struct {
+    Name    string
+    Address *struct {
+        Street string
+        City   string
     }
-    
-    var data *struct {
-        Name    string `json:"name"`
-        Address *struct {
-            Street string `json:"street"`
-            City   string `json:"city"`
-        } `json:"address"`
-    }
-    
-    var person = (*Person)(data)  // ignoring tags, the underlying types are identical
+}
+
+var data *struct {
+    Name    string `json:"name"`
+    Address *struct {
+        Street string `json:"street"`
+        City   string `json:"city"`
+    } `json:"address"`
+}
+
+var person = (*Person)(data)  // ignoring tags, the underlying types are identical
+```
 
 Specific rules apply to (non-constant) conversions between numeric types
 or to and from a string type. These conversions may change the
@@ -3001,7 +2931,7 @@ representation of `x` and incur a run-time cost. All other conversions
 only change the type but not the representation of `x`.
 
 There is no linguistic mechanism to convert between pointers and
-integers. The package [`unsafe`](#Package_unsafe) implements this
+integers. The package [`unsafe`](#Package-unsafe) implements this
 functionality under restricted circumstances.
 
 #### Conversions between numeric types
@@ -3089,11 +3019,11 @@ Untyped boolean, numeric, and string constants may be used as operands
 wherever it is legal to use an operand of boolean, numeric, or string
 type, respectively.
 
-A constant [comparison](#Comparison_operators) always yields an untyped
+A constant [comparison](#Comparison-operators) always yields an untyped
 boolean constant. If the left operand of a constant [shift
 expression](#Operators) is an untyped constant, the result is an integer
 constant; otherwise it is a constant of the same type as the left
-operand, which must be of [integer type](#Numeric_types).
+operand, which must be of [integer type](#Numeric-types).
 
 Any other operation on untyped constants results in an untyped constant
 of the same kind; that is, a boolean, integer, floating-point, complex,
@@ -3172,11 +3102,11 @@ calculated using infinite precision, and vice versa.
 
 ### Order of evaluation
 
-At package level, [initialization dependencies](#Package_initialization)
+At package level, [initialization dependencies](#Package-initialization)
 determine the evaluation order of individual initialization expressions
-in [variable declarations](#Variable_declarations). Otherwise, when
+in [variable declarations](#Variable-declarations). Otherwise, when
 evaluating the [operands](#Operands) of an expression, assignment, or
-[return statement](#Return_statements), all function calls, method
+[return statement](#Return-statements), all function calls, method
 calls, and communication operations are evaluated in lexical
 left-to-right order.
 
@@ -3236,31 +3166,31 @@ A *terminating statement* prevents execution of all statements that
 lexically appear after it in the same [block](#Blocks). The following
 statements are terminating:
 
-1.  A ["return"](#Return_statements) or ["goto"](#Goto_statements)
+1.  A ["return"](#Return-statements) or ["goto"](#Goto-statements)
     statement.
-2.  A call to the built-in function [`panic`](#Handling_panics).
+2.  A call to the built-in function [`panic`](#Handling-panics).
 3.  A [block](#Blocks) in which the statement list ends in a terminating
     statement.
-4.  An ["if" statement](#If_statements) in which:
+4.  An ["if" statement](#If-statements) in which:
       - the "else" branch is present, and
       - both branches are terminating statements.
-5.  A ["for" statement](#For_statements) in which:
+5.  A ["for" statement](#For-statements) in which:
       - there are no "break" statements referring to the "for"
         statement, and
       - the loop condition is absent.
-6.  A ["switch" statement](#Switch_statements) in which:
+6.  A ["switch" statement](#Switch-statements) in which:
       - there are no "break" statements referring to the "switch"
         statement,
       - there is a default case, and
       - the statement lists in each case, including the default, end in
         a terminating statement, or a possibly labeled ["fallthrough"
-        statement](#Fallthrough_statements).
-7.  A ["select" statement](#Select_statements) in which:
+        statement](#Fallthrough-statements).
+7.  A ["select" statement](#Select-statements) in which:
       - there are no "break" statements referring to the "select"
         statement, and
       - the statement lists in each case, including the default if
         present, end in a terminating statement.
-8.  A [labeled statement](#Labeled_statements) labeling a terminating
+8.  A [labeled statement](#Labeled-statements) labeling a terminating
     statement.
 
 All other statements are not terminating.
@@ -3291,7 +3221,7 @@ Label       = identifier .
 ### Expression statements
 
 With the exception of specific built-in functions, function and method
-[calls](#Calls) and [receive operations](#Receive_operator) can appear
+[calls](#Calls) and [receive operations](#Receive-operator) can appear
 in statement context. Such statements may be parenthesized.
 
 ``` ebnf
@@ -3312,7 +3242,7 @@ The following built-in functions are not permitted in statement context:
 ### Send statements
 
 A send statement sends a value on a channel. The channel expression must
-be of [channel type](#Channel_types), the channel direction must permit
+be of [channel type](#Channel-types), the channel direction must permit
 send operations, and the type of the value to be sent must be
 [assignable](#Assignability) to the channel's element type.
 
@@ -3326,7 +3256,7 @@ communication begins. Communication blocks until the send can proceed. A
 send on an unbuffered channel can proceed if a receiver is ready. A send
 on a buffered channel can proceed if there is room in the buffer. A send
 on a closed channel proceeds by causing a [run-time
-panic](#Run_time_panics). A send on a `nil` channel blocks forever.
+panic](#Run-time-panics). A send on a `nil` channel blocks forever.
 
     ch <- 3  // send value 3 to channel ch
 
@@ -3334,7 +3264,7 @@ panic](#Run_time_panics). A send on a `nil` channel blocks forever.
 
 The "++" and "--" statements increment or decrement their operands by
 the untyped [constant](#Constants) `1`. As with an assignment, the
-operand must be [addressable](#Address_operators) or a map index
+operand must be [addressable](#Address-operators) or a map index
 expression.
 
 ``` ebnf
@@ -3358,9 +3288,9 @@ Assignment = ExpressionList assign_op ExpressionList .
 assign_op = [ add_op | mul_op ] "=" .
 ```
 
-Each left-hand side operand must be [addressable](#Address_operators), a
+Each left-hand side operand must be [addressable](#Address-operators), a
 map index expression, or (for `=` assignments only) the [blank
-identifier](#Blank_identifier). Operands may be parenthesized.
+identifier](#Blank-identifier). Operands may be parenthesized.
 
     x = 1
     *p = f()
@@ -3368,7 +3298,7 @@ identifier](#Blank_identifier). Operands may be parenthesized.
     (k) = <-ch  // same as: k = <-ch
 
 An *assignment operation* `x` *op*`=` `y` where *op* is a binary
-[arithmetic operator](#Arithmetic_operators) is equivalent to `x` `=`
+[arithmetic operator](#Arithmetic-operators) is equivalent to `x` `=`
 `x` *op* `(y)` but evaluates `x` only once. The *op*`=` construct is a
 single token. In assignment operations, both the left- and right-hand
 expression lists must contain exactly one single-valued expression, and
@@ -3380,8 +3310,8 @@ the left-hand expression must not be the blank identifier.
 A tuple assignment assigns the individual elements of a multi-valued
 operation to a list of variables. There are two forms. In the first, the
 right hand operand is a single multi-valued expression such as a
-function call, a [channel](#Channel_types) or [map](#Map_types)
-operation, or a [type assertion](#Type_assertions). The number of
+function call, a [channel](#Channel-types) or [map](#Map-types)
+operation, or a [type assertion](#Type-assertions). The number of
 operands on the left hand side must match the number of values. For
 instance, if `f` is a function returning two values,
 
@@ -3395,18 +3325,18 @@ left:
 
     one, two, three = '一', '二', '三'
 
-The [blank identifier](#Blank_identifier) provides a way to ignore
+The [blank identifier](#Blank-identifier) provides a way to ignore
 right-hand side values in an assignment:
 
     _ = x       // evaluate x but ignore it
     x, _ = f()  // evaluate f() but ignore second result value
 
 The assignment proceeds in two phases. First, the operands of [index
-expressions](#Index_expressions) and [pointer
-indirections](#Address_operators) (including implicit pointer
+expressions](#Index-expressions) and [pointer
+indirections](#Address-operators) (including implicit pointer
 indirections in [selectors](#Selectors)) on the left and the expressions
 on the right are all [evaluated in the usual
-order](#Order_of_evaluation). Second, the assignments are carried out in
+order](#Order-of-evaluation). Second, the assignments are carried out in
 left-to-right order.
 
     a, b = b, a  // exchange a and b
@@ -3514,7 +3444,7 @@ predeclared untyped value `nil` cannot be used as a switch expression.
 If a case expression is untyped, it is first [converted](#Conversions)
 to the type of the switch expression. For each (possibly converted) case
 expression `x` and the value `t` of the switch expression, `x == t` must
-be a valid [comparison](#Comparison_operators).
+be a valid [comparison](#Comparison-operators).
 
 In other words, the switch expression is treated as if it were used to
 declare and initialize a temporary variable `t` without explicit type;
@@ -3522,8 +3452,8 @@ it is that value of `t` against which each case expression `x` is tested
 for equality.
 
 In a case or default clause, the last non-empty statement may be a
-(possibly [labeled](#Labeled_statements)) ["fallthrough"
-statement](#Fallthrough_statements) to indicate that control should flow
+(possibly [labeled](#Labeled-statements)) ["fallthrough"
+statement](#Fallthrough-statements) to indicate that control should flow
 from the end of this clause to the first statement of the next clause.
 Otherwise control flows to the end of the "switch" statement. A
 "fallthrough" statement may appear as the last statement of all but the
@@ -3558,7 +3488,7 @@ constants in case expressions.
 
 A type switch compares types rather than values. It is otherwise similar
 to an expression switch. It is marked by a special switch expression
-that has the form of a [type assertion](#Type_assertions) using the
+that has the form of a [type assertion](#Type-assertions) using the
 reserved word `type` rather than an actual type:
 
     switch x.(type) {
@@ -3567,10 +3497,10 @@ reserved word `type` rather than an actual type:
 
 Cases then match actual types `T` against the dynamic type of the
 expression `x`. As with type assertions, `x` must be of [interface
-type](#Interface_types), and each non-interface type `T` listed in a
+type](#Interface-types), and each non-interface type `T` listed in a
 case must implement the type of `x`. The types listed in the cases of a
 type switch must all be
-[different](#Type_identity).
+[different](#Type-identity).
 
 ``` ebnf
 TypeSwitchStmt  = "switch" [ SimpleStmt ";" ] TypeSwitchGuard "{" { TypeCaseClause } "}" .
@@ -3581,14 +3511,14 @@ TypeList        = Type { "," Type } .
 ```
 
 The TypeSwitchGuard may include a [short variable
-declaration](#Short_variable_declarations). When that form is used, the
+declaration](#Short-variable-declarations). When that form is used, the
 variable is declared at the end of the TypeSwitchCase in the [implicit
 block](#Blocks) of each clause. In clauses with a case listing exactly
 one type, the variable has that type; otherwise, the variable has the
 type of the expression in the TypeSwitchGuard.
 
 Instead of a type, a case may use the predeclared identifier
-[`nil`](#Predeclared_identifiers); that case is selected when the
+[`nil`](#Predeclared-identifiers); that case is selected when the
 expression in the TypeSwitchGuard is a `nil` interface value. There may
 be at most one `nil` case.
 
@@ -3667,7 +3597,7 @@ A "for" statement with a ForClause is also controlled by its condition,
 but additionally it may specify an *init* and a *post* statement, such
 as an assignment, an increment or decrement statement. The init
 statement may be a [short variable
-declaration](#Short_variable_declarations), but the post statement must
+declaration](#Short-variable-declarations), but the post statement must
 not. Variables declared by the init statement are re-used in each
 iteration.
 
@@ -3705,18 +3635,18 @@ RangeClause = [ ExpressionList "=" | IdentifierList ":=" ] "range" Expression .
 
 The expression on the right in the "range" clause is called the *range
 expression*, which may be an array, pointer to an array, slice, string,
-map, or channel permitting [receive operations](#Receive_operator). As
+map, or channel permitting [receive operations](#Receive-operator). As
 with an assignment, if present the operands on the left must be
-[addressable](#Address_operators) or map index expressions; they denote
+[addressable](#Address-operators) or map index expressions; they denote
 the iteration variables. If the range expression is a channel, at most
 one iteration variable is permitted, otherwise there may be up to two.
 If the last iteration variable is the [blank
-identifier](#Blank_identifier), the range clause is equivalent to the
+identifier](#Blank-identifier), the range clause is equivalent to the
 same clause without that identifier.
 
 The range expression `x` is evaluated once before beginning the loop,
 with one exception: if at most one iteration variable is present and
-`len(x)` is [constant](#Length_and_capacity), the range expression is
+`len(x)` is [constant](#Length-and-capacity), the range expression is
 not evaluated.
 
 Function calls on the left are evaluated once per iteration. For each
@@ -3762,9 +3692,9 @@ The iteration values are assigned to the respective iteration variables
 as in an [assignment statement](#Assignments).
 
 The iteration variables may be declared by the "range" clause using a
-form of [short variable declaration](#Short_variable_declarations)
+form of [short variable declaration](#Short-variable-declarations)
 (`:=`). In this case their types are set to the types of the respective
-iteration values and their [scope](#Declarations_and_scope) is the block
+iteration values and their [scope](#Declarations-and-scope) is the block
 of the "for" statement; they are re-used in each iteration. If the
 iteration variables are declared outside the "for" statement, after
 execution their values will be those of the last iteration.
@@ -3815,7 +3745,7 @@ GoStmt = "go" Expression .
 
 The expression must be a function or method call; it cannot be
 parenthesized. Calls of built-in functions are restricted as for
-[expression statements](#Expression_statements).
+[expression statements](#Expression-statements).
 
 The function value and parameters are [evaluated as usual](#Calls) in
 the calling goroutine, but unlike with a regular call, program execution
@@ -3830,8 +3760,8 @@ any return values, they are discarded when the function completes.
 ### Select statements
 
 A "select" statement chooses which of a set of possible
-[send](#Send_statements) or [receive](#Receive_operator) operations will
-proceed. It looks similar to a ["switch"](#Switch_statements) statement
+[send](#Send-statements) or [receive](#Receive-operator) operations will
+proceed. It looks similar to a ["switch"](#Switch-statements) statement
 but with the cases all referring to communication operations.
 
 ``` ebnf
@@ -3844,7 +3774,7 @@ RecvExpr   = Expression .
 
 A case with a RecvStmt may assign the result of a RecvExpr to one or two
 variables, which may be declared using a [short variable
-declaration](#Short_variable_declarations). The RecvExpr must be a
+declaration](#Short-variable-declarations). The RecvExpr must be a
 (possibly parenthesized) receive operation. There can be at most one
 default case and it may appear anywhere in the list of cases.
 
@@ -3909,7 +3839,7 @@ only `nil` channels and no default case blocks forever.
 
 A "return" statement in a function `F` terminates the execution of `F`,
 and optionally provides one or more result values. Any functions
-[deferred](#Defer_statements) by `F` are executed before `F` returns to
+[deferred](#Defer-statements) by `F` are executed before `F` returns to
 its caller.
 
 ``` ebnf
@@ -3951,7 +3881,7 @@ type:
         }
 
 3.  The expression list may be empty if the function's result type
-    specifies names for its [result parameters](#Function_types). The
+    specifies names for its [result parameters](#Function-types). The
     result parameters act as ordinary local variables and the function
     may assign values to them as necessary. The "return" statement
     returns the values of these variables.
@@ -3968,14 +3898,14 @@ type:
         }
 
 Regardless of how they are declared, all the result values are
-initialized to the [zero values](#The_zero_value) for their type upon
+initialized to the [zero values](#The-zero-value) for their type upon
 entry to the function. A "return" statement that specifies results sets
 the result parameters before any deferred functions are executed.
 
 Implementation restriction: A compiler may disallow an empty expression
 list in a "return" statement if a different entity (constant, type, or
 variable) with the same name as a result parameter is in
-[scope](#Declarations_and_scope) at the place of the return.
+[scope](#Declarations-and-scope) at the place of the return.
 
     func f(n int) (res int, err error) {
         if _, err := f(n-1); err != nil {
@@ -3987,8 +3917,8 @@ variable) with the same name as a result parameter is in
 ### Break statements
 
 A "break" statement terminates execution of the innermost
-["for"](#For_statements), ["switch"](#Switch_statements), or
-["select"](#Select_statements) statement within the same function.
+["for"](#For-statements), ["switch"](#Switch-statements), or
+["select"](#Select-statements) statement within the same function.
 
 ``` ebnf
 BreakStmt = "break" [ Label ] .
@@ -4014,7 +3944,7 @@ If there is a label, it must be that of an enclosing "for", "switch", or
 ### Continue statements
 
 A "continue" statement begins the next iteration of the innermost ["for"
-loop](#For_statements) at its post statement. The "for" loop must be
+loop](#For-statements) at its post statement. The "for" loop must be
 within the same function.
 
 ``` ebnf
@@ -4046,7 +3976,7 @@ GotoStmt = "goto" Label .
     goto Error
 
 Executing the "goto" statement must not cause any variables to come into
-[scope](#Declarations_and_scope) that were not already in scope at the
+[scope](#Declarations-and-scope) that were not already in scope at the
 point of the goto. For instance, this example:
 
 ``` 
@@ -4078,7 +4008,7 @@ block but the `goto` is not.
 
 A "fallthrough" statement transfers control to the first statement of
 the next case clause in an [expression "switch"
-statement](#Expression_switches). It may be used only as the final
+statement](#Expression-switches). It may be used only as the final
 non-empty statement in such a clause.
 
 ``` ebnf
@@ -4089,9 +4019,9 @@ FallthroughStmt = "fallthrough" .
 
 A "defer" statement invokes a function whose execution is deferred to
 the moment the surrounding function returns, either because the
-surrounding function executed a [return statement](#Return_statements),
-reached the end of its [function body](#Function_declarations), or
-because the corresponding goroutine is [panicking](#Handling_panics).
+surrounding function executed a [return statement](#Return-statements),
+reached the end of its [function body](#Function-declarations), or
+because the corresponding goroutine is [panicking](#Handling-panics).
 
 ``` ebnf
 DeferStmt = "defer" Expression .
@@ -4099,23 +4029,23 @@ DeferStmt = "defer" Expression .
 
 The expression must be a function or method call; it cannot be
 parenthesized. Calls of built-in functions are restricted as for
-[expression statements](#Expression_statements).
+[expression statements](#Expression-statements).
 
 Each time a "defer" statement executes, the function value and
 parameters to the call are [evaluated as usual](#Calls) and saved anew
 but the actual function is not invoked. Instead, deferred functions are
 invoked immediately before the surrounding function returns, in the
 reverse order they were deferred. If a deferred function value evaluates
-to `nil`, execution [panics](#Handling_panics) when the function is
+to `nil`, execution [panics](#Handling-panics) when the function is
 invoked, not when the "defer" statement is executed.
 
 For instance, if the deferred function is a [function
-literal](#Function_literals) and the surrounding function has [named
-result parameters](#Function_types) that are in scope within the
+literal](#Function-literals) and the surrounding function has [named
+result parameters](#Function-types) that are in scope within the
 literal, the deferred function may access and modify the result
 parameters before they are returned. If the deferred function has any
 return values, they are discarded when the function completes. (See also
-the section on [handling panics](#Handling_panics).)
+the section on [handling panics](#Handling-panics).)
 
     lock(l)
     defer unlock(l)  // unlocking happens before surrounding function returns
@@ -4135,7 +4065,7 @@ the section on [handling panics](#Handling_panics).)
 
 ## Built-in functions
 
-Built-in functions are [predeclared](#Predeclared_identifiers). They are
+Built-in functions are [predeclared](#Predeclared-identifiers). They are
 called like any other function but some of them accept a type instead of
 an expression as the first argument.
 
@@ -4148,11 +4078,11 @@ values.
 For a channel `c`, the built-in function `close(c)` records that no more
 values will be sent on the channel. It is an error if `c` is a
 receive-only channel. Sending to or closing a closed channel causes a
-[run-time panic](#Run_time_panics). Closing the nil channel also causes
-a [run-time panic](#Run_time_panics). After calling `close`, and after
+[run-time panic](#Run-time-panics). Closing the nil channel also causes
+a [run-time panic](#Run-time-panics). After calling `close`, and after
 any previously sent values have been received, receive operations will
 return the zero value for the channel's type without blocking. The
-multi-valued [receive operation](#Receive_operator) returns a received
+multi-valued [receive operation](#Receive-operator) returns a received
 value along with an indication of whether the channel is closed.
 
 ### Length and capacity
@@ -4187,7 +4117,7 @@ The length of a `nil` slice, map or channel is 0. The capacity of a
 The expression `len(s)` is [constant](#Constants) if `s` is a string
 constant. The expressions `len(s)` and `cap(s)` are constants if the
 type of `s` is an array or pointer to an array and the expression `s`
-does not contain [channel receives](#Receive_operator) or (non-constant)
+does not contain [channel receives](#Receive-operator) or (non-constant)
 [function calls](#Calls); in this case `s` is not evaluated. Otherwise,
 invocations of `len` and `cap` are not constant and `s` is evaluated.
 
@@ -4204,8 +4134,8 @@ invocations of `len` and `cap` are not constant and `s` is evaluated.
 
 The built-in function `new` takes a type `T`, allocates storage for a
 [variable](#Variables) of that type at run time, and returns a value of
-type `*T` [pointing](#Pointer_types) to it. The variable is initialized
-as described in the section on [initial values](#The_zero_value).
+type `*T` [pointing](#Pointer-types) to it. The variable is initialized
+as described in the section on [initial values](#The-zero-value).
 
 ``` grammar
 new(T)
@@ -4226,7 +4156,7 @@ The built-in function `make` takes a type `T`, which must be a slice,
 map or channel type, optionally followed by a type-specific list of
 expressions. It returns a value of type `T` (not `*T`). The memory is
 initialized as described in the section on [initial
-values](#The_zero_value).
+values](#The-zero-value).
 
 ``` grammar
 Call             Type T     Result
@@ -4247,7 +4177,7 @@ non-negative and [representable](#Representability) by a value of type
 `int`; if it is an untyped constant it is given type `int`. If both `n`
 and `m` are provided and are constant, then `n` must be no larger than
 `m`. If `n` is negative or larger than `m` at run time, a [run-time
-panic](#Run_time_panics)
+panic](#Run-time-panics)
     occurs.
 
     s := make([]int, 10, 100)       // slice with len(s) == 10, cap(s) == 100
@@ -4267,12 +4197,12 @@ The built-in functions `append` and `copy` assist in common slice
 operations. For both functions, the result is independent of whether the
 memory referenced by the arguments overlaps.
 
-The [variadic](#Function_types) function `append` appends zero or more
+The [variadic](#Function-types) function `append` appends zero or more
 values `x` to `s` of type `S`, which must be a slice type, and returns
 the resulting slice, also of type `S`. The values `x` are passed to a
-parameter of type `...T` where `T` is the [element type](#Slice_types)
+parameter of type `...T` where `T` is the [element type](#Slice-types)
 of `S` and the respective [parameter passing
-rules](#Passing_arguments_to_..._parameters) apply. As a special case,
+rules](#Passing-arguments-to_..._parameters) apply. As a special case,
 `append` also accepts a first argument assignable to type `[]byte` with
 a second argument of string type followed by `...`. This form appends
 the bytes of the string.
@@ -4300,7 +4230,7 @@ both the existing slice elements and the additional values. Otherwise,
 
 The function `copy` copies slice elements from a source `src` to a
 destination `dst` and returns the number of elements copied. Both
-arguments must have [identical](#Type_identity) element type `T` and
+arguments must have [identical](#Type-identity) element type `T` and
 must be [assignable](#Assignability) to a slice of type `[]T`. The
 number of elements copied is the minimum of `len(src)` and `len(dst)`.
 As a special case, `copy` also accepts a destination argument assignable
@@ -4324,7 +4254,7 @@ Examples:
 ### Deletion of map elements
 
 The built-in function `delete` removes the element with key `k` from a
-[map](#Map_types) `m`. The type of `k` must be
+[map](#Map-types) `m`. The type of `k` must be
 [assignable](#Assignability) to the key type of `m`.
 
 ``` grammar
@@ -4384,7 +4314,7 @@ is a constant.
 ### Handling panics
 
 Two built-in functions, `panic` and `recover`, assist in reporting and
-handling [run-time panics](#Run_time_panics) and program-defined error
+handling [run-time panics](#Run-time-panics) and program-defined error
 conditions.
 
 ``` grammar
@@ -4393,8 +4323,8 @@ func recover() interface{}
 ```
 
 While executing a function `F`, an explicit call to `panic` or a
-[run-time panic](#Run_time_panics) terminates the execution of `F`. Any
-functions [deferred](#Defer_statements) by `F` are then executed as
+[run-time panic](#Run-time-panics) terminates the execution of `F`. Any
+functions [deferred](#Defer-statements) by `F` are then executed as
 usual. Next, any deferred functions run by `F's` caller are run, and so
 on up to any deferred by the top-level function in the executing
 goroutine. At that point, the program is terminated and the error
@@ -4461,7 +4391,7 @@ Go programs are constructed by linking together *packages*. A package in
 turn is constructed from one or more source files that together declare
 constants, types, variables and functions belonging to the package and
 which are accessible in all files of the same package. Those elements
-may be [exported](#Exported_identifiers) and used in another package.
+may be [exported](#Exported-identifiers) and used in another package.
 
 ### Source file organization
 
@@ -4486,7 +4416,7 @@ PackageClause  = "package" PackageName .
 PackageName    = identifier .
 ```
 
-The PackageName must not be the [blank identifier](#Blank_identifier).
+The PackageName must not be the [blank identifier](#Blank-identifier).
 
     package math
 
@@ -4499,8 +4429,8 @@ package inhabit the same directory.
 An import declaration states that the source file containing the
 declaration depends on functionality of the *imported* package
 ([§Program initialization and
-execution](#Program_initialization_and_execution)) and enables access to
-[exported](#Exported_identifiers) identifiers of that package. The
+execution](#Program-initialization-and-execution)) and enables access to
+[exported](#Exported-identifiers) identifiers of that package. The
 import names an identifier (PackageName) to be used for access and an
 ImportPath that specifies the package to be
 imported.
@@ -4512,10 +4442,10 @@ ImportPath       = string_lit .
 ```
 
 The PackageName is used in [qualified
-identifiers](#Qualified_identifiers) to access exported identifiers of
+identifiers](#Qualified-identifiers) to access exported identifiers of
 the package within the importing source file. It is declared in the
 [file block](#Blocks). If the PackageName is omitted, it defaults to the
-identifier specified in the [package clause](#Package_clause) of the
+identifier specified in the [package clause](#Package-clause) of the
 imported package. If an explicit period (`.`) appears instead of a name,
 all the package's exported identifiers declared in that package's
 [package block](#Blocks) will be declared in the importing source file's
@@ -4551,7 +4481,7 @@ importing and imported package. It is illegal for a package to import
 itself, directly or indirectly, or to directly import a package without
 referring to any of its exported identifiers. To import a package solely
 for its side-effects (initialization), use the
-[blank](#Blank_identifier) identifier as explicit package name:
+[blank](#Blank-identifier) identifier as explicit package name:
 
     import _ "lib/math"
 
@@ -4639,7 +4569,7 @@ Within a package, package-level variables are initialized in
 
 More precisely, a package-level variable is considered *ready for
 initialization* if it is not yet initialized and either has no
-[initialization expression](#Variable_declarations) or its
+[initialization expression](#Variable-declarations) or its
 initialization expression has no dependencies on uninitialized
 variables. Initialization proceeds by repeatedly initializing the next
 package-level variable that is earliest in declaration order and ready
@@ -4663,10 +4593,10 @@ expression refers to a function whose body refers to variable `y` then
 
   - A reference to a variable or function is an identifier denoting that
     variable or function.
-  - A reference to a method `m` is a [method value](#Method_values) or
-    [method expression](#Method_expressions) of the form `t.m`, where
+  - A reference to a method `m` is a [method value](#Method-values) or
+    [method expression](#Method-expressions) of the form `t.m`, where
     the (static) type of `t` is not an interface type, and the method
-    `m` is in the [method set](#Method_sets) of `t`. It is immaterial
+    `m` is in the [method set](#Method-sets) of `t`. It is immaterial
     whether the resulting function value `t.m` is invoked.
   - A variable, function, or method `x` depends on a variable `y` if
     `x`'s initialization expression or body (for functions and methods)
@@ -4701,7 +4631,7 @@ in the package block, with no arguments and no result parameters.
 Multiple such functions may be defined per package, even within a single
 source file. In the package block, the `init` identifier can be used
 only to declare `init` functions, yet the identifier itself is not
-[declared](#Declarations_and_scope). Thus `init` functions cannot be
+[declared](#Declarations-and-scope). Thus `init` functions cannot be
 referred to from anywhere in a program.
 
 A package with no imports is initialized by assigning initial values to
@@ -4756,7 +4686,7 @@ read data from a file might be defined:
 
 Execution errors such as attempting to index an array out of bounds
 trigger a *run-time panic* equivalent to a call of the built-in function
-[`panic`](#Handling_panics) with a value of the implementation-defined
+[`panic`](#Handling-panics) with a value of the implementation-defined
 interface type `runtime.Error`. That type satisfies the predeclared
 interface type [`error`](#Errors). The exact error values that represent
 distinct run-time error conditions are unspecified.
@@ -4773,7 +4703,7 @@ distinct run-time error conditions are unspecified.
 ### Package `unsafe`
 
 The built-in package `unsafe`, known to the compiler and accessible
-through the [import path](#Import_declarations) `"unsafe"`, provides
+through the [import path](#Import-declarations) `"unsafe"`, provides
 facilities for low-level programming including operations that violate
 the type system. A package using `unsafe` must be vetted manually for
 type safety and may not be portable. The package provides the following
@@ -4790,19 +4720,21 @@ func Offsetof(selector ArbitraryType) uintptr
 func Sizeof(variable ArbitraryType) uintptr
 ```
 
-A `Pointer` is a [pointer type](#Pointer_types) but a `Pointer` value
-may not be [dereferenced](#Address_operators). Any pointer or value of
+A `Pointer` is a [pointer type](#Pointer-types) but a `Pointer` value
+may not be [dereferenced](#Address-operators). Any pointer or value of
 [underlying type](#Types) `uintptr` can be converted to a type of
 underlying type `Pointer` and vice versa. The effect of converting
 between `Pointer` and `uintptr` is implementation-defined.
 
-    var f float64
-    bits = *(*uint64)(unsafe.Pointer(&f))
-    
-    type ptr unsafe.Pointer
-    bits = *(*uint64)(ptr(&f))
-    
-    var p ptr = nil
+```go
+var f float64
+bits = *(*uint64)(unsafe.Pointer(&f))
+
+type ptr unsafe.Pointer
+bits = *(*uint64)(ptr(&f))
+
+var p ptr = nil
+```
 
 The functions `Alignof` and `Sizeof` take an expression `x` of any type
 and return the alignment or size, respectively, of a hypothetical
@@ -4811,7 +4743,7 @@ variable `v` as if `v` was declared via `var v = x`.
 The function `Offsetof` takes a (possibly parenthesized)
 [selector](#Selectors) `s.f`, denoting a field `f` of the struct denoted
 by `s` or `*s`, and returns the field offset in bytes relative to the
-struct's address. If `f` is an [embedded field](#Struct_types), it must
+struct's address. If `f` is an [embedded field](#Struct-types), it must
 be reachable without pointer indirections through fields of the struct.
 For a struct `s` with field
     `f`:
@@ -4831,7 +4763,7 @@ expressions of type `uintptr`.
 
 ### Size and alignment guarantees
 
-For the [numeric types](#Numeric_types), the following sizes are
+For the [numeric types](#Numeric-types), the following sizes are
 guaranteed:
 
 ``` grammar
@@ -4857,18 +4789,13 @@ A struct or array type has size zero if it contains no fields (or
 elements, respectively) that have a size greater than zero. Two distinct
 zero-size variables may have the same address in memory.
 
-<div id="footer">
+--------------------
 
-Build version go1.11.2.  
-Except as
-[noted](https://developers.google.com/site-policies#restrictions), the
-content of this page is licensed under the Creative Commons Attribution
-3.0 License, and code is licensed under a [BSD license](/LICENSE).  
-[Terms of Service](/doc/tos.html) | [Privacy
-Policy](http://www.google.com/intl/en/policies/privacy/)
+Build version go1.11.2.  Except as [noted][1], the content of this page is 
+licensed under the Creative Commons Attribution 3.0 License, and code is 
+licensed under a [BSD license][2].  [Terms of Service][3] | [Privacy Policy][4]
 
-</div>
-
-</div>
-
-</div>
+[1]: https://developers.google.com/site-policies#restrictions
+[2]: https://golang.org/LICENSE
+[3]: https://golang.org/doc/tos.html
+[4]: http://www.google.com/intl/en/policies/privacy/
