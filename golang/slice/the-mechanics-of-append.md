@@ -330,7 +330,7 @@ that modifies a slice.
 Let's say we wanted to have a method on a slice that truncates it at the final 
 slash. We could write it like this:
 
-```
+```go
 // +build OMIT
 
 // Copyright 2013 The Go Authors. All rights reserved.
@@ -343,9 +343,7 @@ import (
     "bytes"
     "fmt"
 )
-```
 
-```
 type path []byte
 
 func (p *path) TruncateAtFinalSlash() {
@@ -373,7 +371,7 @@ the ASCII letters in the path (parochially ignoring non-English names), the
 method could be a value because the value receiver will still point to the same 
 underlying array.
 
-```
+```go
 // +build OMIT
 
 // Copyright 2013 The Go Authors. All rights reserved.
@@ -385,9 +383,7 @@ package main
 import (
     "fmt"
 )
-```
 
-```
 type path []byte
 
 func (p path) ToUpper() {
@@ -450,9 +446,7 @@ func Extend(slice []int, element int) []int {
     slice[n] = element
     return slice
 }
-```
 
-```go
 func main() {
     var iBuffer [10]int
     slice := iBuffer[0:0]
@@ -482,24 +476,30 @@ its capacity will step beyond the limits of the array and will trigger a panic.
 
 After our example slice is created by
 
-    slice := iBuffer[0:0]
+```go
+slice := iBuffer[0:0]
+```
 
 its header looks like this:
 
-    slice := sliceHeader{
-        Length:        0,
-        Capacity:      10,
-        ZerothElement: &iBuffer[0],
-    }
+```go
+slice := sliceHeader{
+    Length:        0,
+    Capacity:      10,
+    ZerothElement: &iBuffer[0],
+}
+```
 
 The `Capacity` field is equal to the length of the underlying array, minus the 
 index in the array of the first element of the slice (zero in this case). If you 
 want to inquire what the capacity is for a slice, use the built-in function 
 `cap`:
 
-    if cap(slice) == len(slice) {
-        fmt.Println("slice is full!")
-    }
+```go
+if cap(slice) == len(slice) {
+    fmt.Println("slice is full!")
+}
+```
 
 #### Make
 
@@ -530,14 +530,10 @@ import (
 )
 
 func main() {
-```
 
-```go
 slice := make([]int, 10, 15)
 fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
-```
 
-```
 }
 ```
 
@@ -558,9 +554,7 @@ import (
 )
 
 func main() {
-```
 
-```
     slice := make([]int, 10, 15)
     fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
     newSlice := make([]int, len(slice), 2*cap(slice))
@@ -569,9 +563,7 @@ func main() {
     }
     slice = newSlice
     fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
-```
 
-```
 }
 ```
 
@@ -583,7 +575,9 @@ The `make` built-in has a shorthand for this common case. The length argument
 defaults to the capacity, so you can leave it out to set them both to the same 
 value. After
 
-    gophers := make([]Gopher, 10)
+```go
+gophers := make([]Gopher, 10)
+```
 
 the `gophers` slice has both its length and capacity set to 10.
 
@@ -611,15 +605,11 @@ import (
 func main() {
     slice := make([]int, 10, 15)
     fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
-```
 
-```
     newSlice := make([]int, len(slice), 2*cap(slice))
     copy(newSlice, slice)
-```
 
-```
-   slice = newSlice
+    slice = newSlice
     fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
 }
 ```
@@ -634,40 +624,50 @@ The `copy` function also gets things right when source and destination overlap,
 which means it can be used to shift items around in a single slice. Here's how 
 to use `copy` to insert a value into the middle of a slice.
 
-    // Insert inserts the value into the slice at the specified index,
-    // which must be in range.
-    // The slice must have room for the new element.
-    func Insert(slice []int, index, value int) []int {
-        // Grow the slice by one element.
-        slice = slice[0 : len(slice)+1]
-        // Use copy to move the upper part of the slice out of the way and open a hole.
-        copy(slice[index+1:], slice[index:])
-        // Store the new value.
-        slice[index] = value
-        // Return the result.
-        return slice
-    }
+```go
+// Insert inserts the value into the slice at the specified index,
+// which must be in range.
+// The slice must have room for the new element.
+func Insert(slice []int, index, value int) []int {
+    // Grow the slice by one element.
+    slice = slice[0 : len(slice)+1]
+    // Use copy to move the upper part of the slice out of the way and open a hole.
+    copy(slice[index+1:], slice[index:])
+    // Store the new value.
+    slice[index] = value
+    // Return the result.
+    return slice
+}
+```
 
 There are a couple of things to notice in this function. First, of course, it 
 must return the updated slice because its length has changed. Second, it uses a 
 convenient shorthand. The expression
 
-    slice[i:]
+```go
+slice[i:]
+```
 
 means exactly the same as
 
-    slice[i:len(slice)]
+```go
+slice[i:len(slice)]
+```
 
 Also, although we haven't used the trick yet, we can leave out the first element 
 of a slice expression too; it defaults to zero. Thus
 
-    slice[:]
+```go
+slice[:]
+```
 
 just means the slice itself, which is useful when slicing an array. This 
 expression is the shortest way to say "a slice describing all the elements of 
 the array":
 
-    array[:]
+```go
+array[:]
+```
 
 Now that's out of the way, let's run our `Insert` function.
 
@@ -699,9 +699,6 @@ func Insert(slice []int, index, value int) []int {
 }
 
 func main() {
-```
-
-```go
     slice := make([]int, 10, 20) // Note capacity > length: room to add element.
     for i := range slice {
         slice[i] = i
@@ -709,9 +706,6 @@ func main() {
     fmt.Println(slice)
     slice = Insert(slice, 5, 99)
     fmt.Println(slice)
-```
-
-```
 }
 ```
 
@@ -723,19 +717,21 @@ the function would crash. (Our `Insert` example has the same problem.) Now we
 have the pieces in place to fix that, so let's write a robust implementation of 
 `Extend` for integer slices.
 
-    func Extend(slice []int, element int) []int {
-        n := len(slice)
-        if n == cap(slice) {
-            // Slice is full; must grow.
-            // We double its size and add 1, so if the size is zero we still grow.
-            newSlice := make([]int, len(slice), 2*len(slice)+1)
-            copy(newSlice, slice)
-            slice = newSlice
-        }
-        slice = slice[0 : n+1]
-        slice[n] = element
-        return slice
+```go
+func Extend(slice []int, element int) []int {
+    n := len(slice)
+    if n == cap(slice) {
+        // Slice is full; must grow.
+        // We double its size and add 1, so if the size is zero we still grow.
+        newSlice := make([]int, len(slice), 2*len(slice)+1)
+        copy(newSlice, slice)
+        slice = newSlice
     }
+    slice = slice[0 : n+1]
+    slice[n] = element
+    return slice
+}
+```
 
 In this case it's especially important to return the slice, since when it 
 reallocates the resulting slice describes a completely different array. Here's a 
@@ -770,18 +766,12 @@ func Extend(slice []int, element int) []int {
 }
 
 func main() {
-```
-
-```go
     slice := make([]int, 0, 5)
     for i := 0; i < 10; i++ {
         slice = Extend(slice, i)
         fmt.Printf("len=%d cap=%d slice=%v\n", len(slice), cap(slice), slice)
         fmt.Println("address of 0th element:", &slice[0])
     }
-```
-
-```
 }
 ```
 
@@ -798,20 +788,24 @@ Let's call the function `Append`. For the first version, we can just call
 `Extend` repeatedly so the mechanism of the variadic function is clear. The 
 signature of `Append` is this:
 
-    func Append(slice []int, items ...int) []int
+```go
+func Append(slice []int, items ...int) []int
+```
 
 What that says is that `Append` takes one argument, a slice, followed by zero or 
 more `int` arguments. Those arguments are exactly a slice of`int` as far as the 
 implementation of `Append` is concerned, as you can see:
 
-    // Append appends the items to the slice.
-    // First version: just loop calling Extend.
-    func Append(slice []int, items ...int) []int {
-        for _, item := range items {
-            slice = Extend(slice, item)
-        }
-        return slice
+```go
+// Append appends the items to the slice.
+// First version: just loop calling Extend.
+func Append(slice []int, items ...int) []int {
+    for _, item := range items {
+        slice = Extend(slice, item)
     }
+    return slice
+}
+```
 
 Notice the `for` `range` loop iterating over the elements of the `items` 
 argument, which has implied type `[]int`. Also notice the use of the blank 
@@ -858,16 +852,10 @@ func Append(slice []int, items ...int) []int {
 }
 
 func main() {
-```
-
-```
     slice := []int{0, 1, 2, 3, 4}
     fmt.Println(slice)
     slice = Append(slice, 5, 6, 7, 8)
     fmt.Println(slice)
-```
-
-```
 }
 ```
 
@@ -875,7 +863,9 @@ Another new technique in this example is that we initialize the slice by writing
 a composite literal, which consists of the type of the slice followed by its 
 elements in braces:
 
-        slice := []int{0, 1, 2, 3, 4}
+```go
+slice := []int{0, 1, 2, 3, 4}
+```
 
 The `Append` function is interesting for another reason. Not only can we append 
 elements, we can append a whole second slice by "exploding" the slice into 
@@ -919,39 +909,35 @@ func Append(slice []int, items ...int) []int {
 }
 
 func main() {
-```
-
-```
     slice1 := []int{0, 1, 2, 3, 4}
     slice2 := []int{55, 66, 77}
     fmt.Println(slice1)
     slice1 = Append(slice1, slice2...) // The '...' is essential!
     fmt.Println(slice1)
-```
-
-```
 }
 ```
 
 Of course, we can make `Append` more efficient by allocating no more than once, 
 building on the innards of `Extend`:
 
-    // Append appends the elements to the slice.
-    // Efficient version.
-    func Append(slice []int, elements ...int) []int {
-        n := len(slice)
-        total := len(slice) + len(elements)
-        if total > cap(slice) {
-            // Reallocate. Grow to 1.5 times the new size, so we can still grow.
-            newSize := total*3/2 + 1
-            newSlice := make([]int, total, newSize)
-            copy(newSlice, slice)
-            slice = newSlice
-        }
-        slice = slice[:total]
-        copy(slice[n:], elements)
-        return slice
+```go
+// Append appends the elements to the slice.
+// Efficient version.
+func Append(slice []int, elements ...int) []int {
+    n := len(slice)
+    total := len(slice) + len(elements)
+    if total > cap(slice) {
+        // Reallocate. Grow to 1.5 times the new size, so we can still grow.
+        newSize := total*3/2 + 1
+        newSlice := make([]int, total, newSize)
+        copy(newSlice, slice)
+        slice = newSlice
     }
+    slice = slice[:total]
+    copy(slice[n:], elements)
+    return slice
+}
+```
 
 Here, notice how we use `copy` twice, once to move the slice data to the newly 
 allocated memory, and then to copy the appending items to the end of the old 
@@ -990,17 +976,11 @@ func Append(slice []int, elements ...int) []int {
 }
 
 func main() {
-```
-
-```
     slice1 := []int{0, 1, 2, 3, 4}
     slice2 := []int{55, 66, 77}
     fmt.Println(slice1)
     slice1 = Append(slice1, slice2...) // The '...' is essential!
     fmt.Println(slice1)
-```
-
-```
 }
 ```
 
@@ -1036,9 +1016,6 @@ import (
 )
 
 func main() {
-```
-
-```go
     // Create a couple of starter slices.
     slice := []int{1, 2, 3}
     slice2 := []int{55, 66, 77}
@@ -1061,9 +1038,6 @@ func main() {
     fmt.Println("Before append to self:", slice)
     slice = append(slice, slice...)
     fmt.Println("After append to self:", slice)
-```
-
-```
 }
 ```
 
@@ -1072,27 +1046,34 @@ detail to understand how the design of slices makes it possible for this simple
 call to work correctly.
 
 There are lots more examples of `append`, `copy`, and other ways to use slices 
-on the community-built ["Slice Tricks" Wiki page](https://golang.org/wiki/
-SliceTricks).
+on the community-built ["Slice Tricks" Wiki page][3].
+
+[3]: https://golang.org/wiki/SliceTricks
 
 #### Nil
 
 As an aside, with our newfound knowledge we can see what the representation of a 
 `nil` slice is. Naturally, it is the zero value of the slice header:
 
-    sliceHeader{
-        Length:        0,
-        Capacity:      0,
-        ZerothElement: nil,
-    }
+```go
+sliceHeader{
+    Length:        0,
+    Capacity:      0,
+    ZerothElement: nil,
+}
+```
 
 or just
 
-    sliceHeader{}
+```go
+sliceHeader{}
+```
 
 The key detail is that the element pointer is `nil` too. The slice created by
 
-    array[0:0]
+```go
+array[0:0]
+```
 
 has length zero (and maybe even capacity zero) but its pointer is not`nil`, so 
 it is not a nil slice.
@@ -1119,11 +1100,15 @@ slices of bytes.
 
 For starters, we can index them to access individual bytes:
 
-    slash := "/usr/ken"[0] // yields the byte value '/'.
+```go
+slash := "/usr/ken"[0] // yields the byte value '/'.
+```
 
 We can slice a string to grab a substring:
 
-    usr := "/usr/ken"[0:4] // yields the string "/usr"
+```go
+usr := "/usr/ken"[0:4] // yields the string "/usr"
+```
 
 It should be obvious now what's going on behind the scenes when we slice a 
 string.
@@ -1131,11 +1116,15 @@ string.
 We can also take a normal slice of bytes and create a string from it with the 
 simple conversion:
 
-    str := string(slice)
+```go
+str := string(slice)
+```
 
 and go in the reverse direction as well:
 
-    slice := []byte(usr)
+```go
+slice := []byte(usr)
+```
 
 The array underlying a string is hidden from view; there is no way to access its 
 contents except through the string. That means that when we do either of these 
@@ -1152,8 +1141,10 @@ A historical note: The earliest implementation of strings always allocated, but
 when slices were added to the language, they provided a model for efficient 
 string handling. Some of the benchmarks saw huge speedups as a result.
 
-There's much more to strings, of course, and a [separate blog post](https://
-blog.golang.org/strings) covers them in greater depth.
+There's much more to strings, of course, and a [separate blog post][4] covers 
+them in greater depth.
+
+[4]: https://blog.golang.org/strings
 
 #### Conclusion
 
@@ -1170,28 +1161,31 @@ built-in functions.
 #### More reading
 
 There's lots to find around the intertubes about slices in Go. As mentioned 
-earlier, the ["Slice Tricks" Wiki page](https://golang.org/wiki/SliceTricks) has 
-many examples. The [Go Slices](https://blog.golang.org/go-slices-usage-and-
-internals) blog post describes the memory layout details with clear diagrams. 
-Russ Cox's [Go Data Structures](https://research.swtch.com/godata) article 
-includes a discussion of slices along with some of Go's other internal data 
-structures.
+earlier, the ["Slice Tricks" Wiki page][5] has many examples. The [Go Slices][6] 
+blog post describes the memory layout details with clear diagrams.  Russ Cox's 
+[Go Data Structures][7] article includes a discussion of slices along with some 
+of Go's other internal data structures.
 
 There is much more material available, but the best way to learn about slices is 
 to use them.
+
+[5]: https://golang.org/wiki/SliceTricks
+[6]: https://blog.golang.org/go-slices-usage-and-internals
+[7]: https://research.swtch.com/godata
 
 By Rob Pike
 
 Related articles
 ----------------
 
--   [Go Slices: usage and internals](/go-slices-usage-and-internals)
+-  [Go Slices: usage and internals](/go-slices-usage-and-internals)
 
-Except as
-[noted](https://developers.google.com/site-policies#restrictions), the
-content of this page is licensed under the Creative Commons Attribution
-3.0 License,  
-and code is licensed under a [BSD license](//golang.org/LICENSE).  
-[Terms of Service](//golang.org/doc/tos.html) \| [Privacy
-Policy](//www.google.com/intl/en/policies/privacy/) \| [View the source
-code](https://go.googlesource.com/blog/)
+Except as[noted][8], the content of this page is licensed under the Creative 
+Commons Attribution3.0 License,  and code is licensed under a [BSD license][9]
+[Terms of Service][10] \| [Privacy Policy][11] \| [View the source code][12]
+
+[8]: https://developers.google.com/site-policies#restrictions
+[9]: https://golang.org/LICENSE
+[10]: https://golang.org/doc/tos.html
+[11]: https://www.google.com/intl/en/policies/privacy/
+[12]: https://go.googlesource.com/blog/
