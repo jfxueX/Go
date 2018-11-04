@@ -42,7 +42,7 @@ ready-to-use array whose elements are themselves zeroed:
 The in-memory representation of `[4]int` is just four integer values laid out 
 sequentially:
 
-![](go-slices-usage-and-internals_slice-array.png)
+![](./images/go-slices-usage-and-internals_slice-array.png)
 
 Go's arrays are values. An array variable denotes the entire array; it is not a 
 pointer to the first array element (as would be the case in C). This means that 
@@ -152,11 +152,11 @@ A slice is a descriptor of an array segment. It consists of a pointer to the
 array, the length of the segment, and its capacity (the maximum length of the 
 segment).
 
-![](go-slices-usage-and-internals_slice-struct.png)
+![](./images/go-slices-usage-and-internals_slice-struct.png)
 
 Our variable `s`, created earlier by `make([]byte, 5)`, is structured like this:
 
-![](go-slices-usage-and-internals_slice-1.png)
+![](./images/go-slices-usage-and-internals_slice-1.png)
 
 The length is the number of elements referred to by the slice. The capacity is 
 the number of elements in the underlying array (beginning at the element 
@@ -170,7 +170,7 @@ relation to the underlying array:
 s = s[2:4]
 ```
 
-![](go-slices-usage-and-internals_slice-2.png)
+![](./images/go-slices-usage-and-internals_slice-2.png)
 
 Slicing does not copy the slice's data. It creates a new slice value that points 
 to the original array. This makes slice operations as efficient as manipulating 
@@ -193,7 +193,7 @@ its capacity by slicing it again:
 s = s[:cap(s)]
 ```
 
-![](go-slices-usage-and-internals_slice-3.png)
+![](./images/go-slices-usage-and-internals_slice-3.png)
 
 A slice cannot be grown beyond its capacity. Attempting to do so will cause a 
 runtime panic, just as when indexing outside the bounds of a slice or array. 
