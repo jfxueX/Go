@@ -357,9 +357,9 @@ This is left as an exercise for the reader.
 
 #### Further Reading
 
-[Effective Go][2] contains an in-depth treatment of[slices][3] and[arrays][4], 
-and the Go [language specification][5] defines[slices][6] and their[associated][7]
-[helper][8][functions][9].
+[Effective Go][2] contains an in-depth treatment of [slices][3] and [arrays][4], 
+and the Go [language specification][5] defines [slices][6] and their [associated][7]
+[helper][8] [functions][9].
 
 [2]: https://golang.org/doc/effective_go.html
 [3]: https://golang.org/doc/effective_go.html#slices
