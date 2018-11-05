@@ -50,20 +50,20 @@ package flaws
 import "testing"
 
 func BenchmarkAssignmentIndirect(b *testing.B) {
-	type X struct {
-		p *int
-	}
-	for i := 0; i < b.N; i++ {
-		var i1 int
-		x1 := &X{
-			p: &i1, // GOOD: i1 does not escape
-		}
-		_ = x1
-
-		var i2 int
-		x2 := &X{}
-		x2.p = &i2 // BAD: Cause of i2 escape
-	}
+    type X struct {
+        p *int
+    }
+    for i := 0; i < b.N; i++ {
+        var i1 int
+        x1 := &X{
+            p: &i1, // GOOD: i1 does not escape
+        }
+        _ = x1
+    
+        var i2 int
+        x2 := &X{}
+        x2.p = &i2 // BAD: Cause of i2 escape
+    }
 }
 ```
 
@@ -84,7 +84,7 @@ func BenchmarkAssignmentIndirect(b *testing.B) {
 ```console
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
 
-BenchmarkAssignmentIndirect-8       100000000	       14.2 ns/op         8 B/op	      1 allocs/op
+BenchmarkAssignmentIndirect-8       100000000           14.2 ns/op         8 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
@@ -102,17 +102,17 @@ BenchmarkAssignmentIndirect-8       100000000	       14.2 ns/op         8 B/op	 
 $ go tool pprof -alloc_space mem.out
 
 ROUTINE ========================
-	759.51MB   759.51MB (flat, cum)   100% of Total
-		.          .     11:       x1 := &X{
-		.          .     12:           p: &i1, // GOOD: i1 does not escape
-		.          .     13:       }
-		.          .     14:       _ = x1
-		.          .     15:
-	759.51MB   759.51MB     16:       var i2 int
-		.          .     17:       x2 := &X{}
-		.          .     18:       x2.p = &i2 // BAD: Cause of i2 escape
-		.          .     19:   }
-		.          .     20:}	
+    759.51MB   759.51MB (flat, cum)   100% of Total
+        .          .     11:       x1 := &X{
+        .          .     12:           p: &i1, // GOOD: i1 does not escape
+        .          .     13:       }
+        .          .     14:       _ = x1
+        .          .     15:
+    759.51MB   759.51MB     16:       var i2 int
+        .          .     17:       x2 := &X{}
+        .          .     18:       x2.p = &i2 // BAD: Cause of i2 escape
+        .          .     19:   }
+        .          .     20:}    
 ```
 
 在逃逸分析报告中，`i2` 逃逸给出的理由是，`(star-dot-equals)`。我想这是指编译器需
@@ -143,25 +143,25 @@ package flaws
 import "testing"
 
 func BenchmarkLiteralFunctions(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		var y1 int
-		foo(&y1, 42) // GOOD: y1 does not escape
+    for i := 0; i < b.N; i++ {
+        var y1 int
+        foo(&y1, 42) // GOOD: y1 does not escape
 
-		var y2 int
-		func(p *int, x int) {
-			*p = x
-		}(&y2, 42) // BAD: Cause of y2 escape
+        var y2 int
+        func(p *int, x int) {
+            *p = x
+        }(&y2, 42) // BAD: Cause of y2 escape
 
-		var y3 int
-		p := foo
-		p(&y3, 42) // BAD: Cause of y3 escape
-	}
+        var y3 int
+        p := foo
+        p(&y3, 42) // BAD: Cause of y3 escape
+    }
 }
 
 func foo(p *int, x int) {
-	*p = x
+    *p = x
 }
-	
+    
 ```
 
 在代码清单 2.1 中，在第 21 行声明了一个名为 `foo` 的命名函数。这个函数接受一个整
@@ -183,8 +183,8 @@ func foo(p *int, x int) {
 **基准测试输出**
 ```
 $ go test -gcflags "-m -m" -run none -bench BenchmarkLiteralFunctions -benchmem -memprofile mem.out
-	
-BenchmarkLiteralFunctions-8     50000000 	       30.7 ns/op        16 B/op	      2 allocs/op
+    
+BenchmarkLiteralFunctions-8     50000000            30.7 ns/op        16 B/op          2 allocs/op
 ```
 
 **逃逸分析报告**
@@ -205,21 +205,21 @@ $ go tool pprof -alloc_space mem.out
 
 ROUTINE ========================
  768.01MB   768.01MB (flat, cum)   100% of Total
-		.          .      5:func BenchmarkLiteralFunctions(b *testing.B) {
-		.          .      6:   for i := 0; i < b.N; i++ {
-		.          .      7:       var y1 int
-		.          .      8:       foo(&y1, 42) // GOOD: y1 does not escape
-		.          .      9:
+        .          .      5:func BenchmarkLiteralFunctions(b *testing.B) {
+        .          .      6:   for i := 0; i < b.N; i++ {
+        .          .      7:       var y1 int
+        .          .      8:       foo(&y1, 42) // GOOD: y1 does not escape
+        .          .      9:
  380.51MB   380.51MB     10:       var y2 int
-		.          .     11:       func(p *int, x int) {
-		.          .     12:           *p = x
-		.          .     13:       }(&y2, 42) // BAD: Cause of y2 escape
-		.          .     14:
+        .          .     11:       func(p *int, x int) {
+        .          .     12:           *p = x
+        .          .     13:       }(&y2, 42) // BAD: Cause of y2 escape
+        .          .     14:
  387.51MB   387.51MB     15:       var y3 int
-		.          .     16:       p := foo
-		.          .     17:       p(&y3, 42) // BAD: Cause of y3 escape
-		.          .     18:   }
-		.          .     19:}
+        .          .     16:       p := foo
+        .          .     17:       p(&y3, 42) // BAD: Cause of y3 escape
+        .          .     18:   }
+        .          .     19:}
 
 ```
 
@@ -288,7 +288,7 @@ func wrapHandler(h Handler) Handler {
 ```
 $ go test -gcflags "-m -m" -run none -bench BenchmarkHandler -benchmem -memprofile mem.out
 
-BenchmarkHandler-8      20000000 	       72.4 ns/op       256 B/op	      1 allocs/op
+BenchmarkHandler-8      20000000            72.4 ns/op       256 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
@@ -306,15 +306,15 @@ $ go tool pprof -alloc_space mem.out
 
 ROUTINE ========================
    5.07GB     5.07GB (flat, cum)   100% of Total
-		.          .     14:   }
-		.          .     15:   route := wrapHandler(h)
-		.          .     16:
-		.          .     17:   // Execute route.
-		.          .     18:   for i := 0; i < b.N; i++ {
+        .          .     14:   }
+        .          .     15:   route := wrapHandler(h)
+        .          .     16:
+        .          .     17:   // Execute route.
+        .          .     18:   for i := 0; i < b.N; i++ {
    5.07GB     5.07GB     19:       var r http.Request
-		.          .     20:       route(nil, &r) // BAD: Cause of r escape
-		.          .     21:   }
-		.          .     22:}
+        .          .     20:       route(nil, &r) // BAD: Cause of r escape
+        .          .     21:   }
+        .          .     22:}
 ```
 
 在逃逸分析报告中，你可以看到这种分配的原因是 `(parameter to indirect call)`。
@@ -360,7 +360,7 @@ func BenchmarkSliceMapAssignment(b *testing.B) {
 ```
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
 
-BenchmarkSliceMapAssignment-8       10000000 	      104 ns/op 	     16 B/op	      2 allocs/op
+BenchmarkSliceMapAssignment-8       10000000           104 ns/op          16 B/op          2 allocs/op
 ```
 
 **逃逸分析报告**
@@ -383,17 +383,17 @@ $ go tool pprof -alloc_space mem.out
 
 ROUTINE ========================
  162.50MB   162.50MB (flat, cum)   100% of Total
-		.          .      5:func BenchmarkSliceMapAssignment(b *testing.B) {
-		.          .      6:   for i := 0; i < b.N; i++ {
-		.          .      7:       m := make(map[int]*int)
+        .          .      5:func BenchmarkSliceMapAssignment(b *testing.B) {
+        .          .      6:   for i := 0; i < b.N; i++ {
+        .          .      7:       m := make(map[int]*int)
  107.50MB   107.50MB      8:       var x1 int
-		.          .      9:       m[0] = &x1 // BAD: cause of x1 escape
-		.          .     10:
-		.          .     11:       s := make([]*int, 1)
-	 55MB       55MB     12:       var x2 int
-		.          .     13:       s[0] = &x2 // BAD: cause of x2 escape
-		.          .     14:   }
-		.          .     15:}
+        .          .      9:       m[0] = &x1 // BAD: cause of x1 escape
+        .          .     10:
+        .          .     11:       s := make([]*int, 1)
+     55MB       55MB     12:       var x2 int
+        .          .     13:       s[0] = &x2 // BAD: cause of x2 escape
+        .          .     14:   }
+        .          .     15:}
 ```
 
 逃逸分析报告中给出的原因是 `(value of map put)` 和 `(slice-element-equals)`。更
@@ -477,7 +477,7 @@ func foo(i Iface) {
 
 ```
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
-	
+    
 BenchmarkInterfaces-8     10000000         126 ns/op        64 B/op        4 allocs/op
 ```
 
@@ -512,23 +512,23 @@ $ go tool pprof -alloc_space mem.out
 
 ROUTINE ======================== 
  658.01MB   658.01MB (flat, cum)   100% of Total
-		.          .     12:
-		.          .     13:func (x X) Method() {}
-		.          .     14:
-		.          .     15:func BenchmarkInterfaces(b *testing.B) {
-		.          .     16: for i := 0; i < b.N; i++ {
+        .          .     12:
+        .          .     13:func (x X) Method() {}
+        .          .     14:
+        .          .     15:func BenchmarkInterfaces(b *testing.B) {
+        .          .     16: for i := 0; i < b.N; i++ {
  167.50MB   167.50MB     17:   x1 := X{"bill"}
  163.50MB   163.50MB     18:   var i1 Iface = x1
-		.          .     19:   var i2 Iface = &x1
-		.          .     20:
-		.          .     21:   i1.Method() // BAD: cause copy of x1 to escape
-		.          .     22:   i2.Method() // BAD: cause x1 to escape
-		.          .     23:
+        .          .     19:   var i2 Iface = &x1
+        .          .     20:
+        .          .     21:   i1.Method() // BAD: cause copy of x1 to escape
+        .          .     22:   i2.Method() // BAD: cause x1 to escape
+        .          .     23:
  163.50MB   163.50MB     24:   x2 := X{"bill"}
  163.50MB   163.50MB     25:   foo(x2)
-		.          .     26:   foo(&x2)
-		.          .     27: }
-		.          .     28:}
+        .          .     26:   foo(&x2)
+        .          .     27: }
+        .          .     28:}
 
 ```
 
@@ -592,7 +592,7 @@ func BenchmarkUnknown(b *testing.B) {
 ```
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
 
-Benchmark-8     20000000 	       50.8 ns/op       112 B/op	      1 allocs/op
+Benchmark-8     20000000            50.8 ns/op       112 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
@@ -609,13 +609,13 @@ $ go tool pprof -alloc_space mem.out
 
 ROUTINE ======================== 
    2.19GB     2.19GB (flat, cum)   100% of Total
-		.          .      8:func BenchmarkUnknown(b *testing.B) {
-		.          .      9:   for i := 0; i < b.N; i++ {
+        .          .      8:func BenchmarkUnknown(b *testing.B) {
+        .          .      9:   for i := 0; i < b.N; i++ {
    2.19GB     2.19GB     10:       var buf bytes.Buffer
-		.          .     11:       buf.Write([]byte{1})
-		.          .     12:       _ = buf.Bytes()
-		.          .     13:   }
-		.          .     14:}
+        .          .     11:       buf.Write([]byte{1})
+        .          .     12:       _ = buf.Bytes()
+        .          .     13:   }
+        .          .     14:}
 
 ```
 
