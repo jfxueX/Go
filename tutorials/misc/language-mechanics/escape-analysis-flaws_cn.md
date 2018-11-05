@@ -45,26 +45,26 @@
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example1/example1_test.go>
 
 ```go
-package flaws
-
-import "testing"
-
-func BenchmarkAssignmentIndirect(b *testing.B) {
-    type X struct {
-        p *int
-    }
-    for i := 0; i < b.N; i++ {
-        var i1 int
-        x1 := &X{
-            p: &i1, // GOOD: i1 does not escape
-        }
-        _ = x1
-    
-        var i2 int
-        x2 := &X{}
-        x2.p = &i2 // BAD: Cause of i2 escape
-    }
-}
+01 package flaws
+02
+03 import "testing"
+04
+05 func BenchmarkAssignmentIndirect(b *testing.B) {
+06     type X struct {
+07         p *int
+08     }
+09     for i := 0; i < b.N; i++ {
+10         var i1 int
+11         x1 := &X{
+12             p: &i1, // GOOD: i1 does not escape
+13         }
+14         _ = x1
+15
+16         var i2 int
+17         x2 := &X{}
+18         x2.p = &i2 // BAD: Cause of i2 escape
+19     }
+20 }
 ```
 
 在代码清单 1 中，类型 `X` 拥有单个字段，这个字段的名字是 `p`，它是一个指向整型的
@@ -83,15 +83,15 @@ func BenchmarkAssignmentIndirect(b *testing.B) {
 
 ```console
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
-
-BenchmarkAssignmentIndirect-8       100000000           14.2 ns/op         8 B/op          1 allocs/op
+    
+BenchmarkAssignmentIndirect-8       100000000          14.2 ns/op         8 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
 
 ```
 ./example2_test.go:18:10: &i2 escapes to heap
-./example2_test.go:18:10: from x2.p (star-dot-equals) at ./example2_test.go:18:8
+./example2_test.go:18:10:   from x2.p (star-dot-equals) at ./example2_test.go:18:8
 ./example2_test.go:16:7: moved to heap: i2
 ./example2_test.go:12:7: BenchmarkAssignmentIndirect &i1 does not escape
 ```
@@ -102,17 +102,17 @@ BenchmarkAssignmentIndirect-8       100000000           14.2 ns/op         8 B/o
 $ go tool pprof -alloc_space mem.out
 
 ROUTINE ========================
-    759.51MB   759.51MB (flat, cum)   100% of Total
+ 759.51MB   759.51MB (flat, cum)   100% of Total
         .          .     11:       x1 := &X{
         .          .     12:           p: &i1, // GOOD: i1 does not escape
         .          .     13:       }
         .          .     14:       _ = x1
         .          .     15:
-    759.51MB   759.51MB     16:       var i2 int
+ 759.51MB   759.51MB     16:       var i2 int
         .          .     17:       x2 := &X{}
         .          .     18:       x2.p = &i2 // BAD: Cause of i2 escape
         .          .     19:   }
-        .          .     20:}    
+        .          .     20:}
 ```
 
 在逃逸分析报告中，`i2` 逃逸给出的理由是，`(star-dot-equals)`。我想这是指编译器需
@@ -138,30 +138,29 @@ Go 代码中，大量看到 16 行到 18 行这样的代码。这个缺陷可以
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example2/example2_test.go>
 
 ```go
-package flaws
-
-import "testing"
-
-func BenchmarkLiteralFunctions(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        var y1 int
-        foo(&y1, 42) // GOOD: y1 does not escape
-
-        var y2 int
-        func(p *int, x int) {
-            *p = x
-        }(&y2, 42) // BAD: Cause of y2 escape
-
-        var y3 int
-        p := foo
-        p(&y3, 42) // BAD: Cause of y3 escape
-    }
-}
-
-func foo(p *int, x int) {
-    *p = x
-}
-    
+01 package flaws
+02
+03 import "testing"
+04
+05 func BenchmarkLiteralFunctions(b *testing.B) {
+06     for i := 0; i < b.N; i++ {
+07         var y1 int
+08         foo(&y1, 42) // GOOD: y1 does not escape
+09
+10         var y2 int
+11         func(p *int, x int) {
+12             *p = x
+13         }(&y2, 42) // BAD: Cause of y2 escape
+14
+15         var y3 int
+16         p := foo
+17         p(&y3, 42) // BAD: Cause of y3 escape
+18     }
+19 }
+20
+21 func foo(p *int, x int) {
+22     *p = x
+23 }
 ```
 
 在代码清单 2.1 中，在第 21 行声明了一个名为 `foo` 的命名函数。这个函数接受一个整
@@ -181,10 +180,11 @@ func foo(p *int, x int) {
 以下是运行基准测试的结果，以及一份逃逸分析报告。还包括了 pprof list 命令的输出。
 
 **基准测试输出**
+
 ```
 $ go test -gcflags "-m -m" -run none -bench BenchmarkLiteralFunctions -benchmem -memprofile mem.out
     
-BenchmarkLiteralFunctions-8     50000000            30.7 ns/op        16 B/op          2 allocs/op
+BenchmarkLiteralFunctions-8     50000000           30.7 ns/op        16 B/op          2 allocs/op
 ```
 
 **逃逸分析报告**
@@ -220,7 +220,6 @@ ROUTINE ========================
         .          .     17:       p(&y3, 42) // BAD: Cause of y3 escape
         .          .     18:   }
         .          .     19:}
-
 ```
 
 在逃逸分析报告中，为变量 `y2` 和 `y3` 变量的分配给出的原因是 `(parameter to 
@@ -238,38 +237,38 @@ indirect call)`。pprof 输出很清楚的显示出，`y2` 和 `y3` 被分配在
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example2/example2_http_test.go>
 
 ```go
-package flaws
-
-import (
-    "net/http"
-    "testing"
-)
-
-func BenchmarkHandler(b *testing.B) {
-
-    // Setup route with specific handler.
-    h := func(w http.ResponseWriter, r *http.Request) error {
-        // fmt.Println("Specific Request Handler")
-        return nil
-    }
-    route := wrapHandler(h)
-
-    // Execute route.
-    for i := 0; i < b.N; i++ {
-        var r http.Request
-        route(nil, &r) // BAD: Cause of r escape
-    }
-}
-
-type Handler func(w http.ResponseWriter, r *http.Request) error
-
-func wrapHandler(h Handler) Handler {
-    f := func(w http.ResponseWriter, r *http.Request) error {
-        // fmt.Println("Boilerplate Code")
-        return h(w, r)
-    }
-    return f
-}
+01 package flaws
+02
+03 import (
+04     "net/http"
+05     "testing"
+06 )
+07
+08 func BenchmarkHandler(b *testing.B) {
+09
+10     // Setup route with specific handler.
+11     h := func(w http.ResponseWriter, r *http.Request) error {
+12         // fmt.Println("Specific Request Handler")
+13         return nil
+14     }
+15     route := wrapHandler(h)
+16
+17     // Execute route.
+18     for i := 0; i < b.N; i++ {
+19         var r http.Request
+20         route(nil, &r) // BAD: Cause of r escape
+21     }
+22 }
+23
+24 type Handler func(w http.ResponseWriter, r *http.Request) error
+25
+26 func wrapHandler(h Handler) Handler {
+27     f := func(w http.ResponseWriter, r *http.Request) error {
+28         // fmt.Println("Boilerplate Code")
+29         return h(w, r)
+30     }
+31     return f
+32 }
 ```
 
 在代码清单 2.2 中，第 26 行声明了一个通用的处理器封装函数，该函数在另一个字面函
@@ -287,8 +286,8 @@ func wrapHandler(h Handler) Handler {
 
 ```
 $ go test -gcflags "-m -m" -run none -bench BenchmarkHandler -benchmem -memprofile mem.out
-
-BenchmarkHandler-8      20000000            72.4 ns/op       256 B/op          1 allocs/op
+    
+BenchmarkHandler-8      20000000           72.4 ns/op       256 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
@@ -331,21 +330,21 @@ pprof 报告显示，`r` 变量正在分配。如前所述，这是人们在用 
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example3/example3_test.go>
 
 ```go
-package flaws
-
-import "testing"
-
-func BenchmarkSliceMapAssignment(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        m := make(map[int]*int)
-        var x1 int
-        m[0] = &x1 // BAD: cause of x1 escape
-
-        s := make([]*int, 1)
-        var x2 int
-        s[0] = &x2 // BAD: cause of x2 escape
-   }
-}
+01 package flaws
+02
+03 import "testing"
+04
+05 func BenchmarkSliceMapAssignment(b *testing.B) {
+06     for i := 0; i < b.N; i++ {
+07         m := make(map[int]*int)
+08         var x1 int
+09         m[0] = &x1 // BAD: cause of x1 escape
+10
+11         s := make([]*int, 1)
+12         var x2 int
+13         s[0] = &x2 // BAD: cause of x2 escape
+14    }
+15 }
 ```
 
 在代码清单 3 中，第 07 行创建了一个 map，它保存类型 `int` 的值的地址。然后在第 
@@ -359,8 +358,8 @@ func BenchmarkSliceMapAssignment(b *testing.B) {
 
 ```
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
-
-BenchmarkSliceMapAssignment-8       10000000           104 ns/op          16 B/op          2 allocs/op
+    
+BenchmarkSliceMapAssignment-8       10000000          104 ns/op          16 B/op          2 allocs/op
 ```
 
 **逃逸分析报告**
@@ -422,38 +421,38 @@ ROUTINE ========================
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example4/example4_test.go>
 
 ```go
-package flaws
-
-import "testing"
-
-type Iface interface {
-    Method()
-}
-
-type X struct {
-    name string
-}
-
-func (x X) Method() {}
-
-func BenchmarkInterfaces(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        x1 := X{"bill"}
-        var i1 Iface = x1
-        var i2 Iface = &x1
-
-        i1.Method() // BAD: cause copy of x1 to escape
-        i2.Method() // BAD: cause x1 to escape
-
-        x2 := X{"bill"}
-        foo(x2)
-        foo(&x2)
-    }
-}
-
-func foo(i Iface) {
-    i.Method() // BAD: cause value passed in to escape
-}
+01 package flaws
+02
+03 import "testing"
+04
+05 type Iface interface {
+06     Method()
+07 }
+08
+09 type X struct {
+10     name string
+11 }
+12
+13 func (x X) Method() {}
+14
+15 func BenchmarkInterfaces(b *testing.B) {
+16     for i := 0; i < b.N; i++ {
+17         x1 := X{"bill"}
+18         var i1 Iface = x1
+19         var i2 Iface = &x1
+20
+21         i1.Method() // BAD: cause copy of x1 to escape
+22         i2.Method() // BAD: cause x1 to escape
+23
+24         x2 := X{"bill"}
+25         foo(x2)
+26         foo(&x2)
+27     }
+28 }
+29
+30 func foo(i Iface) {
+31     i.Method() // BAD: cause value passed in to escape
+32 }
 ```
 
 在代码清单 4 中，在第 05 行声明了一个名为 `Iface` 的接口，并且为了示例目的，这个
@@ -510,7 +509,7 @@ BenchmarkInterfaces-8     10000000         126 ns/op        64 B/op        4 all
 ```
 $ go tool pprof -alloc_space mem.out
 
-ROUTINE ======================== 
+ROUTINE ========================
  658.01MB   658.01MB (flat, cum)   100% of Total
         .          .     12:
         .          .     13:func (x X) Method() {}
@@ -529,7 +528,6 @@ ROUTINE ========================
         .          .     26:   foo(&x2)
         .          .     27: }
         .          .     28:}
-
 ```
 
 注意，在基准报告中有四个分配。这是因为代码会复制 `x1` 和 `x2` 变量，这也会产生分
@@ -564,20 +562,20 @@ indirect call)`。这很有趣，因为第 21 和 22 行对 `Method` 的调用�
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example5/example5_test.go>
 
 ```go
-package flaws
-
-import (
-    "bytes"
-    "testing"
-)
-
-func BenchmarkUnknown(b *testing.B) {
-    for i := 0; i < b.N; i++ {
-        var buf bytes.Buffer
-        buf.Write([]byte{1})
-        _ = buf.Bytes()
-    }
-}
+01 package flaws
+02
+03 import (
+04     "bytes"
+05     "testing"
+06 )
+07
+08 func BenchmarkUnknown(b *testing.B) {
+09     for i := 0; i < b.N; i++ {
+10         var buf bytes.Buffer
+11         buf.Write([]byte{1})
+12         _ = buf.Bytes()
+13     }
+14 }
 ```
 
 在代码清单 5 中，第 10 行创建了一个类型为 `bytes.Buffer` 的值，并将其设置为零
@@ -591,8 +589,8 @@ func BenchmarkUnknown(b *testing.B) {
 
 ```
 $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
-
-Benchmark-8     20000000            50.8 ns/op       112 B/op          1 allocs/op
+    
+Benchmark-8     20000000           50.8 ns/op       112 B/op          1 allocs/op
 ```
 
 **逃逸分析报告**
@@ -607,7 +605,7 @@ Benchmark-8     20000000            50.8 ns/op       112 B/op          1 allocs/
 ```
 $ go tool pprof -alloc_space mem.out
 
-ROUTINE ======================== 
+ROUTINE ========================
    2.19GB     2.19GB (flat, cum)   100% of Total
         .          .      8:func BenchmarkUnknown(b *testing.B) {
         .          .      9:   for i := 0; i < b.N; i++ {
@@ -616,7 +614,6 @@ ROUTINE ========================
         .          .     12:       _ = buf.Bytes()
         .          .     13:   }
         .          .     14:}
-
 ```
 
 在这个代码中，我没有看到第 11 行对 `Write` 的方法调用引起逃逸的任何原因。我得到
@@ -658,7 +655,7 @@ buffer 包的源代码上运行逃逸分析，那么它会输出（对于 Write(
 
 via: <https://www.ardanlabs.com/blog/2018/01/escape-analysis-flaws.html>
 
-作者：[William Kennedy][William-Kennedy]  译者：[ictar][ictar]  校对：polaris1119
+作者：[William Kennedy][William-Kennedy]  译者：[ictar][ictar]  校对：[polaris1119][polaris1119]
 
 本文由 [GCTT][GCTT] 原创编译，[Go语言中文网][STUDYGOLANG] 荣誉推出
 

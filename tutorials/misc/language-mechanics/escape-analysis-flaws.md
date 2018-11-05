@@ -93,8 +93,7 @@ indirection.
 Here is the output from running the benchmark with an escape analysis report. 
 Also included is the output for the pprof list command.
 
-**Benchmark
-    Output**
+**Benchmark Output**
 
     $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
     
@@ -130,7 +129,9 @@ an operation like this underneath to make the assignment.
 
 **Star-Dot-Equals**
 
-    (*x2).p = &i2
+```go
+(*x2).p = &i2
+```
 
 The pprof output shows clearly that `i2` is allocated on the heap and `i1` is 
 not. Lines 16 through 18 is something that I have seen a lot of in Go code 
@@ -143,8 +144,7 @@ The “Indirect Call” flaw has to do with allocations that occur when a value 
 shared with a function that is called through an indirection.  Here is a code 
 example:
 
-**Listing
-2.1**  
+**Listing 2.1**  
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example2/example2_test.go>
 
 ```go
@@ -194,8 +194,7 @@ variable.
 Here is the output from running the benchmark with an escape analysis report. 
 Also included is the output for the pprof list command.
 
-**Benchmark
-    Output**
+**Benchmark Output**
 
     $ go test -gcflags "-m -m" -run none -bench BenchmarkLiteralFunctions -benchmem -memprofile mem.out
     
@@ -245,6 +244,7 @@ service applications.
 Here is an example you will find in many web service applications.
 
 **Listing 2.2**  
+
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example2/example2_http_test.go>
 
 ```go
@@ -298,8 +298,7 @@ the heap, which is not necessary.
 Here is the output from running the test with an escape analysis report.  Also 
 included is the output is the pprof list command.
 
-**Benchmark
-    Output**
+**Benchmark Output**
 
     $ go test -gcflags "-m -m" -run none -bench BenchmarkHandler -benchmem -memprofile mem.out
     
@@ -368,8 +367,7 @@ shared inside index 0.
 Here is the output from running the benchmark with an escape analysis report. 
 Also included is the output for the pprof list command.
 
-**Benchmark
-    Output**
+**Benchmark Output**
 
     $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
     
@@ -490,8 +488,7 @@ to `foo` as a copy and shared on lines 25 and 26 respectively.
 Here is the output from running the benchmark with an escape analysis
 report. Also included is the output for the pprof list command.
 
-**Benchmark
-    Output**
+**Benchmark Output**
 
     $ go test -gcflags "-m -m" -run none -bench . -benchmem -memprofile mem.out
     
@@ -580,24 +577,25 @@ hope to get some answers.
 
 Here is a code example:
 
-**Listing
-5**  
+**Listing 5**  
 <https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/flaws/example5/example5_test.go>
 
-    01 package flaws
-    02
-    03 import (
-    04     "bytes"
-    05     "testing"
-    06 )
-    07
-    08 func BenchmarkUnknown(b *testing.B) {
-    09     for i := 0; i < b.N; i++ {
-    10         var buf bytes.Buffer
-    11         buf.Write([]byte{1})
-    12         _ = buf.Bytes()
-    13     }
-    14 }
+```go
+01 package flaws
+02
+03 import (
+04     "bytes"
+05     "testing"
+06 )
+07
+08 func BenchmarkUnknown(b *testing.B) {
+09     for i := 0; i < b.N; i++ {
+10         var buf bytes.Buffer
+11         buf.Write([]byte{1})
+12         _ = buf.Bytes()
+13     }
+14 }
+```
 
 In listing 5, a value of type `bytes.Buffer` is created on line 10 and
 set to its zero value. Then the method `Write` is called against the
@@ -664,220 +662,10 @@ benefits, such as the ability to optimize the code you write over time.
 Maybe the biggest benefit is, removing or reducing the cognitive load
 you otherwise would have to maintain.
 
-</div>
 
-<div class="clearfix">
+------------------------
 
-</div>
+via: <https://www.ardanlabs.com/blog/2018/01/escape-analysis-flaws.html>
+by [William Kennedy][William-Kennedy]
 
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="clearfix">
-
-</div>
-
-<div class="container-fluid">
-
-<div class="row">
-
-<div class="row go-training-area">
-
-<div class="col-md-8">
-
-# Go Training
-
-We have taught Go to thousands of developers all around the world since
-2014. There is no other company that has been doing it longer and our
-material has proven to help jump start developers 6 to 12 months ahead
-of their knowledge of Go. We know what knowledge developers need in
-order to be productive and efficient when writing software in Go.
-
-Our classes are perfect for both experienced and beginning engineers. We
-start every class from the beginning and get very detailed about the
-internals, mechanics, specification, guidelines, best practices and
-design philosophies. We cover a lot about "if performance matters" with
-a focus on mechanical sympathy, data oriented design, decoupling and
-writing production software.
-
-</div>
-
-<div class="col-md-4 go-training-link">
-
-![Ardan Labs](https://www.ardanlabs.com/img/ardanlabs-logo.svg) [Learn
-more](https://github.com/ardanlabs/gotraining#current-schedule)
-
-</div>
-
-  
-
-<div class="col-md-12 training-clients">
-
-<div class="training-clients-area">
-
-<div class="training-clients-box">
-
-<span>![Capital
-One](https://www.ardanlabs.com/img/training-client01.png)</span>
-
-</div>
-
-<div class="training-clients-box">
-
-<span>![Cisco](https://www.ardanlabs.com/img/training-client02.png)</span>
-
-</div>
-
-<div class="training-clients-box">
-
-<span>![Visa](https://www.ardanlabs.com/img/training-client03.png)</span>
-
-</div>
-
-<div class="training-clients-box">
-
-<span>![Teradata](https://www.ardanlabs.com/img/training-client04.png)</span>
-
-</div>
-
-<div class="training-clients-box">
-
-<span>![Red
-Ventures](https://www.ardanlabs.com/img/training-client05.png)</span>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-md-12 corporate-training">
-
-Interested in Ultimate Go Corporate Training and special pricing?
-
-[Let’s Talk Corporate
-Training\!](mailto:hello@ardanlabs.com?Subject=Let’s%20Talk%20Ultimate%20Go%20Corporate%20Training%20and%20special%20pricing!)
-
-</div>
-
-</div>
-
-<div class="row live-lessons-area">
-
-<div class="col-md-7">
-
-### Ultimate Go Programming LiveLessons
-
-Ultimate Go Programming LiveLessons provides an intensive,
-comprehensive, and idiomatic view of the Go programming language. This
-course focuses on both the specification and implementation of the
-language, including topics ranging from language syntax, design, and
-guidelines to concurrency, testing, and profiling. This class is perfect
-for anyone who wants a jump-start in learning Go or wants a more
-thorough understanding of the language and its internals.
-
-</div>
-
-<div class="col-md-5">
-
-[![Ardan
-Labs](https://www.ardanlabs.com/img/sidebar-ad.jpg)](http://www.informit.com/store/ultimate-go-programming-livelessons-9780134757483)
-[Learn
-more](http://www.informit.com/store/ultimate-go-programming-livelessons-9780134757483)
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="footer-below">
-
-<div class="container">
-
-<div class="row">
-
-<div class="col-md-4 col-sm-12 col-xs-12 footerleft">
-
-<div class="logofooter">
-
-[![Ardan Labs](https://www.ardanlabs.com/img/ardanlabs-logo.svg)](/)
-
-</div>
-
-**12973 SW 112 ST, Suite 153, Miami FL 33186
-
-**E-mail :
-info@ardanlabs.com
-
-</div>
-
-<div class="col-md-2 col-sm-3 col-xs-4 col-md-offset-1 paddingtop-bottom">
-
-###### GO TRAINING
-
-  - [Ultimate Go](/ultimate-go)
-  - [Go Fundamentals](/go-fundamentals)
-  - [Ultimate Service](/ultimate-service)
-  - [Go Training Events](/go-training-events)
-  - [My Lab](/my/lab)
-
-</div>
-
-<div class="col-md-2 col-sm-4 col-xs-4 paddingtop-bottom">
-
-###### GENERAL
-
-  - [Consulting](/consulting)
-  - [Machine Learning](/machine-learning)
-  - [Design](/design)
-  - [Careers](/careers)
-  - [Blog](/blog)
-  - [Contact](/my/contact-us)
-  - [Terms](/terms-service) / [Privacy](/privacy-policy)
-
-</div>
-
-<div class="col-md-2 col-sm-3 col-xs-4 paddingtop-bottom">
-
-###### Social
-
-  - [**Instagram](https://www.instagram.com/ardan_labs/)
-  - [**Twitter](https://twitter.com/ardanlabs)
-  - [**Facebook](https://www.facebook.com/ArdanLab/)
-  - [**Github](https://github.com/ardanlabs)
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="copyright">
-
-<div class="container">
-
-<div class="col-md-12">
-
-Ardan labs Copyrights © 2018
-
-</div>
-
-</div>
-
-</div>
-
-<div class="clear-fix">
-
-</div>
+[William-Kennedy]: https://github.com/ardanlabs/gotraining
