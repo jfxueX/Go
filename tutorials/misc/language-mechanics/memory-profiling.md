@@ -353,10 +353,12 @@ However, if you look at line 93, it becomes clear what is happening.
 
 **Listing 16**
 
-     93     if n, err := io.ReadFull(input, buf[:end]); err != nil {
-     94         output.Write(buf[:n])
-     95         return
-     96     }
+```go
+ 93     if n, err := io.ReadFull(input, buf[:end]); err != nil {
+ 94         output.Write(buf[:n])
+ 95         return
+ 96     }
+```
 
 The call to `io.ReadFull` is causing the interface assignment. If you look the 
 definition of the `io.ReadFull` function, you can see how it is accepting the 
@@ -366,11 +368,11 @@ definition of the `io.ReadFull` function, you can see how it is accepting the
 
 ```go
 type Reader interface {
-      Read(p []byte) (n int, err error)
+    Read(p []byte) (n int, err error)
 }
 
 func ReadFull(r Reader, buf []byte) (n int, err error) {
-      return ReadAtLeast(r, buf, len(buf))
+    return ReadAtLeast(r, buf, len(buf))
 }
 ```
 

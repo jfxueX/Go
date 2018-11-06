@@ -468,5 +468,4 @@ What’s amazing about Go is that the choice between pointer and value semantics
 goes beyond the declaration of receivers and function parameters. It’s all over
 the language, from how `for range` works to the mechanics of interfaces,
 function values and slices. In future posts, I will show how value/pointer
-semantics show up in these
-different parts of the language.
+semantics show up in these different parts of the language.
