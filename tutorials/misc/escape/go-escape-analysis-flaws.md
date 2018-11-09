@@ -157,17 +157,12 @@ a parameter flows with indirection level N to sink. For example:
 
 ```go
 func foo(p **int) {
-
     sink = *p
-
 }
 
 func main() {
-
     x := new(int)
-
     foo(&x)     // BAD: x escapes
-
 }
 
 var sink interface{}    // In all subsequent examples sink means the same.
@@ -212,14 +207,12 @@ that address `&Y{}` can reach `~r1` (escapes).
 
 The flaw here is that we should not follow flow with `level<0`. `Level<0` means that 
 address of SRC can reach DST. However, if we store FOO to SRC, it does not mean 
-that now address of `_FOO_` can reach DST. It is still FOO content that can 
+that now address of _`FOO`_ can reach DST. It is still FOO content that can 
 reach DST.
 
 The solution is to resets level to 0 when we are following flow.
 
-The following change has the fix:
-
-<https://go-review.googlesource.com/#/c/3890/>
+The following change has the fix: <https://go-review.googlesource.com/#/c/3890/>
 
 ### Indirection level is wrong for operations on interfaces
 
@@ -227,11 +220,8 @@ Consider the following code:
 
 ```go
 v := X{}
-
 var x Iface = v
-
 x.Method()      // BAD: makes interface backing storage escape
-
 sink = x.(X)    // BAD: makes interface backing storage escape
 ```
 
@@ -240,17 +230,11 @@ What effectively happens is:
 
 ```go
 v := X{}
-
 var x Iface
-
-x.Type = _type_X
-
+x.Type = type X
 x.Value = new(X) // It is this new(X) that escapes
-
 *x.Value = v
-
 (*x.Value).Method()
-
 sink = (*x.Value)
 ```
 
@@ -269,17 +253,12 @@ Consider the following program:
 
 ```go
 func foo(p **int) *int {
-
-return *p
-
+    return *p
 }
 
 func main() {
-
-x := new(int) // BAD: new(int) escapes
-
-_ = foo(&x)
-
+    x := new(int) // BAD: new(int) escapes
+    _ = foo(&x)
 }
 ```
 
@@ -295,9 +274,7 @@ Example:
 
 ```go
 var x X
-
 x.foo = &i
-
 sink = x.bar // BAD: &i escapes
 ```
 
@@ -342,11 +319,8 @@ From <https://github.com/golang/go/issues/2205>
 
 ```go
 func isWS(b byte) bool {
-
-// BAD: allocate buffer for byte slice
-
-return bytes.IndexByte([]byte("\t\n\x0C\n "), b) != -1
-
+    // BAD: allocate buffer for byte slice
+    return bytes.IndexByte([]byte("\t\n\x0C\n "), b) != -1
 }
 ```
 

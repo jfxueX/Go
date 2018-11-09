@@ -14,7 +14,7 @@ Go's interfaces—static, checked at compile time, dynamic when asked for—are,
 me, the most exciting part of Go from a language design point of view. If I 
 could export one feature of Go into other languages, it would be interfaces.
 
-This post is my take on the implementation of interface values in the“gc” 
+This post is my take on the implementation of interface values in the “gc” 
 compilers: 6g, 8g, and 5g. Over at Airs, Ian Lance Taylor has written [two][3] 
 [posts][4] about the implementation of interface values in `gccgo`. The 
 implementations are more alike than different: the biggest difference is that 
