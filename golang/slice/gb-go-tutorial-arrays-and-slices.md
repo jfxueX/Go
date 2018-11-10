@@ -8,6 +8,23 @@
 [2]: https://golangbot.com/learn-golang-series/
 
 
+* [Arrays](#arrays)
+    * [Declaration](#declaration)
+    * [Arrays are value types](#arrays-are-value-types)
+    * [Length of an array](#length-of-an-array)
+    * [Iterating arrays using range](#iterating-arrays-using-range)
+    * [Multidimensional arrays](#multidimensional-arrays)
+* [Slices](#slices)
+    * [Creating a slice](#creating-a-slice)
+    * [modifying a slice](#modifying-a-slice)
+    * [length and capacity of a slice](#length-and-capacity-of-a-slice)
+    * [creating a slice using make](#creating-a-slice-using-make)
+    * [Appending to a slice](#appending-to-a-slice)
+    * [Passing a slice to a function](#passing-a-slice-to-a-function)
+    * [Multidimensional slices](#multidimensional-slices)
+    * [Memory Optimisation](#memory-optimisation)
+
+
 ### Arrays
 
 An array is a collection of elements that belong to the same type. For example 
@@ -15,7 +32,7 @@ the collection of integers 5, 8, 9, 79, 76 form an array. Mixing values of
 different types, for example an array that contains both strings and integers is 
 not allowed in Go.
 
-##### Declaration
+#### Declaration
 
 An array belongs to type `n[T]`. `n` denotes the number of elements in an array 
 and `T` represents the type of each element. The number of elements `n` is also 
@@ -150,7 +167,7 @@ In line no. 6 of the program above, we are trying to assign a variable of type
 compiler will throw error *`main.go:6: cannot use a (type [3]int) as type 
 [5]int in assignment`*.
 
-##### Arrays are value types
+#### Arrays are value types
 
 Arrays in Go are value types and not reference types. This means that when they 
 are assigned to a new variable, a copy of the original array is assigned to the 
@@ -215,7 +232,7 @@ inside function  [55 6 7 8 8]
 after passing to function  [5 6 7 8 8]  
 ```
 
-##### Length of an array
+#### Length of an array
 
 The length of the array is found by passing the array as parameter to the `len` 
 function.
@@ -236,7 +253,7 @@ func main() {
 
 The **output** of the above program is `length of a is 4`
 
-##### Iterating arrays using range
+#### Iterating arrays using range
 
 The `for` loop can be used to iterate over elements of an array.
 
@@ -313,7 +330,7 @@ for _, v := range a { // ignores index
 
 The above for loop ignores the index. Similarly the value can also be ignored.
 
-##### Multidimensional arrays
+#### Multidimensional arrays
 
 The arrays we created so far are all single dimension. It is possible to create 
 multidimensional arrays.
@@ -389,7 +406,7 @@ A slice is a convenient, flexible and powerful wrapper on top of an array.
 Slices do not own any data on their own. They are the just references to 
 existing arrays.
 
-##### Creating a slice
+#### Creating a slice
 
 A slice with elements of type T is represented by `[]T`
 
@@ -434,7 +451,7 @@ func main() {
 In the above program in line no. 9, `c := []int{6, 7, 8}` creates an array with 
 3 integers and returns a slice reference which is stored in c.
 
-##### modifying a slice
+#### modifying a slice
 
 A slice does not own any data of its own. It is just a representation of the 
 underlying array. Any modifications done to the slice will be reflected in the 
@@ -507,7 +524,7 @@ array after modification to slice nums2 [100 101 80]
 From the output it's clear that when slices share the same array, the 
 modifications which each one makes are reflected in the array.
 
-##### length and capacity of a slice
+#### length and capacity of a slice
 
 The length of the slice is the number of elements in the slice. **The capacity 
 of the slice is the number of elements in the underlying array starting from the 
@@ -571,7 +588,7 @@ length of slice 2 capacity 6
 After re-slicing length is 6 and capacity is 6  
 ```
 
-##### creating a slice using make
+#### creating a slice using make
 
 *`func make([]T, len, cap) []T`* can be used to create a slice by passing the 
 type, length and capacity. The capacity parameter is optional and defaults to 
@@ -596,7 +613,7 @@ func main() {
 The values are zeroed by default when a slice is created using make. The above 
 program will output `[0 0 0 0 0]`.
 
-##### Appending to a slice
+#### Appending to a slice
 
 As we already know arrays are restricted to fixed length and their length cannot 
 be increased. Slices are dynamic and new elements can be appended to the slice 
@@ -700,7 +717,7 @@ In line no. 10 of the above program *food* is created by appending `fruits` to
 `veggies`. Output of the program is `food: [potatoes tomatoes brinjal oranges 
 apples]`
 
-##### Passing a slice to a function
+#### Passing a slice to a function
 
 Slices can be thought of as being represented internally by a structure type. 
 This is how it looks,
@@ -755,7 +772,7 @@ slice after function call [6 5 4]
 
 [6]: https://play.golang.org/p/bWUb6R-1bS%20
 
-##### Multidimensional slices
+#### Multidimensional slices
 
 Similar to arrays, slices can have multiple dimensions.
 
@@ -792,7 +809,7 @@ JavaScript
 Go Rust  
 ```
 
-##### Memory Optimisation
+#### Memory Optimisation
 
 Slices hold a reference to the underlying array. As long as the slice is in 
 memory, the array cannot be garbage collected. This might be of concern when it 
