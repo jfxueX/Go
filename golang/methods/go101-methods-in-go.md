@@ -41,7 +41,7 @@ From the above listed conditions, we will get the conclusion that we can never
     type and the unnamed pointer type whose base type is the unnamed struct 
     type. Please read [type embedding][3] for details.
 
-[2]: interface.html
+[2]: ../interface/go101-interfaces-in-go.md
 [3]: type-embedding.html
 
 A method declaration is similar to a function declaration, but it has an extra 
@@ -211,8 +211,8 @@ body.
 
 [4]: function.html#prototype
 
-For example, the method prototypes of the `Pages` and `SetPages` methods
-shown above are
+For example, the method prototypes of the `Pages` and `SetPages` methods shown 
+above are
 
 ```go
 Pages() int
@@ -224,8 +224,8 @@ of all the method prototypes of the methods declared, either explicitly or
 implicitly, for the type, except the ones whose names are the blank identifier 
 `_`. (Interface types will be explained in [the next article][2].)
 
-For example, the method sets of the `Book` type shown in the previous
-sections is
+For example, the method sets of the `Book` type shown in the previous sections 
+is
 
 ```go
 Pages() int
@@ -252,13 +252,12 @@ method set of the `Book` type shown above is a subset of the method set of the
 `*Book` type.
 
 Please note, **non-exported method names, which start with lower-case letters, 
-from different packages will be always viewed as two different method names**. 
+from different packages will be always viewed as two different method names**.
 In other words, a method prototype with a non-exported method name is always 
 different from any prototype from other packages.
 
 Method sets play an important role in the polymorphism feature of Go.  About 
-polymorphism, please read [the next article][2] (interfaces in Go) 
-for details.
+polymorphism, please read [the next article][2] (interfaces in Go) for details.
 
 The method sets of the following types are always blank:
 
@@ -389,8 +388,8 @@ func main() {
 ### Receiver Arguments Are Passed By Copy
 
 Same as general function arguments, the receiver arguments are also passed by 
-copy. So, the modifications on the [dirct part][5] of a receiver 
-argument in a method call will not be reflected to the outside of the method.
+copy. So, the modifications on the [dirct part][5] of a receiver argument in a 
+method call will not be reflected to the outside of the method.
 
 [5]: value-part.html
 
@@ -495,8 +494,7 @@ to declare methods with value receivers.
 For the cases value receivers and pointer receivers are both acceptable, here 
 are some factors needed to be considered to make decisions.
 
-  - Too many pointer copies may cause heavier workload for garbage
-    colllector.
+  - Too many pointer copies may cause heavier workload for garbage colllector.
   - If the value size of a receiver type is large, then the receiver argument 
     copy cost may be not neglectable. In particular if the passed argument is an 
     interface value (please read [polymorphism][6] for details), there will be two 
@@ -504,13 +502,12 @@ are some factors needed to be considered to make decisions.
     values are all [small sized values][7]. In fact, for the standard Go compiler 
     and runtime, types other than array and struct types are all small sized types. 
     Struct types with very few fields are also small sized.
-  - Mixing value receivers and pointer receivers for the same base type
-    is more likely to cause data races if the declared methods are
-    called concurrently in multiple goroutines.
-  - Values of the types in the `sync` standard package should not be
-    copied, so defining methods with value receivers for sturct types
-    which embedding the types in the `sync` standard package is
-    problematic.
+  - Mixing value receivers and pointer receivers for the same base type is more 
+    likely to cause data races if the declared methods are called concurrently in 
+    multiple goroutines.
+  - Values of the types in the `sync` standard package should not be copied, so 
+    defining methods with value receivers for sturct types which embedding the 
+    types in the `sync` standard package is problematic.
 
 If it is hard to make a decision whether a method should use a pointer receiver 
 or a value receiver, then just choose the pointer receiver way.
