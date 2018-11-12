@@ -65,21 +65,24 @@ type I interface{}
 ### The Method Set Of A Type
 
 
-Each type has a [method set](method.html#method-set%22) associated with it.
+Each type has a [method set][4] associated with it.
 
-  - For an interface type, its method set is the method prototype
-    collection it specifies.
-  - For a non-interface type, its method set is the prototype collection
-    of all the methods (either explicit or implicit ones) declared for
-    it.
+  - For an interface type, its method set is the method prototype collection it 
+    specifies.
+  - For a non-interface type, its method set is the prototype collection of all 
+    the methods (either explicit or implicit ones) declared for it.
 
-*(About methods of non-interface types, please read [methods in Go](method.html) 
-and [type embedding](type-embedding.html).)*
+*(About methods of non-interface types, please read [methods in Go][5] and [type 
+embedding][6].)*
 
 For convenience, the method set of a type is often also called the method set of 
 any value of the type.
 
-Two unnamed interface types are identical if their method sets are identical.
+*Two unnamed interface types are identical if their method sets are identical.*
+
+[4]: method.html#method-set%22
+[5]: method.html
+[6]: type-embedding.html
 
 ### What Are Implementations?
 
@@ -147,15 +150,13 @@ In Go, if a type `T` implements an interface type `I`, then any value of type
 
 In such a conversion (or an assignment),
 
-  - If type `T` is a non-interface type, then a copy of the `T` value is
-    boxed (or encapsulated) into the result (or destination) `I` value.
-    The time complexity of the copy is `O(n)`, where `n` is the size of
-    copied `T` value.
-  - If type `T` is also an interface type, then a copy of the value
-    boxed in the `T` value is boxed (or encapsulated) into the result
-    (or destination) `I` value. The standard Go compiler makes an
-    optimazation here, so the time complexity of the copy is `O(1)`,
-    instead of `O(n)`.
+  - If type `T` is a non-interface type, then a copy of the `T` value is boxed 
+    (or encapsulated) into the result (or destination) `I` value.  The time 
+    complexity of the copy is `O(n)`, where `n` is the size of copied `T` value.
+  - If type `T` is also an interface type, then a copy of the value boxed in the 
+    `T` value is boxed (or encapsulated) into the result (or destination) `I` value. 
+    The standard Go compiler makes an optimazation here, so the time complexity of 
+    the copy is `O(1)`, instead of `O(n)`.
 
 The type infomation of the boxed value is also stored in the result interface 
 value.
@@ -268,18 +269,18 @@ features in Go.
     all the corresponding methods specified by the interface type and
     declared for the dynamic type of the interface type. This table is
     the key to implement [polymorphism](#polymorphism) in Go.
-2.  The dynamic type information also includes all sorts of other
-    information about the dynamic type, such as what
-    [kind](type-system-overview.html#type-kinds) the dynamic type
-    belongs to and the method and field lists of the dynamic type, etc.
-    The information is the key to implement [reflection](#reflection) in
-    Go.
+2.  The dynamic type information also includes all sorts of other information 
+    about the dynamic type, such as what [kind][6] the dynamic type belongs to and 
+    the method and field lists of the dynamic type, etc.  The information is the key 
+    to implement [reflection](#reflection) in Go.
 
 At run time, the information items of all types are stored in a global zone. 
 Each interface value just holds a reference to one type information item. Each 
 non-interface to interface type implementation relation corresponds to one 
 global method table. For the standard Go compiler/runtime, a method table will 
 only be created as needed.
+
+[6]: type-system-overview.html#type-kinds
 
 ### Polymorphism
 
