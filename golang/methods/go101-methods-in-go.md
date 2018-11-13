@@ -259,7 +259,7 @@ different from any prototype from other packages.
 Method sets play an important role in the polymorphism feature of Go.  About 
 polymorphism, please read [the next article][2] (interfaces in Go) for details.
 
-The method sets of the following types are always blank:
+**The method sets of the following types are always blank:**
 
   - built-in basic types.
   - defined pointer types.
@@ -323,9 +323,9 @@ example can be cleaner. The line `(&book).SetPages(123)` in the above example
 can be simplified to `book.SetPages(123)`. But how can this happen? After all, 
 the value `book` has not a method called `SetPages`. Aha, this is just a 
 syntactic sugar to make progrmaming convenient. This sugar only works for 
-addressable values of type `Book`.  Compiler will automitically take the 
+addressable values of type `Book`.  *Compiler will automitically take the 
 addresses of the addressable values when they are passed as the receiver 
-arguments of the `SetPages` method calls.
+arguments* of the `SetPages` method calls.
 
 ```go
  ...
