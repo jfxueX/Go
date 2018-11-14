@@ -3,6 +3,24 @@
 
 [1]: https://go101.org/article/pointer.html
 
+
+* [Memory Addresses](#memory-addresses)
+* [Value Addresses](#value-addresses)
+* [What Are Pointers?](#what-are-pointers)
+* [Go Pointer Types And Values](#go-pointer-types-and-values)
+* [About The Word "Reference"](#about-the-word-reference)
+* [How To Get A Pointer Value And What Are Addressable Values?](#how-to-get-a-pointer-value-and-what-are-addressable-values)
+* [Pointer Dereference](#pointer-dereference)
+* [Why Do We Need Pointers?](#why-do-we-need-pointers)
+* [Return Pointers Of Local Variables Is Safe In Go](#return-pointers-of-local-variables-is-safe-in-go)
+* [Restrictions On Pointers In Go](#restrictions-on-pointers-in-go)
+    * [Go Pointer Values Don't Support Arithmetic Operations](#go-pointer-values-dont-support-arithmetic-operations)
+    * [A Pointer Value Can't Be Converted To An Arbitrary Pointer Type](#a-pointer-value-cant-be-converted-to-an-arbitrary-pointer-type)
+    * [A Pointer Value Can't Be Compared With Values Of An Arbitrary Pointer Type](#a-pointer-value-cant-be-compared-with-values-of-an-arbitrary-pointer-type)
+    * [A Pointer Value Can't Be Assigned To Pointer Values Of Other Pointer Types](#a-pointer-value-cant-be-assigned-to-pointer-values-of-other-pointer-types)
+* [It's Possible To Break The Go Pointer Restrictions](#its-possible-to-break-the-go-pointer-restrictions)
+
+
 Although Go absorbs many features from all kinds of other languages, Go is 
 mainly viewed as a C family language. One evidence is Go also supports pointers. 
 Go pointers and C pointers are much similar in many aspects, but there are also 
@@ -52,7 +70,7 @@ Unnamed pointer types have better readabilities than named ones.
 If the [underlying type][3] of a defined pointer type is `*T`, then the base 
 type of the defined pointer type is `T`.
 
-[3]: type-system-overview.html#underlying-type
+[3]: go101-type-system-overview.md#concept-underlying-types
 
 Two non-defined pointer types with the same base type are the same type.
 
@@ -284,7 +302,6 @@ conditions is get satisfied.
     they underlying types are identical (considering struct tags), then the 
     conversion can be implicit. (Struct types and values will be explained in 
     [the next article][6].)
-
 2.  Type `T1` and `T2` are both non-defined pointer types and the underlying 
     types of their base types are identical (ignoring struct tags).
 
@@ -303,14 +320,11 @@ the following facts exist:
 
 1.  values of type `*int64` can be implicitly converted to type `Ta`, and vice 
     versa, for their underlying types are both `*int64`.
-
 2.  values of type `*MyInt` can be implicitly converted to type `Tb`, and vice 
     versa, for their underlying types are both `*MyInt`.
-
 3.  values of type `*MyInt` can be explicitly converted to type `*int64`, and 
     vice versa, for they are both non-defined and the underlying types of their 
     base types are both `int64`.
-
 4.  values of type `Ta` can't be directly converted to type `Tb`, even if 
     explicitly. However, by the just listed first three facts, a value `pa` of 
     type `Ta` can be indirectly converted to type `Tb` by nesting three explicit 
@@ -321,21 +335,21 @@ safe ways.
 
 #### A Pointer Value Can't Be Compared With Values Of An Arbitrary Pointer Type
 
-In Go, pointers can be compared with `==` and `!=` operators. Two Go
-pointer values can only be compared if either of the following three
-conditions are satisified.
+In Go, pointers can be compared with `==` and `!=` operators. Two Go pointer 
+values can only be compared if either of the following three conditions are 
+satisified.
 
 1.  The types of the two Go pointers are identical.
-2.  One pointer value can be implicitly converted to the pointer type of
-    the other. In other words, the underlying types of the two types
-    must be identical and either of the two types of the two Go pointers
-    must be an undefined type.
-3.  One and only one of the two pointers is represented with the bare
-    (untyped) `nil` identifier.
+2.  One pointer value can be implicitly converted to the pointer type of the 
+    other. In other words, the underlying types of the two types must be 
+    identical and either of the two types of the two Go pointers must be an 
+    undefined type.
+3.  One and only one of the two pointers is represented with the bare (untyped) 
+    `nil` identifier.
 
 Example:
 
-``` line-numbers
+```go
 package main
 
 func main() {
@@ -367,24 +381,104 @@ func main() {
 }
 ```
 
-</div>
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func foo() {
+    type K1 int
+    type V1 []int
+
+    type M1 *map[int][]int
+    type M2 *map[K1][]int
+    type M3 *map[int]V1
+    type M5 *map[int][]int
+
+    var m1 M1 = &map[int][]int{}
+    var m2 M2 = &map[K1][]int{}
+    var m3 M3 = &map[int]V1{}
+    var m4 *map[int][]int = &map[int][]int{}
+    var m5 M5 = &map[int][]int{}
+
+    // _ = m1 == m2
+    // _ = m1 == m3
+
+    // _ = m2 == m1
+    // _ = m2 == m3
+    // _ = m2 == m4
+    // _ = m2 == m5
+
+    // _ = m3 == m1
+    // _ = m3 == m2
+    // _ = m3 == m4
+    // _ = m3 == m5
+
+    // _ = m4 == m2
+    // _ = m4 == m3
+
+    // _ = m5 == m1
+    // _ = m5 == m2
+    // _ = m5 == m3
+
+    _ = m1 == m4
+    _ = m4 == m1
+    _ = m4 == m5
+    _ = m5 == m4
+    // _ = m1 == m5
+    // _ = m5 == m1
+
+    fmt.Printf("%T\n", *m1)
+    fmt.Printf("%T\n", *m2)
+    fmt.Printf("%T\n", *m3)
+    fmt.Printf("%T\n", *m4)
+    fmt.Printf("%T\n", *m5)
+}
+
+func main() {
+    foo()
+}
+```
+
+输出：
+
+```
+map[int][]int
+map[main.K1][]int
+map[int]main.V1
+map[int][]int
+map[int][]int
+```
+
+所有注释掉的都是编译会失败的。
+
+可以看到 1，4，5 的 underlying type 是相同的，而 2、3 两种 underlying type 不同
+的类型。所以 2 与 1，3，4，5 都不能比较，同理 3 与 1，2，4，5 都不能比较，不管哪
+个在前都一样。
+1、4、5 虽然 underlying type 相同，但是 1 和 4，5 和 4 可以比较，反之亦然，而 1
+和 5 不能比较，因为 1 和 5 都是 defined type，但至多有一个 defined type 时才能比
+较。
+
 
 #### A Pointer Value Can't Be Assigned To Pointer Values Of Other Pointer Types
 
-The conditions to assign a pointer value to another pointer value are
-the same as the conditions to compare a pointer value to another pointer
-value, which are listed above.
+The conditions to assign a pointer value to another pointer value are the same 
+as the conditions to compare a pointer value to another pointer value, which are 
+listed above.
 
 ### It's Possible To Break The Go Pointer Restrictions
 
-As the start of this article has mentioned, the mechanisms
-(specifically, the `unsafe.Pointer` type) provided by [the `unsafe`
-standard package](unsafe.html) can be used to break the restrictions
-made for pointers in Go. The `unsafe.Pointer` type is like the `void*`
-in C. However, generally, the unsafe ways are not recommended to be used
-in general Go programming.
+As the start of this article has mentioned, the mechanisms (specifically, the 
+`unsafe.Pointer` type) provided by [the `unsafe` standard package][7] can be 
+used to break the restrictions made for pointers in Go. The `unsafe.Pointer` 
+type is like the `void*` in C. However, generally, the unsafe ways are not 
+recommended to be used in general Go programming.
 
------
+[7]: unsafe.html
+
+********************************************************************************
 
 The ***Go 101*** project is hosted on both [Github][20] and [Gitlab][21]). 
 Welcome to improve ***Go 101*** articles by submitting corrections for all kinds 
