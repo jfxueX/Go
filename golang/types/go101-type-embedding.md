@@ -1,4 +1,5 @@
 [Type Embedding][1]
+===================
 
 [1]: https://go101.org/article/type-embedding.html
 [2]: struct.html
