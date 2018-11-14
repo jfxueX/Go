@@ -4,6 +4,18 @@
 [1]: https://go101.org/article/type-embedding.html
 [2]: struct.html
 
+
+* [What Does Type Embedding Look Like?](#what-does-type-embedding-look-like)
+* [Which Types Can be Embedded?](#which-types-can-be-embedded)
+* [What Is The Meaningfulness Of Type Embedding?](#what-is-the-meaningfulness-of-type-embedding)
+* [Does The Embedding Type Obtain The Fields And Methods Of The Embedded Types?](#does-the-embedding-type-obtain-the-fields-and-methods-of-the-embedded-types)
+* [Shorthands Of Selectors](#shorthands-of-selectors)
+* [Selector Shadowing And Colliding](#selector-shadowing-and-colliding)
+* [Implicit Methods For Embedding Types](#implicit-methods-for-embedding-types)
+* [Interface Types Embed Interface Types](#interface-types-embed-interface-types)
+* [An Interesting Type Embedding Example](#an-interesting-type-embedding-example)
+
+
 From the article [structs in Go][2], we know that a struct type can have many 
 fields. Each of the fields is composed of one field name and one field type. In 
 fact, sometimes, a struct field can be composed of one field type only. Such 
