@@ -2,7 +2,7 @@
 ===================
 
 [1]: https://go101.org/article/type-embedding.html
-[2]: struct.html
+[2]: ../structs/go101-structs-in-go.md
 
 
 * [What Does Type Embedding Look Like?](#what-does-type-embedding-look-like)
@@ -64,7 +64,7 @@ the five embedded fields in the above examples are `string`, `error`, `int`,
 [3]: packages-and-imports.html#import
 [4]: https://golang.org/ref/spec#Struct_types
 [5]: https://github.com/golang/go/issues/22005
-[6]: type-system-overview.html#named-type
+[6]: go101-type-system-overview.md#concept-named-types-vs-unnamed-types
 
 ### Which Types Can be Embedded?
 
@@ -72,7 +72,6 @@ The current Go specification (v1.11) [says][4]
 
 An embedded field must be specified as a type name T or as a pointer to a non-
 interface type name `*T`, and T itself may not be a pointer type.
-
 
 The above description is accurate before Go 1.09. However, with the introduction 
 of type aliases in Go 1.09, the description [becomes a little outdated and 
@@ -89,7 +88,6 @@ A type can be embeded if it satisfies any of the following three conditions.
     neither a pointer nor interface type.
 3.  The type is an alias type of a type of the second case.
 
-
 In other words,
 
 the following types can't be embedded.
@@ -97,7 +95,6 @@ the following types can't be embedded.
 1.  [Defined][7] pointer types.
 2.  Unnamed non-pointer types.
 3.  Pointer types whose base types are either interface or poiner types.
-
 
 The above rules for which types can be embedded are unnecessarily restricted and 
 complicated, which makes it some hard to describe them clearly in brief. It 
@@ -148,7 +145,6 @@ unnamed pointer type can't be embedded along with its base type in the same
 struct type. For example, `int` and `*int` can't be embedded in the same struct 
 type.
 
-
 A struct type can't embed itself or its alias types, recursively.
 
 Generally, it is only meaningful to embed types who have fields or methods (the 
@@ -174,10 +170,10 @@ difference between the two:
     type `T`, and type `T` obtains the abilities of the other type, but none 
     values of type `T` can be viewed as values of the other type.
 
+[9]: https://en.wikipedia.org/wiki/Composition_over_inheritance
+
 Here is an example to show how an embedding type extends the functionalities of 
 the embedded type.
-
-[9]: https://en.wikipedia.org/wiki/Composition_over_inheritance
 
 ```go
 package main
@@ -222,7 +218,6 @@ doesn't compile:
 var gaga = Singer{}
 var _ Person = gaga
 ```
-
 
 ### Does The Embedding Type Obtain The Fields And Methods Of The Embedded Types?
 
@@ -272,7 +267,6 @@ main.Singer has 1 methods:
    method#1: SetAge
 ```
 
-
 From the result, we know that the type `Singer` really owns a `PrintName` 
 method, and the type `*Singer` really owns two methods, `PrintName` and 
 `SetAge`. But the type `Singer`doesn't own a `Name` field. Then why is the 
@@ -289,13 +283,13 @@ value. If the selector `x.y` denotes a field, it may also has its own fields (if
 `x.y` is a struct value) and methods. Such as `x.y.z`, where `z` can also be 
 either a field name or a method name.
 
+[10]: ../structs/go101-structs-in-go.md
+[11]: ../methods/go101-methods-in-go.md
+
 There is a syntactic sugar in Go, (without considering selector colliding and 
 shadowing explained in a later section), ***if a middle name in a seletor 
 corresponds to an embedded field, then that name can be omitted from the 
 selector***. This is why embedded types are also called anonymous fields.
-
-[10]: struct.html
-[11]: method.html
 
 For example:
 
@@ -339,8 +333,8 @@ As any embedding type must be a struct type, the article [structs in Go][12] has
 mentioned that the field of an addressable struct value can be accessed through 
 the pointers of the struct value. So the following code is also legal in Go.
 
-[12]: struct.html
-[13]: method.html#call
+[12]: ../structs/go101-structs-in-go.md
+[13]: ../methods/go101-methods-in-go.md#call
 
 ```go
 func main() {
@@ -371,7 +365,7 @@ be viewed as, or not as, shorthands of `(&gaga.Person).PrintName` and
 
 Note, we can also use the selector `gaga.SetAge`, but only if `gaga` is an 
 addressable value of type `Singer`. It is just a sugar of `(&gaga).SetAge`. 
-Please read [method calls] for details.
+Please read [method calls][13] for details.
 
 In the above examples, `c.B.A.x` is called the full form of selectors `c.x`, 
 `c.B.x` and `c.A.x`. Similarly, `c.B.A.MethodA` is called the full form of 
@@ -381,7 +375,6 @@ If every middle name in the full form of a selector corresponds to an embedded
 field, then the number of middle names in the selector is called the depth of 
 the selector. For example, the depth of the selector `c.MethodA` used in an 
 above example is *2*, for the full form of the selector is `c.B.A.MethodA`.
-
 
 ### Selector Shadowing And Colliding
 
@@ -456,7 +449,6 @@ func f2() {
 }
 ```
 
-
 ### Implicit Methods For Embedding Types
 
 As above has mentioned, both of type `Singer` and type `*Singer` have a 
@@ -488,8 +480,8 @@ Note, as [the method set of type `T` is always a subset of the method set of
 type `*T`][15], we can also say all the three types `*struct{T}`, `struct{*T}` 
 and `*struct{*T}` obtain (inherit) all the methods of type `T`.
 
-[14]: method.html#implicit-pointer-methods
-[15]: method.html#method-set
+[14]: ../methods/go101-methods-in-go.md#implicit-pointer-methods
+[15]: ../methods/go101-methods-in-go.md#method-set
 
 Here are the implicitly declared methods for type `Singer` and type `*Singer`.
 
@@ -512,7 +504,7 @@ methods for non-defined struct types and non-defined pointer types whose base
 types are non-defined struct types. But through type embedding, such non-defined 
 types can also own methods.
 
-[16]: method.html
+[16]: ../methods/go101-methods-in-go.md
 
 Here is another example to show which implicit methods are declared.
 
@@ -633,8 +625,8 @@ In the end, let's view an interesting example. The example program will dead
 loop and stack overflow. If you have understood the above content and 
 [polymorphism][17], it is easy to understand why it will dead loop.
 
-[16]: interface.html#embedding
-[17]: interface.html#polymorphism
+[16]: ../interface/go101-interfaces-in-go.md#embedding
+[17]: ../interface/go101-interfaces-in-go.md#polymorphism
 
 ```go
 package main
