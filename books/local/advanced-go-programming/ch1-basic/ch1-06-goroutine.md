@@ -1,129 +1,159 @@
 # 1.6 常见的并发模式
 
-Go语言最吸引人的地方是它内建的并发支持。Go语言并发体系的理论是C.A.R Hoare在1978年提出的CSP（Communicating Sequential Process，通讯顺序进程）。CSP有着精确的数学模型，并实际应用在了Hoare参与设计的T9000通用计算机上。从NewSqueak、Alef、Limbo到现在的Go语言，对于对CSP有着20多年实战经验的Rob Pike来说，他更关注的是将CSP应用在通用编程语言上产生的潜力。作为Go并发编程核心的CSP理论的核心概念只有一个：同步通信。关于同步通信的话题我们在前面一节已经讲过，本节我们将简单介绍下Go语言中常见的并发模式。
+Go 语言最吸引人的地方是它内建的并发支持。Go 语言并发体系的理论是 C.A.R Hoare 在 1978 年提出的 
+CSP（Communicating Sequential Process，通讯顺序进程）。CSP 有着精确的数学模型，并实际应用在了 Hoare 
+参与设计的 T9000 通用计算机上。从 NewSqueak、Alef、Limbo 到现在的 Go 语言，对于对 CSP 有着 20 多年实
+战经验的 Rob Pike 来说，他更关注的是将 CSP 应用在通用编程语言上产生的潜力。作为 Go 并发编程核心的 
+CSP 理论的核心概念只有一个：同步通信。关于同步通信的话题我们在前面一节已经讲过，本节我们将简单介绍下 
+Go 语言中常见的并发模式。
 
-首先要明确一个概念：并发不是并行。并发更关注的是程序的设计层面，并发的程序完全是可以顺序执行的，只有在真正的多核CPU上才可能真正地同时运行。并行更关注的是程序的运行层面，并行一般是简单的大量重复，例如GPU中对图像处理都会有大量的并行运算。为更好的编写并发程序，从设计之初Go语言就注重如何在编程语言层级上设计一个简洁安全高效的抽象模型，让程序员专注于分解问题和组合方案，而且不用被线程管理和信号互斥这些繁琐的操作分散精力。
+首先要明确一个概念：并发不是并行。并发更关注的是程序的设计层面，并发的程序完全是可以顺序执行的，只有
+在真正的多核 CPU 上才可能真正地同时运行。并行更关注的是程序的运行层面，并行一般是简单的大量重复，例
+如 GPU 中对图像处理都会有大量的并行运算。为更好的编写并发程序，从设计之初 Go 语言就注重如何在编程语
+言层级上设计一个简洁安全高效的抽象模型，让程序员专注于分解问题和组合方案，而且不用被线程管理和信号互
+斥这些繁琐的操作分散精力。
 
-在并发编程中，对共享资源的正确访问需要精确的控制，在目前的绝大多数语言中，都是通过加锁等线程同步方案来解决这一困难问题，而Go语言却另辟蹊径，它将共享的值通过Channel传递(实际上多个独立执行的线程很少主动共享资源)。在任意给定的时刻，最好只有一个Goroutine能够拥有该资源。数据竞争从设计层面上就被杜绝了。为了提倡这种思考方式，Go语言将其并发编程哲学化为一句口号：
+在并发编程中，对共享资源的正确访问需要精确的控制，在目前的绝大多数语言中，都是通过加锁等线程同步方案
+来解决这一困难问题，而 Go 语言却另辟蹊径，它将共享的值通过 Channel 传递(实际上多个独立执行的线程很少
+主动共享资源)。在任意给定的时刻，最好只有一个 Goroutine 能够拥有该资源。数据竞争从设计层面上就被杜绝
+了。为了提倡这种思考方式，Go 语言将其并发编程哲学化为一句口号：
 
 > Do not communicate by sharing memory; instead, share memory by communicating.
 
 > 不要通过共享内存来通信，而应通过通信来共享内存。
 
-这是更高层次的并发编程哲学(通过管道来传值是Go语言推荐的做法)。虽然像引用计数这类简单的并发问题通过原子操作或互斥锁就能很好地实现，但是通过Channel来控制访问能够让你写出更简洁正确的程序。
+这是更高层次的并发编程哲学(通过管道来传值是 Go 语言推荐的做法)。虽然像引用计数这类简单的并发问题通过
+原子操作或互斥锁就能很好地实现，但是通过 Channel 来控制访问能够让你写出更简洁正确的程序。
 
-## 1.6.1 并发版本的Hello world
+## 1.6.1 并发版本的 Hello world
 
-我们先以在一个新的Goroutine中输出“Hello world”，`main`等待后台线程输出工作完成之后退出，这样一个简单的并发程序作为热身。
+我们先以在一个新的 Goroutine 中输出“Hello world”，`main` 等待后台线程输出工作完成之后退出，这样一个
+简单的并发程序作为热身。
 
-并发编程的核心概念是同步通信，但是同步的方式却有多种。我们先以大家熟悉的互斥量`sync.Mutex`来实现同步通信。根据文档，我们不能直接对一个未加锁状态的`sync.Mutex`进行解锁，这会导致运行时异常。下面这种方式并不能保证正常工作：
+并发编程的核心概念是同步通信，但是同步的方式却有多种。我们先以大家熟悉的互斥量 `sync.Mutex` 来实现同
+步通信。根据文档，我们不能直接对一个未加锁状态的 `sync.Mutex` 进行解锁，这会导致运行时异常。下面这种
+方式并不能保证正常工作：
 
 ```go
 func main() {
-	var mu sync.Mutex
+    var mu sync.Mutex
 
-	go func(){
-		fmt.Println("你好, 世界")
-		mu.Lock()
-	}()
+    go func(){
+        fmt.Println("你好, 世界")
+        mu.Lock()
+    }()
 
-	mu.Unlock()
+    mu.Unlock()
 }
 ```
 
-因为`mu.Lock()`和`mu.Unlock()`并不在同一个Goroutine中，所以也就不满足顺序一致性内存模型。同时它们也没有其它的同步事件可以参考，这两个事件不可排序也就是可以并发的。因为可能是并发的事件，所以`main`函数中的`mu.Unlock()`很有可能先发生，而这个时刻`mu`互斥对象还处于未加锁的状态，从而会导致运行时异常。
+因为 `mu.Lock()` 和 `mu.Unlock()` 并不在同一个 Goroutine 中，所以也就不满足顺序一致性内存模型。同时
+它们也没有其它的同步事件可以参考，这两个事件不可排序也就是可以并发的。因为可能是并发的事件，所以 
+`main` 函数中的 `mu.Unlock()` 很有可能先发生，而这个时刻 `mu` 互斥对象还处于未加锁的状态，从而会导致
+运行时异常。
 
 下面是修复后的代码：
 
 ```go
 func main() {
-	var mu sync.Mutex
+    var mu sync.Mutex
 
-	mu.Lock()
-	go func(){
-		fmt.Println("你好, 世界")
-		mu.Unlock()
-	}()
+    mu.Lock()
+    go func(){
+        fmt.Println("你好, 世界")
+        mu.Unlock()
+    }()
 
-	mu.Lock()
+    mu.Lock()
 }
 ```
 
-修复的方式是在`main`函数所在线程中执行两次`mu.Lock()`，当第二次加锁时会因为锁已经被占用（不是递归锁）而阻塞，`main`函数的阻塞状态驱动后台线程继续向前执行。当后台线程执行到`mu.Unlock()`时解锁，此时打印工作已经完成了，解锁会导致`main`函数中的第二个`mu.Lock()`阻塞状态取消，此时后台线程和主线程再没有其它的同步事件参考，它们退出的事件将是并发的：在`main`函数退出导致程序退出时，后台线程可能已经退出了，也可能没有退出。虽然无法确定两个线程退出的时间，但是打印工作是可以正确完成的。
+修复的方式是在 `main` 函数所在线程中执行两次 `mu.Lock()`，当第二次加锁时会因为锁已经被占用（不是递归
+锁）而阻塞，`main` 函数的阻塞状态驱动后台线程继续向前执行。当后台线程执行到 `mu.Unlock()` 时解锁，此
+时打印工作已经完成了，解锁会导致 `main` 函数中的第二个 `mu.Lock()` 阻塞状态取消，此时后台线程和主线
+程再没有其它的同步事件参考，它们退出的事件将是并发的：在 `main` 函数退出导致程序退出时，后台线程可能
+已经退出了，也可能没有退出。虽然无法确定两个线程退出的时间，但是打印工作是可以正确完成的。
 
-使用`sync.Mutex`互斥锁同步是比较低级的做法。我们现在改用无缓存的管道来实现同步：
+使用 `sync.Mutex` 互斥锁同步是比较低级的做法。我们现在改用无缓存的管道来实现同步：
 
 ```go
 func main() {
-	done := make(chan int)
+    done := make(chan int)
 
-	go func(){
-		fmt.Println("你好, 世界")
-		<-done
-	}()
+    go func(){
+        fmt.Println("你好, 世界")
+        <-done
+    }()
 
-	done <- 1
+    done <- 1
 }
 ```
 
-根据Go语言内存模型规范，对于从无缓冲Channel进行的接收，发生在对该Channel进行的发送完成之前。因此，后台线程`<-done`接收操作完成之后，`main`线程的`done <- 1`发送操作才可能完成（从而退出main、退出程序），而此时打印工作已经完成了。
+根据 Go 语言内存模型规范，对于从无缓冲 Channel 进行的接收，发生在对该 Channel 进行的发送完成之前。因
+此，后台线程 `<-done` 接收操作完成之后，`main` 线程的 `done <- 1` 发送操作才可能完成（从而退出 
+main、退出程序），而此时打印工作已经完成了。
 
-上面的代码虽然可以正确同步，但是对管道的缓存大小太敏感：如果管道有缓存的话，就无法保证main退出之前后台线程能正常打印了。更好的做法是将管道的发送和接收方向调换一下，这样可以避免同步事件受管道缓存大小的影响：
+上面的代码虽然可以正确同步，但是对管道的缓存大小太敏感：如果管道有缓存的话，就无法保证 main 退出之前
+后台线程能正常打印了。更好的做法是将管道的发送和接收方向调换一下，这样可以避免同步事件受管道缓存大小
+的影响：
 
 ```go
 func main() {
-	done := make(chan int, 1) // 带缓存的管道
+    done := make(chan int, 1) // 带缓存的管道
 
-	go func(){
-		fmt.Println("你好, 世界")
-		done <- 1
-	}()
+    go func(){
+        fmt.Println("你好, 世界")
+        done <- 1
+    }()
 
-	<-done
+    <-done
 }
 ```
 
-对于带缓冲的Channel，对于Channel的第K个接收完成操作发生在第K+C个发送操作完成之前，其中C是Channel的缓存大小。虽然管道是带缓存的，`main`线程接收完成是在后台线程发送开始但还未完成的时刻，此时打印工作也是已经完成的。
+对于带缓冲的 Channel，对于 Channel 的第 K 个接收完成操作发生在第 K+C 个发送操作完成之前，其中 C 是 
+Channel 的缓存大小。虽然管道是带缓存的，`main` 线程接收完成是在后台线程发送开始但还未完成的时刻，此
+时打印工作也是已经完成的。
 
-基于带缓存的管道，我们可以很容易将打印线程扩展到N个。下面的例子是开启10个后台线程分别打印：
+基于带缓存的管道，我们可以很容易将打印线程扩展到 N 个。下面的例子是开启 10 个后台线程分别打印：
 
 ```go
 func main() {
-	done := make(chan int, 10) // 带 10 个缓存
+    done := make(chan int, 10) // 带 10 个缓存
 
-	// 开N个后台打印线程
-	for i := 0; i < cap(done); i++ {
-		go func(){
-			fmt.Println("你好, 世界")
-			done <- 1
-		}()
-	}
-
-	// 等待N个后台线程完成
-	for i := 0; i < cap(done); i++ {
-		<-done
-	}
+    // 开 N 个后台打印线程
+    for i := 0; i < cap(done); i++ {
+        go func(){
+            fmt.Println("你好, 世界")
+            done <- 1
+        }()
+    }
+    
+    // 等待 N 个后台线程完成
+    for i := 0; i < cap(done); i++ {
+        <-done
+    }
 }
 ```
 
-对于这种要等待N个线程完成后再进行下一步的同步操作有一个简单的做法，就是使用`sync.WaitGroup`来等待一组事件：
+对于这种要等待 N 个线程完成后再进行下一步的同步操作有一个简单的做法，就是使用 `sync.WaitGroup` 来等
+待一组事件：
 
 ```go
 func main() {
-	var wg sync.WaitGroup
+    var wg sync.WaitGroup
 
-	// 开N个后台打印线程
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
+    // 开N个后台打印线程
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
 
-		go func() {
-			fmt.Println("你好, 世界")
-			wg.Done()
-		}()
-	}
+        go func() {
+            fmt.Println("你好, 世界")
+            wg.Done()
+        }()
+    }
 
-	// 等待N个后台线程完成
-	wg.Wait()
+    // 等待N个后台线程完成
+    wg.Wait()
 }
 ```
 
@@ -138,26 +168,26 @@ Go语言实现生产者消费者并发很简单：
 ```go
 // 生产者: 生成 factor 整数倍的序列
 func Producer(factor int, out chan<- int) {
-	for i := 0; ; i++ {
-		out <- i*factor
-	}
+    for i := 0; ; i++ {
+        out <- i*factor
+    }
 }
 
 // 消费者
 func Consumer(in <-chan int) {
-	for v := range in {
-		fmt.Println(v)
-	}
+    for v := range in {
+        fmt.Println(v)
+    }
 }
 func main() {
-	ch := make(chan int, 64) // 成果队列
+    ch := make(chan int, 64) // 成果队列
 
-	go Producer(3, ch) // 生成 3 的倍数的序列
-	go Producer(5, ch) // 生成 5 的倍数的序列
-	go Consumer(ch)    // 消费 生成的队列
+    go Producer(3, ch) // 生成 3 的倍数的序列
+    go Producer(5, ch) // 生成 5 的倍数的序列
+    go Consumer(ch)    // 消费 生成的队列
 
-	// 运行一定时间后退出
-	time.Sleep(5 * time.Second)
+    // 运行一定时间后退出
+    time.Sleep(5 * time.Second)
 }
 ```
 
@@ -167,16 +197,16 @@ func main() {
 
 ```go
 func main() {
-	ch := make(chan int, 64) // 成果队列
+    ch := make(chan int, 64) // 成果队列
 
-	go Producer(3, ch) // 生成 3 的倍数的序列
-	go Producer(5, ch) // 生成 5 的倍数的序列
-	go Consumer(ch)    // 消费 生成的队列
+    go Producer(3, ch) // 生成 3 的倍数的序列
+    go Producer(5, ch) // 生成 5 的倍数的序列
+    go Consumer(ch)    // 消费 生成的队列
 
-	// Ctrl+C 退出
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	fmt.Printf("quit (%v)\n", <-sig)
+    // Ctrl+C 退出
+    sig := make(chan os.Signal, 1)
+    signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+    fmt.Printf("quit (%v)\n", <-sig)
 }
 ```
 
@@ -193,90 +223,90 @@ func main() {
 package pubsub
 
 import (
-	"sync"
-	"time"
+    "sync"
+    "time"
 )
 
 type (
-	subscriber chan interface{}         // 订阅者为一个管道
-	topicFunc  func(v interface{}) bool // 主题为一个过滤器
+    subscriber chan interface{}         // 订阅者为一个管道
+    topicFunc  func(v interface{}) bool // 主题为一个过滤器
 )
 
 // 发布者对象
 type Publisher struct {
-	m           sync.RWMutex             // 读写锁
-	buffer      int                      // 订阅队列的缓存大小
-	timeout     time.Duration            // 发布超时时间
-	subscribers map[subscriber]topicFunc // 订阅者信息
+    m           sync.RWMutex             // 读写锁
+    buffer      int                      // 订阅队列的缓存大小
+    timeout     time.Duration            // 发布超时时间
+    subscribers map[subscriber]topicFunc // 订阅者信息
 }
 
 // 构建一个发布者对象, 可以设置发布超时时间和缓存队列的长度
 func NewPublisher(publishTimeout time.Duration, buffer int) *Publisher {
-	return &Publisher{
-		buffer:      buffer,
-		timeout:     publishTimeout,
-		subscribers: make(map[subscriber]topicFunc),
-	}
+    return &Publisher{
+        buffer:      buffer,
+        timeout:     publishTimeout,
+        subscribers: make(map[subscriber]topicFunc),
+    }
 }
 
 // 添加一个新的订阅者，订阅全部主题
 func (p *Publisher) Subscribe() chan interface{} {
-	return p.SubscribeTopic(nil)
+    return p.SubscribeTopic(nil)
 }
 
 // 添加一个新的订阅者，订阅过滤器筛选后的主题
 func (p *Publisher) SubscribeTopic(topic topicFunc) chan interface{} {
-	ch := make(chan interface{}, p.buffer)
-	p.m.Lock()
-	p.subscribers[ch] = topic
-	p.m.Unlock()
-	return ch
+    ch := make(chan interface{}, p.buffer)
+    p.m.Lock()
+    p.subscribers[ch] = topic
+    p.m.Unlock()
+    return ch
 }
 
 // 退出订阅
 func (p *Publisher) Evict(sub chan interface{}) {
-	p.m.Lock()
-	defer p.m.Unlock()
+    p.m.Lock()
+    defer p.m.Unlock()
 
-	delete(p.subscribers, sub)
-	close(sub)
+    delete(p.subscribers, sub)
+    close(sub)
 }
 
 // 发布一个主题
 func (p *Publisher) Publish(v interface{}) {
-	p.m.RLock()
-	defer p.m.RUnlock()
+    p.m.RLock()
+    defer p.m.RUnlock()
 
-	var wg sync.WaitGroup
-	for sub, topic := range p.subscribers {
-		wg.Add(1)
-		go p.sendTopic(sub, topic, v, &wg)
-	}
-	wg.Wait()
+    var wg sync.WaitGroup
+    for sub, topic := range p.subscribers {
+        wg.Add(1)
+        go p.sendTopic(sub, topic, v, &wg)
+    }
+    wg.Wait()
 }
 
 // 关闭发布者对象，同时关闭所有的订阅者管道。
 func (p *Publisher) Close() {
-	p.m.Lock()
-	defer p.m.Unlock()
+    p.m.Lock()
+    defer p.m.Unlock()
 
-	for sub := range p.subscribers {
-		delete(p.subscribers, sub)
-		close(sub)
-	}
+    for sub := range p.subscribers {
+        delete(p.subscribers, sub)
+        close(sub)
+    }
 }
 
 // 发送主题，可以容忍一定的超时
 func (p *Publisher) sendTopic(sub subscriber, topic topicFunc, v interface{}, wg *sync.WaitGroup) {
-	defer wg.Done()
-	if topic != nil && !topic(v) {
-		return
-	}
+    defer wg.Done()
+    if topic != nil && !topic(v) {
+        return
+    }
 
-	select {
-	case sub <- v:
-	case <-time.After(p.timeout):
-	}
+    select {
+    case sub <- v:
+    case <-time.After(p.timeout):
+    }
 }
 ```
 
@@ -286,34 +316,34 @@ func (p *Publisher) sendTopic(sub subscriber, topic topicFunc, v interface{}, wg
 import "path/to/pubsub"
 
 func main() {
-	p := pubsub.NewPublisher(100*time.Millisecond, 10)
-	defer p.Close()
+    p := pubsub.NewPublisher(100*time.Millisecond, 10)
+    defer p.Close()
 
-	all := p.Subscribe()
-	golang := p.SubscribeTopic(func(v interface{}) bool {
-		if s, ok := v.(string); ok {
-			return strings.Contains(s, "golang")
-		}
-		return false
-	})
+    all := p.Subscribe()
+    golang := p.SubscribeTopic(func(v interface{}) bool {
+        if s, ok := v.(string); ok {
+            return strings.Contains(s, "golang")
+        }
+        return false
+    })
 
-	p.Publish("hello,  world!")
-	p.Publish("hello, golang!")
+    p.Publish("hello,  world!")
+    p.Publish("hello, golang!")
 
-	go func() {
-		for  msg := range all {
-			fmt.Println("all:", msg)
-		}
-	} ()
+    go func() {
+        for  msg := range all {
+            fmt.Println("all:", msg)
+        }
+    } ()
 
-	go func() {
-		for  msg := range golang {
-			fmt.Println("golang:", msg)
-		}
-	} ()
+    go func() {
+        for  msg := range golang {
+            fmt.Println("golang:", msg)
+        }
+    } ()
 
-	// 运行一定时间后退出
-	time.Sleep(3 * time.Second)
+    // 运行一定时间后退出
+    time.Sleep(3 * time.Second)
 }
 ```
 
@@ -327,13 +357,13 @@ func main() {
 
 ```go
 import (
-	"golang.org/x/tools/godoc/vfs"
-	"golang.org/x/tools/godoc/vfs/gatefs"
+    "golang.org/x/tools/godoc/vfs"
+    "golang.org/x/tools/godoc/vfs/gatefs"
 )
 
 func main() {
-	fs := gatefs.New(vfs.OS("/path"), make(chan bool, 8))
-	// ...
+    fs := gatefs.New(vfs.OS("/path"), make(chan bool, 8))
+    // ...
 }
 ```
 
@@ -369,14 +399,14 @@ func (g gate) leave() { <-g }
 
 ```go
 type gatefs struct {
-	fs vfs.FileSystem
-	gate
+    fs vfs.FileSystem
+    gate
 }
 
 func (fs gatefs) Lstat(p string) (os.FileInfo, error) {
-	fs.enter()
-	defer fs.leave()
-	return fs.fs.Lstat(p)
+    fs.enter()
+    defer fs.leave()
+    return fs.fs.Lstat(p)
 }
 ```
 
@@ -391,19 +421,19 @@ func (fs gatefs) Lstat(p string) (os.FileInfo, error) {
 
 ```go
 func main() {
-	ch := make(chan string, 32)
+    ch := make(chan string, 32)
 
-	go func() {
-		ch <- searchByBing("golang")
-	}()
-	go func() {
-		ch <- searchByGoogle("golang")
-	}()
-	go func() {
-		ch <- searchByBaidu("golang")
-	}()
+    go func() {
+        ch <- searchByBing("golang")
+    }()
+    go func() {
+        ch <- searchByGoogle("golang")
+    }()
+    go func() {
+        ch <- searchByBaidu("golang")
+    }()
 
-	fmt.Println(<-ch)
+    fmt.Println(<-ch)
 }
 ```
 
@@ -426,13 +456,13 @@ func main() {
 ```go
 // 返回生成自然数序列的管道: 2, 3, 4, ...
 func GenerateNatural() chan int {
-	ch := make(chan int)
-	go func() {
-		for i := 2; ; i++ {
-			ch <- i
-		}
-	}()
-	return ch
+    ch := make(chan int)
+    go func() {
+        for i := 2; ; i++ {
+            ch <- i
+        }
+    }()
+    return ch
 }
 ```
 
@@ -443,15 +473,15 @@ func GenerateNatural() chan int {
 ```go
 // 管道过滤器: 删除能被素数整除的数
 func PrimeFilter(in <-chan int, prime int) chan int {
-	out := make(chan int)
-	go func() {
-		for {
-			if i := <-in; i%prime != 0 {
-				out <- i
-			}
-		}
-	}()
-	return out
+    out := make(chan int)
+    go func() {
+        for {
+            if i := <-in; i%prime != 0 {
+                out <- i
+            }
+        }
+    }()
+    return out
 }
 ```
 
@@ -461,12 +491,12 @@ func PrimeFilter(in <-chan int, prime int) chan int {
 
 ```go
 func main() {
-	ch := GenerateNatural() // 自然数序列: 2, 3, 4, ...
-	for i := 0; i < 100; i++ {
-		prime := <-ch // 新出现的素数
-		fmt.Printf("%v: %v\n", i+1, prime)
-		ch = PrimeFilter(ch, prime) // 基于新素数构造的过滤器
-	}
+    ch := GenerateNatural() // 自然数序列: 2, 3, 4, ...
+    for i := 0; i < 100; i++ {
+        prime := <-ch // 新出现的素数
+        fmt.Printf("%v: %v\n", i+1, prime)
+        ch = PrimeFilter(ch, prime) // 基于新素数构造的过滤器
+    }
 }
 ```
 
@@ -485,9 +515,9 @@ Go语言中不同Goroutine之间主要依靠管道进行通信和同步。要同
 ```go
 select {
 case v := <-in:
-	fmt.Println(v)
+    fmt.Println(v)
 case <-time.After(time.Second):
-	return // 超时
+    return // 超时
 }
 ```
 
@@ -496,9 +526,9 @@ case <-time.After(time.Second):
 ```go
 select {
 case v := <-in:
-	fmt.Println(v)
+    fmt.Println(v)
 default:
-	// 没有数据
+    // 没有数据
 }
 ```
 
@@ -506,8 +536,8 @@ default:
 
 ```go
 func main() {
-	// do some thins
-	select{}
+    // do some thins
+    select{}
 }
 ```
 
@@ -515,19 +545,19 @@ func main() {
 
 ```go
 func main() {
-	ch := make(chan int)
-	go func() {
-		for {
-			select {
-			case ch <- 0:
-			case ch <- 1:
-			}
-		}
-	}()
+    ch := make(chan int)
+    go func() {
+        for {
+            select {
+            case ch <- 0:
+            case ch <- 1:
+            }
+        }
+    }()
 
-	for v := range ch {
-		fmt.Println(v)
-	}
+    for v := range ch {
+        fmt.Println(v)
+    }
 }
 ```
 
@@ -535,23 +565,23 @@ func main() {
 
 ```go
 func worker(cannel chan bool) {
-	for {
-		select {
-		default:
-			fmt.Println("hello")
-			// 正常工作
-		case <-cannel:
-			// 退出
-		}
-	}
+    for {
+        select {
+        default:
+            fmt.Println("hello")
+            // 正常工作
+        case <-cannel:
+            // 退出
+        }
+    }
 }
 
 func main() {
-	cannel := make(chan bool)
-	go worker(cannel)
+    cannel := make(chan bool)
+    go worker(cannel)
 
-	time.Sleep(time.Second)
-	cannel <- true
+    time.Sleep(time.Second)
+    cannel <- true
 }
 ```
 
@@ -559,26 +589,26 @@ func main() {
 
 ```go
 func worker(cannel chan bool) {
-	for {
-		select {
-		default:
-			fmt.Println("hello")
-			// 正常工作
-		case <-cannel:
-			// 退出
-		}
-	}
+    for {
+        select {
+        default:
+            fmt.Println("hello")
+            // 正常工作
+        case <-cannel:
+            // 退出
+        }
+    }
 }
 
 func main() {
-	cancel := make(chan bool)
+    cancel := make(chan bool)
 
-	for i := 0; i < 10; i++ {
-		go worker(cancel)
-	}
+    for i := 0; i < 10; i++ {
+        go worker(cancel)
+    }
 
-	time.Sleep(time.Second)
-	close(cancel)
+    time.Sleep(time.Second)
+    close(cancel)
 }
 ```
 
@@ -586,30 +616,30 @@ func main() {
 
 ```go
 func worker(wg *sync.WaitGroup, cannel chan bool) {
-	defer wg.Done()
+    defer wg.Done()
 
-	for {
-		select {
-		default:
-			fmt.Println("hello")
-		case <-cannel:
-			return
-		}
-	}
+    for {
+        select {
+        default:
+            fmt.Println("hello")
+        case <-cannel:
+            return
+        }
+    }
 }
 
 func main() {
-	cancel := make(chan bool)
+    cancel := make(chan bool)
 
-	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go worker(&wg, cancel)
-	}
+    var wg sync.WaitGroup
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go worker(&wg, cancel)
+    }
 
-	time.Sleep(time.Second)
-	close(cancel)
-	wg.Wait()
+    time.Sleep(time.Second)
+    close(cancel)
+    wg.Wait()
 }
 ```
 
@@ -622,31 +652,31 @@ func main() {
 
 ```go
 func worker(ctx context.Context, wg *sync.WaitGroup) error {
-	defer wg.Done()
+    defer wg.Done()
 
-	for {
-		select {
-		default:
-			fmt.Println("hello")
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+    for {
+        select {
+        default:
+            fmt.Println("hello")
+        case <-ctx.Done():
+            return ctx.Err()
+        }
+    }
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	var wg sync.WaitGroup
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go worker(ctx, &wg)
-	}
+    var wg sync.WaitGroup
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go worker(ctx, &wg)
+    }
 
-	time.Sleep(time.Second)
-	cancel()
+    time.Sleep(time.Second)
+    cancel()
 
-	wg.Wait()
+    wg.Wait()
 }
 ```
 
@@ -657,48 +687,48 @@ Go语言是带内存自动回收特性的，因此内存一般不会泄漏。在
 ```go
 // 返回生成自然数序列的管道: 2, 3, 4, ...
 func GenerateNatural(ctx context.Context) chan int {
-	ch := make(chan int)
-	go func() {
-		for i := 2; ; i++ {
-			select {
-			case <- ctx.Done():
-				return
-			case ch <- i:
-			}
-		}
-	}()
-	return ch
+    ch := make(chan int)
+    go func() {
+        for i := 2; ; i++ {
+            select {
+            case <- ctx.Done():
+                return
+            case ch <- i:
+            }
+        }
+    }()
+    return ch
 }
 
 // 管道过滤器: 删除能被素数整除的数
 func PrimeFilter(ctx context.Context, in <-chan int, prime int) chan int {
-	out := make(chan int)
-	go func() {
-		for {
-			if i := <-in; i%prime != 0 {
-				select {
-				case <- ctx.Done():
-					return
-				case out <- i:
-				}
-			}
-		}
-	}()
-	return out
+    out := make(chan int)
+    go func() {
+        for {
+            if i := <-in; i%prime != 0 {
+                select {
+                case <- ctx.Done():
+                    return
+                case out <- i:
+                }
+            }
+        }
+    }()
+    return out
 }
 
 func main() {
-	// 通过 Context 控制后台Goroutine状态
-	ctx, cancel := context.WithCancel(context.Background())
+    // 通过 Context 控制后台Goroutine状态
+    ctx, cancel := context.WithCancel(context.Background())
 
-	ch := GenerateNatural(ctx) // 自然数序列: 2, 3, 4, ...
-	for i := 0; i < 100; i++ {
-		prime := <-ch // 新出现的素数
-		fmt.Printf("%v: %v\n", i+1, prime)
-		ch = PrimeFilter(ctx, ch, prime) // 基于新素数构造的过滤器
-	}
+    ch := GenerateNatural(ctx) // 自然数序列: 2, 3, 4, ...
+    for i := 0; i < 100; i++ {
+        prime := <-ch // 新出现的素数
+        fmt.Printf("%v: %v\n", i+1, prime)
+        ch = PrimeFilter(ctx, ch, prime) // 基于新素数构造的过滤器
+    }
 
-	cancel()
+    cancel()
 }
 ```
 

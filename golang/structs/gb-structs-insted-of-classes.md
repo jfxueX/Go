@@ -10,6 +10,10 @@
 [3]: https://golang.org/doc/faq#Is_Go_an_object-oriented_language
 
 
+* [Is Go Object Oriented?](#is-go-object-oriented)
+* [Structs Instead of Classes](#structs-instead-of-classes)
+* [New() function instead of constructors](#new-function-instead-of-constructors)
+
 ### Is Go Object Oriented?
 
 Go is not a pure object oriented programming language. This excerpt taken from 
@@ -152,7 +156,7 @@ constructors. A valid object can be created by using parameterised constructor.
 
 Go doesn't support constructors. If the zero value of a type is not usable, it 
 is the job of the programmer to unexport the type to prevent access from other 
-packages and also to provide a [function]() named `NewT(parameters)` which 
+packages and also to provide a [function][7] named `NewT(parameters)` which 
 initialises the type `T` with the required values. It is a convention in Go to 
 name a function which creates a value of type `T` to `NewT(parameters)`. This 
 will act like a constructor. If the package defines only one type, then it's a 
