@@ -1,4 +1,5 @@
 [Part 23: Buffered Channels and Worker Pools][1]
+================================================
 
 02 August 2017
 

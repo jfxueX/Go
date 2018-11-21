@@ -1,4 +1,5 @@
 [Part 21: Goroutines][1]
+========================
 
 02 July 2017
 
@@ -9,6 +10,12 @@
 [3]: https://golangbot.com/concurrency/
 [4]: https://golangbot.com/functions/
 [5]: https://golangbot.com/methods/
+
+
+* [What are Goroutines?](#what-are-goroutines)
+* [Advantages of Goroutines over threads](#advantages-of-goroutines-over-threads)
+* [How to start a Goroutine?](#how-to-start-a-goroutine)
+* [Starting multiple Goroutines](#starting-multiple-goroutines)
 
 
 In the [previous tutorial][3], we discussed about concurrency and how it is 
