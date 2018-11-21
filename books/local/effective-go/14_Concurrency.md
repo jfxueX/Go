@@ -1,15 +1,15 @@
-## Concurrency
+> ## Concurrency
 
 ## 并发
 
-### Share by communicating
+> ### Share by communicating
 
 ### 通过通信共享内存
 
 > Concurrent programming is a large topic and there is space only for some Go-specific highlights 
 > here.
 
-并发编程是个很大的论题。但限于篇幅，这里仅讨论一些 Go 特有的东西。
+并发编程是个很大的论题。限于篇幅，这里仅讨论一些 Go 特有的亮点。
 
 > Concurrent programming in many environments is made difficult by the subtleties required to 
 > implement correct access to shared variables. Go encourages a different approach in which shared 
@@ -17,9 +17,10 @@
 > execution. Only one goroutine has access to the value at any given time. Data races cannot occur, by 
 > design. To encourage this way of thinking we have reduced it to a slogan:
 
-在并发编程中，为实现对共享变量的正确访问需要精确的控制，这在多数环境下都很困难。Go 语言另辟蹊径，它
-将共享的值通过信道传递，实际上，多个独立执行的线程从不会主动共享。 在任意给定的时间点，只有一个 
-goroutine 能够访问该值。数据竞争从设计上就被杜绝了。 为了提倡这种思考方式，我们将它简化为一句口号：
+在并发编程中，为实现对共享变量的正确访问需要精确的控制，这在多数环境下都很困难。Go 鼓励采用一种不同
+的方法，在这种方法中，共享值在信道上传递，事实上（共享值）不会被独立的执行线程（们）主动共享。在任意
+给定时间，只有一个 goroutine 可以访问该值。数据竞争从设计上就被杜绝了。为了提倡这种思考方式，我们将
+它简化为一句口号：
 
 > > Do not communicate by sharing memory; instead, share memory by communicating.
 
@@ -29,8 +30,8 @@ goroutine 能够访问该值。数据竞争从设计上就被杜绝了。 为了
 > integer variable, for instance. But as a high-level approach, using channels to control access makes 
 > it easier to write clear, correct programs.
 
-这种方法意义深远。例如，引用计数通过为整数变量添加互斥锁来很好地实现。 但作为一种高级方法，通过信道
-来控制访问能够让你写出更简洁，正确的程序。
+这种方法可能有点儿过了头。例如，可以通过在整数变量周围放上互斥量来更好地实现引用计数。但作为一种高级
+方法，使用信道来控制访问可以更容易地编写简洁，正确的程序。
 
 > One way to think about this model is to consider a typical single-threaded program running on one 
 > CPU. It has no need for synchronization primitives. Now run another such instance; it too needs no 
@@ -39,12 +40,13 @@ goroutine 能够访问该值。数据竞争从设计上就被杜绝了。 为了
 > Although Go's approach to concurrency originates in Hoare's Communicating Sequential Processes 
 > (CSP), it can also be seen as a type-safe generalization of Unix pipes.
 
-我们可以从典型的单线程运行在单 CPU 之上的情形来审视这种模型。它无需提供同步原语。现在再运行一个线
-程，它也无需同步。现在让它们俩进行通信。若将通信过程看做同步者，那就完全不需要其它同步了。例如， 
-Unix 管道就与这种模型完美契合。尽管 Go 的并发处理方式来源于 Hoare 的通信顺序处理（CSP），它依然可以
-看做是类型安全的 Unix 管道的实现。
+思考这种模型的一种方法是考虑在单 CPU 上运行单线程程序的情形。它不需要同步原语。现在运行另外一个这样
+的实例，它也不需要同步。现在让它们两个沟通; 如果通信是同步器，则仍然不需要其他同步。例如，Unix 管道
+完美地适合这个模型。虽然 Go 的并发方法源于 Hoare 的通信顺序进程（CSP），但它也可以看作是 Unix 管道的
+类型安全泛化。
 
-### Goroutines
+
+> ### Goroutines
 
 ### Goroutines
 
@@ -54,9 +56,9 @@ Unix 管道就与这种模型完美契合。尽管 Go 的并发处理方式来�
 > than the allocation of stack space. And the stacks start small, so they are cheap, and grow by 
 > allocating (and freeing) heap storage as required.
 
-我们称之为 **goroutine**，是因为现有的术语—线程、协程、进程等等—无法准确传达它的含义。Goroutine 具有
-简单的模型：它是与其它 goroutine 并发运行在同一地址空间的函数。它是轻量级的，所有消耗几乎就只有栈空
-间的分配。而且栈最开始是非常小的，所以它们很廉价，仅在需要时才会随着堆空间的分配（和释放）而变化。
+它们被称为 goroutines，因为现有的术语——线程，协程，进程等——传达了不准确的内涵。goroutine 有一个简单
+的模型：它是一个与同一地址空间中的其他 goroutine 同时执行的函数。它是轻量级的，所有消耗几乎就只有栈
+空间的分配。并且堆栈开始很小，因此它们很廉价，通过分配堆存储来实现增长。
 
 > Goroutines are multiplexed onto multiple OS threads so if one should block, such as while waiting 
 > for I/O, others continue to run. Their design hides many of the complexities of thread creation and 
@@ -69,8 +71,8 @@ Goroutine 在多线程操作系统上可实现多路复用，因此若一个线�
 > call completes, the goroutine exits, silently. (The effect is similar to the Unix shell's & notation 
 > for running a command in the background.)
 
-在函数或方法前添加 go 关键字能够在新的 goroutine 中调用它。当调用完成后，该 goroutine 也会安静地退
-出。（效果有点像 Unix Shell 中的 & 符号，它能让命令在后台运行。）
+在函数或方法调用的前面添加 go 关键字能够在新的 goroutine 中调用它。当调用完成后，该 goroutine 也会安
+静地退出。（效果有点像 Unix Shell 中的 & 符号，它能让命令在后台运行。）
 
 > ```go
 > go list.Sort()  // run list.Sort concurrently; don't wait for it.
@@ -81,7 +83,7 @@ go list.Sort()  // 并发运行 list.Sort，无需等它结束。
 ```
 > A function literal can be handy in a goroutine invocation.
 
-函数字面在 goroutine 调用中非常有用。
+函数字面量在 goroutine 调用中很方便。
 
 > ```go
 > func Announce(message string, delay time.Duration) {
@@ -104,14 +106,14 @@ func Announce(message string, delay time.Duration) {
 > In Go, function literals are closures: the implementation makes sure the variables referred to by 
 > the function survive as long as they are active.
 
-在 Go 中，函数字面都是闭包：其实现在保证了函数内引用变量的生命周期与函数的活动时间相同。
+在 Go 中，函数字面量是闭包：其实现保证了函数内引用变量的生命周期与函数的存活时间相同。
 
 > These examples aren't too practical because the functions have no way of signaling completion. For 
 > that, we need channels.
 
 这些函数没什么实用性，因为它们没有实现完成时的信号处理。因此，我们需要信道。
 
-### Channels
+> ### Channels
 
 ### 信道
 
@@ -120,7 +122,7 @@ func Announce(message string, delay time.Duration) {
 > the channel. The default is zero, for an unbuffered or synchronous channel.
 
 信道与映射一样，也需要通过 make 来分配内存。其结果值充当了对底层数据结构的引用。若提供了一个可选的整
-数形参，它就会为该信道设置缓冲区大小。默认值是零，表示不带缓冲的或同步的信道。
+数形参，它就会为该信道设置缓冲区大小。默认值是零，表示无缓冲，或同步的信道。
 
 > ```go
 > ci := make(chan int)            // unbuffered channel of integers
@@ -283,7 +285,7 @@ func Serve(queue chan *Request) {
 > Compare this version with the previous to see the difference in how the closure is declared and run. 
 > Another solution is just to create a new variable with the same name, as in this example:
 
-比较前后两个版本，观察该闭包声明和运行中的差别。 另一种解决方案就是以相同的名字创建新的变量，如例中
+比较前后两个版本，观察该闭包声明和运行中的差别。另一种解决方案就是以相同的名字创建新的变量，如例中
 所示：
 
 > ```go
