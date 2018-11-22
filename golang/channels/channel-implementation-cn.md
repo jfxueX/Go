@@ -54,24 +54,36 @@ func reflect_makechan(t *chantype, size int64) *hchan {
 ```go
 // src/runtime/chan.go#L25
 type hchan struct {
-    qcount   uint           // buffer中数据总数
-    dataqsiz uint           // buffer的容量
-    buf      unsafe.Pointer // buffer的开始指针
-    elemsize uint16         // channel中数据的大小
-    closed   uint32         // channel是否关闭，0 => false，其他都是true
-    elemtype *_type         // channel数据类型
-    sendx    uint           // buffer中正在send的element的index
-    recvx    uint           // buffer中正在recieve的element的index
-    recvq    waitq          // 接收者等待队列
-    sendq    waitq          // 发送者等待队列
+	qcount   uint           // 队列（缓冲区）中的数据总数
+	dataqsiz uint           // 环形队列的大小（缓冲区的容量）
+	buf      unsafe.Pointer // 指向一个（dataqsiz 元素）数组（缓冲区起始地址）
+	elemsize uint16         // channel 中 element 的大小
+	closed   uint32         // channel 是否关闭，0 => false, 其它都是 true
+	elemtype *_type // channel 数据类型
+	sendx    uint   // buffer 中正在发送的 element 的索引
+	recvx    uint   // buffer 中正在接收的 element 的索引
+	recvq    waitq  // 接收者等待队列
+	sendq    waitq  // 发送者等待队列
 
-    lock     mutex          // 互斥锁
+	// lock protects all fields in hchan, as well as several
+	// fields in sudogs blocked on this channel.
+	//
+	// Do not change another G's status while holding this lock
+	// (in particular, do not ready a G), as this can deadlock
+	// with stack shrinking.
+	lock mutex      // 互斥锁
 }
 ```
 
 代码中调用 `make(chan $type, $size)` 的时候，最终会执行 `runtime.makechan`
 
 ```go
+const (
+	maxAlign  = 8
+	hchanSize = unsafe.Sizeof(hchan{}) + uintptr(-int(unsafe.Sizeof(hchan{}))&(maxAlign-1))
+	debugChan = false
+)
+
 // src/runtime/chan.go#L56
 func makechan(t *chantype, size int64) *hchan {
     // 初始化，做一些基本校验
@@ -79,10 +91,17 @@ func makechan(t *chantype, size int64) *hchan {
     var c *hchan
     // 如果是无指针类型或者指定 size=0；可见默认情况下都会走这个逻辑
     if elem.kind&kindNoPointers != 0 || size == 0 {
-        // 从内存分配器请求一段内存
+	    // Allocate memory in one call.
+	    // Hchan does not contain pointers interesting for GC in this case:
+	    // buf points into the same allocation, elemtype is persistent.
+	    // SudoG's are referenced from their owning thread so they can't be collected.
+	    // TODO(dvyukov,rlh): Rethink when collector can move allocated objects.
+
+        // 从内存分配器请求一段内存（hchan struct + 缓冲区，缓冲区在 8 字节对齐处）
         c = (*hchan)(mallocgc(hchanSize+uintptr(size)*elem.size, nil, true))
         // 如果是无指针类型，并且指定了 buffer size
         if size > 0 && elem.size != 0 {
+            // c.buf 指向缓冲区起始位置，hchan struct 后面，8 字节对齐
             c.buf = add(unsafe.Pointer(c), hchanSize)
         } else {
             // race detector uses this location for synchronization
@@ -90,7 +109,7 @@ func makechan(t *chantype, size int64) *hchan {
             c.buf = unsafe.Pointer(c)
         }
     } else {
-        // 有指针类型，并且 size > 0 时，直接初始化一段内存
+        // 有指针类型，并且 size > 0 时，缓冲区的内存单独分配
         c = new(hchan)
         c.buf = newarray(elem, int(size))
     }
@@ -104,8 +123,8 @@ func makechan(t *chantype, size int64) *hchan {
 }
 ```
 
-上面的代码提到了“无指针类型”，一个比较简单的例子就是反射中的值类型，这种值是没办法直接获取地址的, 也
-有些地方叫做“不可寻址”：
+上面的代码提到了**无指针类型**，一个比较简单的例子就是反射中的值类型，这种值是没办法直接获取地址的, 也
+有些地方叫做**不可寻址**，如：
 
 ```go
 i := 1
@@ -134,8 +153,35 @@ func chansend1(t *chantype, c *hchan, elem unsafe.Pointer) {
 
 ```go
 // src/runtime/chan.go#L122
-func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
+/*
+ * generic single channel send/recv
+ * If block is not nil,
+ * then the protocol will not
+ * sleep but return if it could
+ * not complete.
+ *
+ * sleep can wake up with g.param == nil
+ * when a channel involved in the sleep has
+ * been closed.  it is easiest to loop and re-run
+ * the operation; we'll see that it's now closed.
+ */
+func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool {
     // 初始化，异常校验和处理
+
+    // Fast path: check for failed non-blocking operation without acquiring the lock.
+    //
+    // After observing that the channel is not closed, we observe that the channel is
+    // not ready for sending. Each of these observations is a single word-sized read
+    // (first c.closed and second c.recvq.first or c.qcount depending on kind of channel).
+    // Because a closed channel cannot transition from 'ready for sending' to
+    // 'not ready for sending', even if the channel is closed between the two observations,
+    // they imply a moment between the two when the channel was both not yet closed
+    // and not ready for sending. We behave as if we observed the channel at that moment,
+    // and report that the send cannot proceed.
+    //
+    // It is okay if the reads are reordered here: if we observe that the channel is not
+    // ready for sending and then observe that it is not closed, that implies that the
+    // channel wasn't closed during the first observation.
 
     // 处理 channel 的临界状态，既没有被 close，又不能正常接收数据
     if !block && c.closed == 0 && ((c.dataqsiz == 0 && c.recvq.first == nil) ||
@@ -157,8 +203,8 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
         panic(plainError("send on closed channel"))
     }
 
-    // 这是一个不阻塞的处理，如果已经有接收者，
-    // 就向第一个接收者发送当前 enqueue 的消息.
+    // 这是一个不阻塞的处理，
+    // 如果发现有正在等待的接收者，就直接把要发送的值传递给接收者，绕过 channel buffer（如果有的话）
     // return true 就是说发送成功了，写入 buffer 也算是成功
     if sg := c.recvq.dequeue(); sg != nil {
         // 发送的实现本质上就是在不同线程的栈上 copy 数据
@@ -170,9 +216,9 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
         // 把发送的数据写入 buffer，更新 buffer 状态，返回成功
     }
 
-    // 如果buffer满了，或者non-buffer（等同于buffer满了），
-    // 阻塞sender并更新一些栈的状态，
-    // 唤醒线程的时候还会重新检查channel是否打开状态，否则panic
+    // 如果 buffer 满了，或者 non-buffer（等同于 buffer 满了），
+    // 阻塞 sender 并更新一些栈的状态，
+    // 唤醒线程的时候还会重新检查 channel 是否打开状态，否则 panic 
 }
 ```
 
@@ -187,7 +233,7 @@ func send(c *hchan, sg *sudog, ep unsafe.Pointer, unlockf func()) {
         sg.elem = nil
     }
 
-  // 等待 reciever 就绪，如果 reciever 还没准备好就阻塞 sender 一段时间
+    // 等待 reciever 就绪，如果 reciever 还没准备好就阻塞 sender 一段时间
 }
 ```
 
@@ -205,7 +251,7 @@ func sendDirect(t *_type, sg *sudog, src unsafe.Pointer) {
 
 `channel send` 主要就是做了2件事情：
 
-* 如果没有可用的 `reciever`，数据入队（如果有 buffer），否则线程阻塞
+* 如果没有可用的 `reciever`，数据入队列（如果有 buffer），否则线程阻塞
 * 如果有可用的 `reciever`，就把数据从 `sender` 的栈空间拷贝到 `reciever` 的栈空间
 
 ### recieve from channel
@@ -223,10 +269,16 @@ func chanrecv1(t *chantype, c *hchan, elem unsafe.Pointer) {
 
 ```go
 // src/runtime/chan.go#L393
+// chanrecv receives on channel c and writes the received data to ep.
+// ep may be nil, in which case received data is ignored.
+// If block == false and no elements are available, returns (false, false).
+// Otherwise, if c is closed, zeros *ep and returns (true, false).
+// Otherwise, fills in *ep with an element and returns (true, true).
+// A non-nil ep must point to the heap or the caller's stack.
 func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, received bool) {
     // 初始化，处理基本校验
 
-    // 处理 channel 临界状态， reciever 在接收之前要保证 channel 是就绪的
+    // 处理 channel 临界状态，reciever 在接收之前要保证 channel 是就绪的
     if !block && (c.dataqsiz == 0 && c.sendq.first == nil ||
         c.dataqsiz > 0 && atomic.Loaduint(&c.qcount) == 0) &&
         atomic.Load(&c.closed) == 0 {
@@ -245,10 +297,10 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
         return true, false
     }
 
-    // 从 sender 阻塞队首获取 sender，接收数据
-    // 如果 buffer 为空，直接获取 sender 的数据，否则把 sender 的数据加到 buffer
-    // 队尾，然后从 buffer 队首获取数据
     if sg := c.sendq.dequeue(); sg != nil {
+        // 发现正在等待的发送者。如果缓冲区为空，则直接从发送者接收数据。否则，
+        // 从队列头接收数据，并把发送者的数据添加到队列尾（同时映射到相同的缓冲区槽中，
+        // 因为队列满了）。
         recv(c, sg, ep, func() { unlock(&c.lock) })
         return true, true
     }
@@ -275,7 +327,7 @@ func closechan(c *hchan) {
 
     // ...
 
-    // 将closed置为1，标志channel已经关闭
+    // 将 closed 置为1，标志 channel 已经关闭
     c.closed = 1
 
     // ...
