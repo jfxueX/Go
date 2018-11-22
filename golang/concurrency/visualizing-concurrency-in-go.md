@@ -60,7 +60,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/hello/) ![Hello,
-World](.images/hello.gif)
+World](./images/hello.gif)
 
 Here the blue lines represent goroutines running down through time. Thin blue 
 lines connecting ‘main’ and ‘go \#19’ are marks for start and stop goroutine, 
@@ -147,7 +147,7 @@ func player(table chan int) {
 ```
 
 [Go to interactive WebGL animation](/demos/pingpong/)
-![Ping-Pong](.images/pingpong.gif) 
+![Ping-Pong](./images/pingpong.gif) 
 
 At this point I’d suggest you to click that [link above](/demos/pingpong/) to 
 the interactive WebGL animation (Ctrl/Cmd-Click to open it in a new tab) and 
@@ -162,7 +162,7 @@ go player(table)
 go player(table)
 ```
 
-[Go to interactive WebGL animation](/demos/pingpong3/) ![Ping-Pong 3](.images/
+[Go to interactive WebGL animation](/demos/pingpong3/) ![Ping-Pong 3](./images/
 pingpong3.gif) 
 
 We can see here that each player takes its turn sequentially and you may wonder 
@@ -182,7 +182,7 @@ for i := 0; i < 100; i++ {
 ```
 
 [Go to interactive WebGL animation](/demos/pingpong100/) ![Ping-Pong
-100](.images/pingpong100.gif) 
+100](./images/pingpong100.gif) 
 
 The FIFO order is now obvious, isn’t it? We can spawn a million goroutines 
 (they’re cheap), but for our goal that would be overkill. Let’s see something 
@@ -233,7 +233,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/fanin/) ![Fan-In
-Pattern](.images/fanin.gif) 
+Pattern](./images/fanin.gif) 
 
 As we can see, first *producer* generates values each 100 milliseconds, and 
 second one - each 250 milliseconds, but *reader* receives values from both 
@@ -294,7 +294,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/workers/)
-![Workers](.images/workers.gif) 
+![Workers](./images/workers.gif) 
 
 One thing worth to note here: the parallelism. As you can see, all goroutines 
 ‘run’ in parallel, waiting for channel to give them ‘work’ to do. Given the 
@@ -373,7 +373,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/workers2/) ![Workers of
-workers](.images/workers2.gif) 
+workers](./images/workers2.gif) 
 
 Nice. Of course, we can set number of workers and subworkers to much higher 
 values, but I tried to make animations clear and understandable.
@@ -417,7 +417,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/servers/)
-![Servers](.images/servers.gif) 
+![Servers](./images/servers.gif) 
 
 It’s not very interesting - it seems there is nothing happens in terms of 
 concurrency. Of course, under the hood there is a ton of complexity, which is 
@@ -473,7 +473,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/servers2/) ![Servers
-2](.images/servers2.gif) 
+2](./images/servers2.gif) 
 
 Quite demonstrative, isn’t it? But it’s easy to see that our *logger* goroutine 
 can quickly become a bottleneck if the number of requests increase and logging 
@@ -556,7 +556,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/servers3/) ![Server +
-Worker](.images/servers3.gif) 
+Worker](./images/servers3.gif) 
 
 We distributed work between 4 goroutines, effectively improving the throughput 
 of the logger, but from this animation, we can see that logger still may be the 
@@ -622,7 +622,7 @@ func main() {
 ```
 
 [Go to interactive WebGL animation](/demos/primesieve/)
-![PrimeSieve](.images/primesieve.gif) 
+![PrimeSieve](./images/primesieve.gif) 
 
 Feel free to play with this animation in interactive mode. I like how 
 illustrative it is - it really can help understand this algorithm better. The 
@@ -653,8 +653,8 @@ So, the first run demonstrates the program running on 1 core, and second - using
 the power of all 24 cores availiable.
 
 [WebGL animation - 1](/demos/gomaxprocs1/) | [WebGL animation -
-24](/demos/gomaxprocs24/) ![GOMAXPROCS1](.images/gomaxprocs1.gif)
-![GOMAXPROCS24](.images/gomaxprocs24.gif) 
+24](/demos/gomaxprocs24/) ![GOMAXPROCS1](./images/gomaxprocs1.gif)
+![GOMAXPROCS24](./images/gomaxprocs24.gif) 
 
 The time speed in these animations are different (I wanted all animations to fit 
 the same time/height), so the difference is obvious. With GOMAXPROCS=1, next 
@@ -682,7 +682,7 @@ scary image with WebGL.
 Take a look:
 
 [Go to interactive WebGL animation](/demos/leak/)
-![Leak](.images/leak.gif) 
+![Leak](./images/leak.gif) 
 
 I feel pain even simply by looking at this :) All those lines are wasted 
 resources and a ticking bomb for your program.
@@ -712,24 +712,24 @@ thousand words. What I can do here is to visualize the difference. So, this is
 parallelism. Many things running in parallel.
 
 [Go to interactive WebGL animation](/demos/parallelism1/) ![Parallelism
-1](.images/parallelism1.gif)
+1](./images/parallelism1.gif)
 
 And this is also parallelism:
 
 [Go to interactive WebGL animation](/demos/parallelism2/) ![Parallelism
-2](.images/parallelism2.gif)
+2](./images/parallelism2.gif)
 
 But this is concurrency:
 
-![PrimeSieve](.images/primesieve.gif)
+![PrimeSieve](./images/primesieve.gif)
 
 And this:
 
-![Workers of workers](.images/workers2.gif)
+![Workers of workers](./images/workers2.gif)
 
 And this is also concurrency:
 
-![Ping-Pong 100](.images/pingpong100.gif)
+![Ping-Pong 100](./images/pingpong100.gif)
 
 ### How it was made
 
