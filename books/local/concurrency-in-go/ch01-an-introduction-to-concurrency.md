@@ -505,7 +505,7 @@ intervention.
 
 If that sounds grim, it’s because it is! The Go runtime attempts to do
 its part and will detect some deadlocks (all goroutines must be blocked,
-or “asleep”<sup>[1](ch01.html#idm140183163626208)</sup>), but this
+or “asleep”<sup>[1](#idm140183163626208)</sup>), but this
 doesn’t do much to help you prevent deadlocks.
 
 To help solidify what a deadlock is, let’s first look at an example.  Again, 
@@ -702,38 +702,32 @@ tryRight := func(out *bytes.Buffer) bool { return tryDir("right", &right, out) }
         defer func() { fmt.Println(out.String()) }()
         defer walking.Done()
         fmt.Fprintf(&out, "%v is trying to scoot:", name)
-        for i := 0; i < 5; i++ { 
-            if tryLeft(&out) || tryRight(&out) { 
+        for i := 0; i < 5; i++ { // ① 
+            if tryLeft(&out) || tryRight(&out) { // ② 
                 return
             }
         }
         fmt.Fprintf(&out, "\n%v tosses her hands up in exasperation!", name)
     }
     
-    var peopleInHallway sync.WaitGroup 
+    var peopleInHallway sync.WaitGroup // ③ 
     peopleInHallway.Add(2)
     go walk(&peopleInHallway, "Alice")
     go walk(&peopleInHallway, "Barbara")
     peopleInHallway.Wait()
 ```
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_an_introduction_to_concurrency_CO5-1)  
-    I placed an artificial limit on the number of attempts so that this
-    program would end. In a program that has a livelock, there may be no
-    such limit, which is why it’s a
-    problem\!
+  - ①  I placed an artificial limit on the number of attempts so that this 
+    program would end. In a program that has a livelock, there may be no such 
+    limit, which is why it’s a problem\!
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_an_introduction_to_concurrency_CO5-2)  
-    First, the person will attempt to step left, and if that fails, they
-    will attempt to step
-    right.
+  - ②  First, the person will attempt to step left, and if that fails, they will 
+    attempt to step right.
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_an_introduction_to_concurrency_CO5-3)  
-    This variable provides a way for the program to wait until both
-    people are either able to pass one another, or give up.
+  - ③  This variable provides a way for the program to wait until both people 
+    are either able to pass one another, or give up.
 
-This produces the following
-    output:
+This produces the following output:
 
     Alice is trying to scoot: left right left right left right left right left right
     Alice tosses her hands up in exasperation!
@@ -741,8 +735,8 @@ This produces the following
     left right
     Barbara tosses her hands up in exasperation!
 
-You can see that Alice and Barbara continue getting in each other’s way
-before finally giving up.
+You can see that Alice and Barbara continue getting in each other’s way before 
+finally giving up.
 
 This example demonstrates a very common reason livelocks are written: two or 
 more concurrent processes attempting to prevent a deadlock without coordination. 
@@ -1058,23 +1052,27 @@ Go’s concurrency primitives also make composing larger problems easier.  As
 we’ll see in the section [“Channels”][13], Go’s *channel* primitive provides a 
 composable, concurrent-safe way to communicate between concurrent processes.
 
-[13]: ./ch03-gos-concurrency-building-blocks.md#channels
-
 I’ve glossed over most of the details of how these things work, but I wanted to 
 give you some sense of how Go invites you to use concurrency in your program to 
 help you solve your problems in a clear and performant way. In the next chapter 
 we’ll discuss the philosophy concurrency and why Go got so much right. If you’re 
 eager to jump into some code, you might want to flip over to [Chapter 3][14].
 
-[14]: ./ch03-gos-concurrency-building-blocks.md#gos_concurrency_building_blocks
 
-There is an accepted proposal to allow the runtime to detect partial deadlocks, 
-but it has not been implemented. For more information, see *[issues 13759][15]*.
+***********************************
 
-[15]: https://github.com/golang/go/issues/13759
+<span id="idm140183163626208"></span><sup>1</sup>There is an accepted proposal 
+to allow the runtime to detect partial deadlocks, but it has not been 
+implemented. For more information, see *[issues 13759][15]*.
 
-<span id="idm140183163399616"></span><sup>2</sup> We actually have no guarantee 
+
+<span id="idm140183163399616"></span><sup>2</sup>We actually have no guarantee 
 what order the goroutines will run in, or how long it will take them to start. 
 It’s plausible, although unlikely, that one goroutine could acquire and release 
 both locks before the other begins, thus avoiding the
 deadlock!
+
+
+[13]: ./ch03-gos-concurrency-building-blocks.md#channels
+[14]: ./ch03-gos-concurrency-building-blocks.md#gos_concurrency_building_blocks
+[15]: https://github.com/golang/go/issues/13759
