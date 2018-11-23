@@ -1,6 +1,29 @@
-# Concurrency in Go 
+# Concurrency in Go
 
 by Katherine Cox-Buday
+
+# Chapter 4. Concurrency in Go 
+
+---------------------------------
+* [Confinement](#confinement)
+* [The for-select Loop](#the-for-select-loop)
+* [Preventing Goroutine Leaks](#preventing-goroutine-leaks)
+* [The or-channel](#the-or-channel)
+* [Error Handling](#error-handling)
+* [Pipelines](#pipelines)
+    * [Best Practices for Constructing Pipelines](#best-practices-for-constructing-pipelines)
+    * [Some Handy Generators](#some-handy-generators)
+* [Fan-Out, Fan-In](#fan-out-fan-in)
+                * [An Additional Reminder](#an-additional-reminder)
+* [The or-done-channel](#the-or-done-channel)
+* [The tee-channel](#the-tee-channel)
+* [The bridge-channel](#the-bridge-channel)
+* [Queuing](#queuing)
+                * [Have You Ever Witnessed a Death-Spiral?](#have-you-ever-witnessed-a-death-spiral)
+* [The context Package](#the-context-package)
+* [Summary](#summary)
+-----------------------------------
+
 
 We’ve explored the fundamentals of Go’s concurrency primitives and discussed how 
 to properly use these primitives. In this chapter, we’ll do a deep-dive into how 
