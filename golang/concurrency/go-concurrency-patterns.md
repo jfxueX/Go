@@ -923,7 +923,7 @@ func main() {
 
 ### Chinese whispers, gopher style
 
-![](concurrency/images/gophereartrumpet.jpg)
+![](./images/gophereartrumpet.jpg)
 
 
 ### Systems software
