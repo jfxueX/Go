@@ -2,7 +2,10 @@
 
 by Katherine Cox-Buday
 
-# Chapter 3. Go’s Concurrency Building Blocks
+<h1>
+Chapter 3.<br/>
+Go’s Concurrency Building Blocks
+</h1>
 
 -----------------------
 * [Goroutines](#goroutines)
@@ -18,293 +21,286 @@ by Katherine Cox-Buday
 * [Conclusion](#conclusion)
 -----------------------
 
-<span id="idm140183157519840"></span>In this chapter, we’ll discuss Go’s
-rich tapestry of features that support its concurrency story. By the end
-of this chapter, you should have a good understanding of the syntax,
-functions, and packages available to you, and their
+In this chapter, we’ll discuss Go’s rich tapestry of features that support its 
+concurrency story. By the end of this chapter, you should have a good 
+understanding of the syntax, functions, and packages available to you, and their 
 functionality.
 
-<div class="section" data-type="sect1" data-pdf-bookmark="Goroutines">
-
-<div id="goroutines" class="sect1">
 
 # Goroutines
 
-<span id="Gobuildrout03"></span><span id="idm140183157514336"></span><span id="CPgo04"></span>Goroutines
-are one of the most basic units of organization in a Go program, so it’s
-important we understand what they are and how they work. In fact, every
-Go program has at least one goroutine: the *main goroutine*, which is
-automatically created and started when the process begins. In almost any
-program you’ll probably find yourself reaching for a goroutine sooner or
-later to assist in solving your problems. So what are they?
+Goroutines are one of the most basic units of organization in a Go program, so 
+it’s important we understand what they are and how they work. In fact, every Go 
+program has at least one goroutine: the *main goroutine*, which is automatically 
+created and started when the process begins. In almost any program you’ll 
+probably find yourself reaching for a goroutine sooner or later to assist in 
+solving your problems. So what are they?
 
-<span id="idm140183157510880"></span>Put very simply, a goroutine is a
-function that is running concurrently (remember: not necessarily in
-parallel\!) alongside other code. You can start one simply by placing
-the `go` keyword before a function:
+Put very simply, a goroutine is a function that is running concurrently 
+(remember: not necessarily in parallel\!) alongside other code. You can start 
+one simply by placing the `go` keyword before a function:
 
-    func main() {
-        go sayHello()
-        // continue doing other things
-    }
-    
-    func sayHello() {
-        fmt.Println("hello")
-    }
-
-<span id="idm140183157397488"></span>Anonymous functions work too\!
-Here’s an example that does the same thing as the previous example;
-however, instead of creating a goroutine from a function, we create a
-goroutine from an anonymous function:
-
-    go func() {
-        fmt.Println("hello")
-    }() 
-    // continue doing other things
-
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO1-1)  
-    Notice that we must invoke the anonymous function immediately to use
-    the `go` keyword.
-
-Alternatively, you can assign the function to a variable and call the
-anonymous function like this:
-
-    sayHello := func() {
-        fmt.Println("hello")
-    }
+```go
+func main() {
     go sayHello()
     // continue doing other things
+}
 
-How cool is this\! We can create a concurrent block of logic with a
-function and a single keyword\! Believe it or not, that’s all you need
-to know to start goroutines. There’s a lot to be said regarding how to
-use them properly, synchronize them, and organize them, but this is
-really all you need to know to begin utilizing them. The rest of this
-chapter goes deeper into what goroutines *are* and how they work. If
-you’re only interested in writing some code that works properly with
-goroutines, you may consider skipping ahead to the next section.
+func sayHello() {
+    fmt.Println("hello")
+}
+```
 
-<span id="GRoperation03"></span>So let’s look at what’s happening behind
-the scenes here: how do goroutines actually work? Are they OS threads?
-Green threads? How many can we create?
+Anonymous functions work too\!  Here’s an example that does the same thing as 
+the previous example; however, instead of creating a goroutine from a function, 
+we create a goroutine from an anonymous function:
 
-<span id="idm140183157452384"></span>Goroutines are unique to Go (though
-some other languages have a concurrency primitive that is similar).
-They’re not OS threads, and they’re not exactly green threads—threads
-that are managed by a language’s runtime—they’re a higher level of
-abstraction known as *coroutines*. Coroutines are simply concurrent
-subroutines (functions, closures, or methods in Go) that are
-*nonpreemptive*—that is, they cannot be interrupted. Instead, coroutines
-have multiple points throughout which allow for suspension or reentry.
+```go
+go func() { // ① 
+    fmt.Println("hello")
+}() 
+// continue doing other things
+```
 
-What makes goroutines unique to Go are their deep integration with Go’s
-runtime. Goroutines don’t define their own suspension or reentry points;
-Go’s runtime observes the runtime behavior of goroutines and
-automatically suspends them when they block and then resumes them when
-they become unblocked. In a way this makes them preemptable, but only at
-points where the goroutine has become blocked. It is an elegant
-partnership between the runtime and a goroutine’s logic. Thus,
+  - ①  
+    Notice that we must invoke the anonymous function immediately to use the 
+    `go` keyword.
+
+Alternatively, you can assign the function to a variable and call the anonymous 
+function like this:
+
+```go
+sayHello := func() {
+    fmt.Println("hello")
+}
+go sayHello()
+// continue doing other things
+```
+
+How cool is this\! We can create a concurrent block of logic with a function and 
+a single keyword\! Believe it or not, that’s all you need to know to start 
+goroutines. There’s a lot to be said regarding how to use them properly, 
+synchronize them, and organize them, but this is really all you need to know to 
+begin utilizing them. The rest of this chapter goes deeper into what goroutines 
+*are* and how they work. If you’re only interested in writing some code that 
+works properly with goroutines, you may consider skipping ahead to the next 
+section.
+
+So let’s look at what’s happening behind the scenes here: how do goroutines 
+actually work? Are they OS threads?  Green threads? How many can we create?
+
+Goroutines are unique to Go (though some other languages have a concurrency 
+primitive that is similar).  They’re not OS threads, and they’re not exactly 
+green threads—threads that are managed by a language’s runtime—they’re a higher 
+level of abstraction known as *coroutines*. Coroutines are simply concurrent 
+subroutines (functions, closures, or methods in Go) that are *nonpreemptive*—
+that is, they cannot be interrupted. Instead, coroutines have multiple points 
+throughout which allow for suspension or reentry.
+
+What makes goroutines unique to Go are their deep integration with Go’s runtime. 
+Goroutines don’t define their own suspension or reentry points; Go’s runtime 
+observes the runtime behavior of goroutines and automatically suspends them when 
+they block and then resumes them when they become unblocked. In a way this makes 
+them preemptable, but only at points where the goroutine has become blocked. It 
+is an elegant partnership between the runtime and a goroutine’s logic. Thus, 
 goroutines can be considered a special class of coroutine.
 
-<span id="idm140183157448944"></span>Coroutines, and thus goroutines,
-are implicitly concurrent constructs, but concurrency is not a property
-*of* a coroutine: something must host several coroutines simultaneously
-and give each an opportunity to execute—otherwise, they wouldn’t be
-concurrent\! Note that this does not imply that coroutines are
-implicitly parallel. It is certainly possible to have several coroutines
-executing sequentially to give the illusion of parallelism, and in fact
-this happens all the time in Go.
+Coroutines, and thus goroutines, are implicitly concurrent constructs, but 
+concurrency is not a property *of* a coroutine: something must host several 
+coroutines simultaneously and give each an opportunity to execute—otherwise, 
+they wouldn’t be concurrent\! Note that this does not imply that coroutines are 
+implicitly parallel. It is certainly possible to have several coroutines 
+executing sequentially to give the illusion of parallelism, and in fact this 
+happens all the time in Go.
 
-<span id="idm140183157446640"></span>Go’s mechanism for hosting
-goroutines is an implementation of what’s called an *M:N scheduler*,
-which means it maps `M` green threads to `N` OS threads. Goroutines are
-then scheduled onto the green threads. When we have more goroutines than
-green threads available, the scheduler handles the distribution of the
-goroutines across the available threads and ensures that when these
-goroutines become blocked, other goroutines can be run. We’ll discuss
-how all of this works in [Chapter
-6](ch06.html#goroutines_and_the_go_runtime), but here we’ll cover how Go
-models concurrency.
+Go’s mechanism for hosting goroutines is an implementation of what’s called an 
+*M:N scheduler*, which means it maps `M` green threads to `N` OS threads.  
+Goroutines are then scheduled onto the green threads. When we have more 
+goroutines than green threads available, the scheduler handles the distribution 
+of the goroutines across the available threads and ensures that when these 
+goroutines become blocked, other goroutines can be run. We’ll discuss how all of 
+this works in [Chapter 6][2], but here we’ll cover how Go models concurrency.
 
-<span id="Cgomodel03"></span><span id="idm140183157441472"></span>Go
-follows a model of concurrency called the *fork-join*
-model.<sup>[1](ch03.html#idm140183157440016)</sup> The word *fork*
-refers to the fact that at any point in the program, it can split off a
-*child* branch of execution to be run concurrently with its *parent*.
-The word *join* refers to the fact that at some point in the future,
-these concurrent branches of execution will join back together.
-<span id="idm140183157435552"></span>Where the child rejoins the parent
-is called a *join point*. <span id="idm140183157434064"></span>Here’s a
-graphical representation to help you picture
-it:
+[2]: ./ch06-goroutines-and-go-runtime.md#goroutines_and_the_go_runtime
+[3]: ./ch03-gos-concurrency-building-blocks.md#idm140183163399616
 
-![](/library/view/concurrency-in-go/9781491941294/assets/cigo_03in01.png)
+Go follows a model of concurrency called the *fork-join* model.<sup>[1][3]</sup> 
+The word *fork* refers to the fact that at any point in the program, it can 
+split off a *child* branch of execution to be run concurrently with its 
+*parent*.  The word *join* refers to the fact that at some point in the future, 
+these concurrent branches of execution will join back together.  <span 
+id="idm140183157435552"></span>Where the child rejoins the parent is called a 
+*join point*. <span id="idm140183157434064"></span>Here’s a graphical 
+representation to help you picture it:
 
-The `go` statement is how Go performs a fork, and the forked threads of
+![](./images/cigo_03in01.png)
+
+The `go` statement is how Go performs a fork, and the forked threads of 
 execution are goroutines. Let’s return to our simple goroutine example:
 
-    sayHello := func() {
-        fmt.Println("hello")
-    }
-    go sayHello()
-    // continue doing other things
+```go
+sayHello := func() {
+    fmt.Println("hello")
+}
+go sayHello()
+// continue doing other things
+```
 
-Here, the `sayHello` function will be run on its own goroutine, while
-the rest of the program continues executing. In this example, there is
-no join point. The goroutine executing `sayHello` will simply exit at
-some undetermined time in the future, and the rest of the program will
-have already continued executing.
+Here, the `sayHello` function will be run on its own goroutine, while the rest 
+of the program continues executing. In this example, there is no join point. The 
+goroutine executing `sayHello` will simply exit at some undetermined time in the 
+future, and the rest of the program will have already continued executing.
 
-However, there is one problem with this example: as written, it’s
-undetermined whether the `sayHello` function will ever be run at all.
-The goroutine will be *created* and scheduled with Go’s runtime to
-execute, but it may not actually get a chance to run before the main
-goroutine exits.
+However, there is one problem with this example: as written, it’s undetermined 
+whether the `sayHello` function will ever be run at all.  The goroutine will be 
+*created* and scheduled with Go’s runtime to execute, but it may not actually 
+get a chance to run before the main goroutine exits.
 
-Indeed, because we omit the rest of the rest of the main function for
-simplicity, when we run this small example, it is almost certain that
-the program will finish executing before the goroutine hosting the call
-to `sayHello` is ever started. As a result, you won’t see the word
-“hello” printed to `stdout`. You could put a `time.Sleep` after you
-create the goroutine, but recall that this doesn’t actually create a
-join point, only a race condition. If you recall [Chapter
-1](ch01.html#intro_to_concurrency), you increase the probability that
-the goroutine will run before exiting, but you do not guarantee it. Join
-points are what guarantee our program’s correctness and remove the race
-condition.
+Indeed, because we omit the rest of the rest of the main function for 
+simplicity, when we run this small example, it is almost certain that the 
+program will finish executing before the goroutine hosting the call to 
+`sayHello` is ever started. As a result, you won’t see the word“hello” printed 
+to `stdout`. You could put a `time.Sleep` after you create the goroutine, but 
+recall that this doesn’t actually create a join point, only a race condition. If 
+you recall [Chapter 1][4], you increase the probability that the goroutine will 
+run before exiting, but you do not guarantee it.  Join points are what guarantee 
+our program’s correctness and remove the race condition.
 
-In order to a create a join point, you have to synchronize the main
-goroutine and the `sayHello` goroutine. This can be done in a number of
-ways, but I’ll use one we’ll talk about in [“The sync
-Package”](#sync_package): `sync.WaitGroup`. Right now it’s not
-important to understand how this example creates a join point, only that
-it creates one between the two goroutines. Here’s a correct version of
-our example:
+[4]: ./ch01-an-introduction-to-concurrency.md#intro_to_concurrency
 
-    var wg sync.WaitGroup
-    sayHello := func() {
-        defer wg.Done()
-        fmt.Println("hello")
-    }
-    wg.Add(1)
-    go sayHello()
-    wg.Wait() 
+In order to a create a join point, you have to synchronize the main goroutine 
+and the `sayHello` goroutine. This can be done in a number of ways, but I’ll use 
+one we’ll talk about in [“The sync Package”](#the-sync-package): 
+`sync.WaitGroup`. Right now it’s not important to understand how this example 
+creates a join point, only that it creates one between the two goroutines. 
+Here’s a correct version of our example:
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO2-1)  
+```go
+var wg sync.WaitGroup
+sayHello := func() {
+    defer wg.Done()
+    fmt.Println("hello")
+}
+wg.Add(1)
+go sayHello()
+wg.Wait() // ①
+```
+
+  - ①  
     This is the join point.
 
 This produces:
 
     hello
 
-This example will deterministically block the main goroutine until the
-goroutine hosting the `sayHello` function terminates. You’ll learn how
-`sync.WaitGroup` works in [“The sync Package”](#sync_package), but to
-make our examples correct, I’ll begin using it to create join
-points.
+This example will deterministically block the main goroutine until the goroutine 
+hosting the `sayHello` function terminates. You’ll learn how `sync.WaitGroup` 
+works in [“The sync Package”](#the-sync-package), but to make our examples 
+correct, I’ll begin using it to create join points.
 
-<span id="idm140183157215712"></span><span id="idm140183157214736"></span>We’ve
-been using a lot of anonymous functions in our examples to create quick
-<span class="keep-together">goroutine</span> examples. Let’s shift our
-attention to closures. Closures close around the lexical scope they are
-created in, thereby capturing variables. If you run a closure in a
-goroutine, does the closure operate on a copy of these variables, or the
-original references? Let’s give it a try and see:
+<span id="idm140183157215712"></span><span id="idm140183157214736"></span>We’ve 
+been using a lot of anonymous functions in our examples to create quick <span 
+class="keep-together">goroutine</span> examples. Let’s shift our attention to 
+closures. Closures close around the lexical scope they are created in, thereby 
+capturing variables. If you run a closure in a goroutine, does the closure 
+operate on a copy of these variables, or the original references? Let’s give it 
+a try and see:
 
-    var wg sync.WaitGroup
-    salutation := "hello"
-    wg.Add(1)
-    go func() {
-        defer wg.Done()
-        salutation = "welcome" 
-    }()
-    wg.Wait()
-    fmt.Println(salutation)
+```go
+var wg sync.WaitGroup
+salutation := "hello"
+wg.Add(1)
+go func() {
+    defer wg.Done()
+    salutation = "welcome" // ①
+}()
+wg.Wait()
+fmt.Println(salutation)
+```
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO3-1)  
-    Here we see the goroutine modifying the value of the variable
-    `salutation`.
+  - ①  
+    Here we see the goroutine modifying the value of the variable `salutation`.
 
-What do you think the value of `salutation` will be: “hello” or
-“welcome”? Let’s run it and find out:
+What do you think the value of `salutation` will be: “hello” or“welcome”? Let’s 
+run it and find out:
 
     welcome
 
-Interesting\! It turns out that goroutines execute within the same
-address space they were created in, and so our program prints out the
-word “welcome.” Let’s try another example. What do you think this
-program will output?
+Interesting! It turns out that goroutines execute within the same address space 
+they were created in, and so our program prints out the word “welcome.” Let’s 
+try another example. What do you think this program will output?
 
-    var wg sync.WaitGroup
-    for _, salutation := range []string{"hello", "greetings", "good day"} {
-        wg.Add(1)
-        go func() {
-            defer wg.Done()
-            fmt.Println(salutation) 
-        }()
-    }
-    wg.Wait()
+```go
+var wg sync.WaitGroup
+for _, salutation := range []string{"hello", "greetings", "good day"} {
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        fmt.Println(salutation) // ①
+    }()
+}
+wg.Wait()
+```
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO4-1)  
-    Here we reference the loop variable `salutation` created by ranging
-    over a string slice.
+  - ①  
+    Here we reference the loop variable `salutation` created by ranging over a 
+    string slice.
 
-The answer is trickier than most people expect, and is one of the few
-surprising things in Go. Most people intuitively think this will print
-out the words “hello,” “greetings,” and “good day” in some
-nondeterministic order, but look what it does:
+The answer is trickier than most people expect, and is one of the few surprising 
+things in Go. Most people intuitively think this will print out the words 
+“hello,” “greetings,” and “good day” in some nondeterministic order, but look 
+what it does:
 
     good day
     good day
     good day
 
-That’s kind of surprising\! Let’s figure out what’s going on here. In
-this example, the goroutine is running a closure that has closed over
-the iteration variable `salutation`, which has a type of `string`. As
-our loop iterates, `salutation` is being assigned to the next string
-value in the slice literal. Because the goroutines being scheduled may
-run at any point in time in the future, it is undetermined what values
-will be printed from within the goroutine. On my machine, there is a
-high probability the loop will exit before the goroutines are begun.
-This means the `salutation` variable falls out of scope. What happens
-then? Can the goroutines still reference something that has fallen out
-of scope? Won’t the goroutines be accessing memory that has potentially
-been garbage
-collected?
+That’s kind of surprising\! Let’s figure out what’s going on here. In this 
+example, the goroutine is running a closure that has closed over the iteration 
+variable `salutation`, which has a type of `string`. As our loop iterates, 
+`salutation` is being assigned to the next string value in the slice literal. 
+Because the goroutines being scheduled may run at any point in time in the 
+future, it is undetermined what values will be printed from within the 
+goroutine. On my machine, there is a high probability the loop will exit before 
+the goroutines are begun.  This means the `salutation` variable falls out of 
+scope. What happens then? Can the goroutines still reference something that has 
+fallen out of scope? Won’t the goroutines be accessing memory that has 
+potentially been garbage collected?
 
 <span id="idm140183157099296"></span><span id="idm140183157098544"></span><span id="idm140183157101744"></span>This
-is an interesting side note about how Go manages memory. The Go runtime
-is observant enough to know that a reference to the `salutation`
-variable is still being held, and therefore will transfer the memory to
-the heap so that the goroutines can continue to access it.
+is an interesting side note about how Go manages memory. The Go runtime is 
+observant enough to know that a reference to the `salutation` variable is still 
+being held, and therefore will transfer the memory to the heap so that the 
+goroutines can continue to access it.
 
-Usually on my machine, the loop exits before any goroutines begin
-running, so <span class="keep-together">`salutation`</span> is
-transferred to the heap holding a reference to the last value in my
-string slice, “good day.” And so I usually see “good day” printed three
-times. The proper way to write this loop is to pass a copy of
-`salutation` into the closure so that by the time the goroutine is run,
-it will be operating on the data from its iteration of the loop:
+Usually on my machine, the loop exits before any goroutines begin running, so 
+<span class="keep-together">`salutation`</span> is transferred to the heap 
+holding a reference to the last value in my string slice, “good day.” And so I 
+usually see “good day” printed three times. The proper way to write this loop is 
+to pass a copy of `salutation` into the closure so that by the time the 
+goroutine is run, it will be operating on the data from its iteration of the 
+loop:
 
-    var wg sync.WaitGroup
-    for _, salutation := range []string{"hello", "greetings", "good day"} {
-        wg.Add(1)
-        go func(salutation string) { 
-            defer wg.Done()
-            fmt.Println(salutation)
-        }(salutation) 
-    }
-    wg.Wait()
+```go
+var wg sync.WaitGroup
+for _, salutation := range []string{"hello", "greetings", "good day"} {
+    wg.Add(1)
+    go func(salutation string) { // ① 
+        defer wg.Done()
+        fmt.Println(salutation)
+    }(salutation) // ②
+}
+wg.Wait()
+```
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO5-1)  
-    Here we declare a parameter, just like any other function. We shadow
-    the original `salutation` variable to make what’s happening more
-    apparent.
+  - ①  
+    Here we declare a parameter, just like any other function. We shadow the 
+    original `salutation` variable to make what’s happening more apparent.
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO5-2)  
-    Here we pass in the current iteration’s variable to the closure. A
-    copy of the string struct is made, thereby ensuring that when the
-    goroutine is run, we refer to the proper string.
+  - ②  
+    Here we pass in the current iteration’s variable to the closure. A copy of 
+    the string struct is made, thereby ensuring that when the goroutine is run, 
+    we refer to the proper string.
 
 And as we see, we get the correct output:
 
@@ -312,111 +308,112 @@ And as we see, we get the correct output:
     hello
     greetings
 
-This example behaves as we would expect it to, and is only slightly more
+This example behaves as we would expect it to, and is only slightly more 
 verbose.
 
-<span id="idm140183156924064"></span>Because goroutines operate within
-the same address space as each other, and simply host functions,
-utilizing goroutines is a natural extension to writing nonconcurrent
-code. Go’s compiler nicely takes care of pinning variables in memory so
-that goroutines don’t accidentally access freed memory, which allows
-developers to focus on their problem space instead of memory management;
-however, it’s not a blank check.
+<span id="idm140183156924064"></span>Because goroutines operate within the same 
+address space as each other, and simply host functions, utilizing goroutines is 
+a natural extension to writing nonconcurrent code. Go’s compiler nicely takes 
+care of pinning variables in memory so that goroutines don’t accidentally access 
+freed memory, which allows developers to focus on their problem space instead of 
+memory management; however, it’s not a blank check.
 
-<span id="idm140183156887632"></span>Since multiple goroutines can
-operate against the same address space, we still have to worry about
-synchronization. As we’ve discussed, we can choose either to synchronize
-access to the shared memory the goroutines access, or we can use CSP
-primitives to share memory by communication. We’ll discuss these
-techniques later in the chapter in [“Channels”](#channels) and [“The
-sync Package”](#sync_package).
+<span id="idm140183156887632"></span>Since multiple goroutines can operate 
+against the same address space, we still have to worry about synchronization. As 
+we’ve discussed, we can choose either to synchronize access to the shared memory 
+the goroutines access, or we can use CSP primitives to share memory by 
+communication. We’ll discuss these techniques later in the chapter in 
+[“Channels”](#channels) and [“The sync Package”](#the-sync-package).
 
-<span id="idm140183156884560"></span>Yet another benefit of goroutines
-is that they’re extraordinarily lightweight. Here’s an excerpt from the
-Go [FAQ](https://golang.org/doc/faq#goroutines):
+<span id="idm140183156884560"></span>Yet another benefit of goroutines is that 
+they’re extraordinarily lightweight. Here’s an excerpt from the Go [FAQ][5]:
 
-> A newly minted goroutine is given a few kilobytes, which is almost
-> always enough. When it isn’t, the run-time grows (and shrinks) the
-> memory for storing the stack automatically, allowing many goroutines
-> to live in a modest amount of memory. The CPU overhead averages about
-> three cheap instructions per function call. It is practical to create
-> hundreds of thousands of goroutines in the same address space. If
-> goroutines were just threads, system resources would run out at a much
-> smaller number.
+[5]: https://golang.org/doc/faq#goroutines
 
-A few kilobytes per goroutine; that isn’t bad at all\! Let’s try and
-verify that for ourselves. But before we do, we have to cover one
-interesting thing about goroutines: the garbage collector does nothing
-to collect goroutines that have been abandoned somehow. If I write the
-following:
+> A newly minted goroutine is given a few kilobytes, which is almost always 
+> enough. When it isn’t, the run-time grows (and shrinks) the memory for storing 
+> the stack automatically, allowing many goroutines to live in a modest amount of 
+> memory. The CPU overhead averages about three cheap instructions per function 
+> call. It is practical to create hundreds of thousands of goroutines in the same 
+> address space. If goroutines were just threads, system resources would run out 
+> at a much smaller number.
 
-    go func() {
-        // <operation that will block forever>
-    }()
-    // Do work
+A few kilobytes per goroutine; that isn’t bad at all\! Let’s try and verify that 
+for ourselves. But before we do, we have to cover one interesting thing about 
+goroutines: the garbage collector does nothing to collect goroutines that have 
+been abandoned somehow. If I write the following:
 
-The goroutine here will hang around until the process exits. We’ll
-discuss how to address this in [Chapter
-4](ch04.html#concurrency_patterns) in the section [“Preventing Goroutine
-Leaks”](ch04.html#prevent_gor_leaks). We’ll use this to our advantage in
-the next example to actually measure the size of a goroutine.
+```go
+go func() {
+    // <operation that will block forever>
+}()
+// Do work
+```
 
-In the following example, we combine the fact that goroutines are not
-garbage collected with the runtime’s ability to introspect upon itself
-and measure the amount of memory allocated before and after
-<span class="keep-together">goroutine</span> creation:
+The goroutine here will hang around until the process exits. We’ll discuss how 
+to address this in [Chapter 4][6] in the section [“Preventing Goroutine Leaks”]
+[7]. We’ll use this to our advantage in the next example to actually measure the 
+size of a goroutine.
 
-    memConsumed := func() uint64 {
-        runtime.GC()
-        var s runtime.MemStats
-        runtime.ReadMemStats(&s)
-        return s.Sys
-    }
-    
-    var c <-chan interface{}
-    var wg sync.WaitGroup
-    noop := func() { wg.Done(); <-c } 
-    
-    const numGoroutines = 1e4 
-    wg.Add(numGoroutines)
-    before := memConsumed() 
-    for i := numGoroutines; i > 0; i-- {
-        go noop()
-    }
-    wg.Wait()
-    after := memConsumed() 
-    fmt.Printf("%.3fkb", float64(after-before)/numGoroutines/1000)
+[6]: ./ch04-concurrency-in-go.md#concurrency-patterns
+[7]: ./ch04-concurrency-in-go.md#prevent-gor-leaks
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO6-1)  
-    We require a goroutine that will never exit so that we can keep a
-    number of them in memory for measurement. Don’t worry about how
-    we’re achieving this at this time; just know that this goroutine
-    won’t exit until the process is
+In the following example, we combine the fact that goroutines are not garbage 
+collected with the runtime’s ability to introspect upon itself and measure the 
+amount of memory allocated before and after creation:
+
+```go
+memConsumed := func() uint64 {
+    runtime.GC()
+    var s runtime.MemStats
+    runtime.ReadMemStats(&s)
+    return s.Sys
+}
+
+var c <-chan interface{}
+var wg sync.WaitGroup
+noop := func() { wg.Done(); <-c } // ①
+
+const numGoroutines = 1e4   // ②
+wg.Add(numGoroutines)
+before := memConsumed()     // ③
+for i := numGoroutines; i > 0; i-- {
+    go noop()
+}
+wg.Wait()
+after := memConsumed()      // ④
+fmt.Printf("%.3fkb", float64(after-before)/numGoroutines/1000)
+```
+
+  - ①  
+    We require a goroutine that will never exit so that we can keep a number of 
+    them in memory for measurement. Don’t worry about how we’re achieving this 
+    at this time; just know that this goroutine won’t exit until the process is 
     finished.
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO6-2)  
-    Here we define the number of goroutines to create. We will use the
-    law of large numbers to asymptotically approach the size of a
-    goroutine.
+  - ②  
+    Here we define the number of goroutines to create. We will use the law of 
+    large numbers to asymptotically approach the size of a goroutine.
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO6-3)  
-    Here we measure the amount of memory consumed before creating our
+  - ③  
+    Here we measure the amount of memory consumed before creating our 
     goroutines.
 
-  - [![4](/library/view/concurrency-in-go/9781491941294/assets/4.png)](#co_go__8217_s_concurrency_building_blocks_CO6-4)  
+  - ④  
     And here we measure the amount of memory consumed after creating our
-    <span class="keep-together">goroutines</span>.
+    goroutines.
 
 And here’s the result:
 
     2.817kb
 
-It looks like the documentation is correct\! These are just empty
-goroutines that don’t do anything, but it still gives us an idea of the
-number of goroutines we can likely create. [Table
-3-1](#analysis_of_the_rough_number_of_goroutines) gives some rough
-estimates of how many goroutines you could likely create with a 64-bit
-CPU without using swap space.
+It looks like the documentation is correct\! These are just empty goroutines 
+that don’t do anything, but it still gives us an idea of the number of 
+goroutines we can likely create. [Table 3-1][8] gives some rough estimates of 
+how many goroutines you could likely create with a 64-bit CPU without using swap 
+space.
+
+[8]: #analysis_of_the_rough_number_of_goroutines
 
 | Memory (GB) | Goroutines (\#/100,000) | Order of magnitude |
 | ----------- | ----------------------- | ------------------ |
@@ -431,35 +428,32 @@ CPU without using swap space.
 | 2^8         | 951.867                 | 6                  |
 | 2^9         | 1903.735                | 9                  |
 
-<span class="label">Table 3-1. </span>Analysis of the rough number of
+<span id="analysis_of_the_rough_number_of_goroutines">Table 3-1. </span>Analysis of the rough number of
 goroutines possible within given memory
 
-Those numbers are quite large\! On my laptop I have 8 GB of RAM, which
-means that in theory I can spin up *millions* of goroutines without
-requiring swapping. Of course this ignores other things running on my
-computer, and the actual contents of the
-<span class="keep-together">goroutines</span>, but this quick
-calculation demonstrates just how lightweight goroutines
-are\!
+Those numbers are quite large! On my laptop I have 8 GB of RAM, which means 
+that in theory I can spin up *millions* of goroutines without requiring 
+swapping. Of course this ignores other things running on my computer, and the 
+actual contents of the goroutines, but this quick calculation demonstrates just 
+how lightweight goroutines are!
 
 <span id="idm140183156618208"></span><span id="idm140183156617600"></span>Something
-that might dampen our spirits is *context switching*, which is when
-something hosting a concurrent process must save its state to switch to
-running a different concurrent process. If we have too many concurrent
-processes, we can spend all of our CPU time context switching between
-them and never get any real work done. At the OS level, with threads,
-this can be quite costly. The OS thread must save things like register
-values, lookup tables, and memory maps to successfully be able to switch
-back to the current thread when it is time. Then it has to load the same
-information for the incoming thread.
+that might dampen our spirits is *context switching*, which is when something 
+hosting a concurrent process must save its state to switch to running a 
+different concurrent process. If we have too many concurrent processes, we can 
+spend all of our CPU time context switching between them and never get any real 
+work done. At the OS level, with threads, this can be quite costly. The OS 
+thread must save things like register values, lookup tables, and memory maps to 
+successfully be able to switch back to the current thread when it is time. Then 
+it has to load the same information for the incoming thread.
 
-Context switching in software is comparatively much, much cheaper. Under
-a software-defined scheduler, the runtime can be more selective in what
-is persisted for retrieval, how it is persisted, and when the persisting
-need occur. Let’s take a look at the relative performance of context
-switching on my laptop between OS threads and goroutines. First, we’ll
-utilize Linux’s built-in benchmarking suite to measure how long it takes
-to send a message between two threads on the same core:
+Context switching in software is comparatively much, much cheaper. Under a 
+software-defined scheduler, the runtime can be more selective in what is 
+persisted for retrieval, how it is persisted, and when the persisting need 
+occur. Let’s take a look at the relative performance of context switching on my 
+laptop between OS threads and goroutines. First, we’ll utilize Linux’s built-in 
+benchmarking suite to measure how long it takes to send a message between two 
+threads on the same core:
 
     taskset -c 0 perf bench sched pipe -T
 
@@ -473,67 +467,64 @@ This produces:
            2.935784 usecs/op
              340624 ops/sec
 
-This benchmark actually measures the time it takes to send *and* receive
-a message on a thread, so we’ll take the result and divide it by two.
-That gives us 1.467 μs per context switch. That doesn’t seem too bad,
-but let’s reserve judgment until we examine context switches between
-goroutines.
+This benchmark actually measures the time it takes to send *and* receive a 
+message on a thread, so we’ll take the result and divide it by two.  That gives 
+us 1.467 μs per context switch. That doesn’t seem too bad, but let’s reserve 
+judgment until we examine context switches between goroutines.
 
-We’ll construct a similar benchmark using Go. I’ve used a few things we
-haven’t discussed yet, so if anything is confusing, just follow the
-callouts and focus on the result. The following example will create two
-goroutines and send a message between them:
+We’ll construct a similar benchmark using Go. I’ve used a few things we haven’t 
+discussed yet, so if anything is confusing, just follow the callouts and focus 
+on the result. The following example will create two goroutines and send a 
+message between them:
 
-    func BenchmarkContextSwitch(b *testing.B) {
-        var wg sync.WaitGroup
-        begin := make(chan struct{})
-        c := make(chan struct{})
-    
-        var token struct{}
-        sender := func() {
-            defer wg.Done()
-            <-begin 
-            for i := 0; i < b.N; i++ {
-                c <- token 
-            }
+```go
+func BenchmarkContextSwitch(b *testing.B) {
+    var wg sync.WaitGroup
+    begin := make(chan struct{})
+    c := make(chan struct{})
+
+    var token struct{}
+    sender := func() {
+        defer wg.Done()
+        <-begin         // ①
+        for i := 0; i < b.N; i++ {
+            c <- token  //  ②
         }
-        receiver := func() {
-            defer wg.Done()
-            <-begin 
-            for i := 0; i < b.N; i++ {
-                <-c 
-            }
+    }
+    receiver := func() {
+        defer wg.Done()
+        <-begin     // ①
+        for i := 0; i < b.N; i++ {
+            <-c     // ③
         }
-    
-        wg.Add(2)
-        go sender()
-        go receiver()
-        b.StartTimer() 
-        close(begin) 
-        wg.Wait()
     }
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO7-1)  
-    Here we wait until we’re told to begin. We don’t want the cost of
-    setting up and starting each goroutine to factor into the
-    measurement of context
+    wg.Add(2)
+    go sender()
+    go receiver()
+    b.StartTimer()  // ④
+    close(begin)    // ⑤
+    wg.Wait()
+}
+```
+
+  - ①  
+    Here we wait until we’re told to begin. We don’t want the cost of setting up 
+    and starting each goroutine to factor into the measurement of context 
     switching.
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO7-2)  
-    Here we send messages to the receiver goroutine. A `struct{}{}` is
-    called an *empty struct* and takes up no memory; thus, we are only
-    measuring the time it takes to signal a
-    message.
+  - ②  
+    Here we send messages to the receiver goroutine. A `struct{}{}` is called an 
+    *empty struct* and takes up no memory; thus, we are only measuring the time 
+    it takes to signal a message.
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO7-4)  
-    Here we receive a message but do nothing with
-    it.
+  - ③  
+    Here we receive a message but do nothing with it.
 
-  - [![4](/library/view/concurrency-in-go/9781491941294/assets/4.png)](#co_go__8217_s_concurrency_building_blocks_CO7-5)  
-    Here we begin the performance
-    timer.
+  - ④  
+    Here we begin the performance timer.
 
-  - [![5](/library/view/concurrency-in-go/9781491941294/assets/5.png)](#co_go__8217_s_concurrency_building_blocks_CO7-6)  
+  - ⑤  
     Here we tell the two goroutines to begin.
 
 We run the benchmark specifying that we only want to utilize one CPU so
@@ -549,97 +540,85 @@ the results:
 | PASS                   |                        |        |       |
 | ok                     | command-line-arguments | 1.393s |       |
 
-225 ns per context switch, wow\! That’s 0.225 μs, or 92% faster than an
-OS context switch on my machine, which if you recall took 1.467 μs. It’s
-difficult to make any claims about how many goroutines will cause too
-much context switching, but we can comfortably say that the upper limit
-is likely not to be any kind of barrier to using goroutines.
+225 ns per context switch, wow! That’s 0.225 μs, or 92% faster than an OS 
+context switch on my machine, which if you recall took 1.467 μs. It’s difficult 
+to make any claims about how many goroutines will cause too much context 
+switching, but we can comfortably say that the upper limit is likely not to be 
+any kind of barrier to using goroutines.
 
-Having read this section, you should now understand how to start
-goroutines and a little about how they work. You should also be
-confident that you can safely create a goroutine any time you feel the
-problem space warrants it. As we discussed in the section [“The
-Difference Between Concurrency and
-Parallelism”](ch02.html#dif_concur_parallel), the more goroutines you
-create, and if your problem space is not constrained by one concurrent
-segment per Amdahl’s law, the more your program will scale with multiple
-processors. Creating goroutines is very cheap, and so you should only be
-discussing their cost if you’ve proven they are the root cause of a
-performance
-issue.<span id="idm140183156321936"></span><span id="idm140183156320992"></span><span id="idm140183156320048"></span>
+Having read this section, you should now understand how to start goroutines and 
+a little about how they work. You should also be confident that you can safely 
+create a goroutine any time you feel the problem space warrants it. As we 
+discussed in the section [“The Difference Between Concurrency and Parallelism”]
+(ch02.html#dif_concur_parallel), the more goroutines you create, and if your 
+problem space is not constrained by one concurrent segment per Amdahl’s law, the 
+more your program will scale with multiple processors. Creating goroutines is 
+very cheap, and so you should only be discussing their cost if you’ve proven 
+they are the root cause of a performance issue.
 
-</div>
 
-</div>
-
-<div class="section" data-type="sect1" data-pdf-bookmark="The sync Package">
-
-<div id="sync_package" class="sect1">
 
 # The sync Package
 
 <span id="idm140183156318464"></span><span id="idm140183156317296"></span><span id="idm140183156316656"></span><span id="CPsync04"></span>The
-`sync` package contains the concurrency primitives that are most useful
-for low-level memory access synchronization. If you’ve worked in
-languages that primarily handle concurrency through memory access
-synchronization, these types will likely already be familiar to you. The
-difference between these languages in Go is that Go has built a new set
-of concurrency primitives on top of the memory access synchronization
-primitives to provide you with an expanded set of things to work with.
-As we discussed in [“Go’s Philosophy on
-Concurrency”](ch02.html#go_philosophy), these operations have their
-use—mostly in small scopes such as a `struct`. It will be up to you to
-decide when memory access synchronization is appropriate. With that
-said, let’s begin taking a look at the various primitives the `sync`
-package exposes.
+`sync` package contains the concurrency primitives that are most useful for low-
+level memory access synchronization. If you’ve worked in languages that 
+primarily handle concurrency through memory access synchronization, these types 
+will likely already be familiar to you. The difference between these languages 
+in Go is that Go has built a new set of concurrency primitives on top of the 
+memory access synchronization primitives to provide you with an expanded set of 
+things to work with.  As we discussed in [“Go’s Philosophy on Concurrency”]
+(ch02.html#go_philosophy), these operations have their use—mostly in small 
+scopes such as a `struct`. It will be up to you to decide when memory access 
+synchronization is appropriate. With that said, let’s begin taking a look at the 
+various primitives the `sync` package exposes.
 
-<div class="section" data-type="sect2" data-pdf-bookmark="WaitGroup">
-
-<div id="idm140183156311376" class="sect2">
 
 ## WaitGroup
 
 `WaitGroup`
 <span id="idm140183156309104"></span><span id="idm140183156308096"></span><span id="idm140183156307424"></span>is
-a great way to wait for a set of concurrent operations to complete when
-you either don’t care about the result of the concurrent operation, or
-you have other means of collecting their results. If neither of those
-conditions are true, I suggest you use channels and a `select` statement
-instead. `WaitGroup` is so useful, I’m introducing it first so I can use
-it in subsequent sections. Here’s a basic example of using a `WaitGroup`
-to wait for goroutines to complete:
+a great way to wait for a set of concurrent operations to complete when you 
+either don’t care about the result of the concurrent operation, or you have 
+other means of collecting their results. If neither of those conditions are 
+true, I suggest you use channels and a `select` statement instead. `WaitGroup` 
+is so useful, I’m introducing it first so I can use it in subsequent sections. 
+Here’s a basic example of using a `WaitGroup` to wait for goroutines to 
+complete:
 
-    var wg sync.WaitGroup
-    
-    wg.Add(1)                       
-    go func() {
-        defer wg.Done()             
-        fmt.Println("1st goroutine sleeping...")
-        time.Sleep(1)
-    }()
-    
-    wg.Add(1)                       
-    go func() {
-        defer wg.Done()             
-        fmt.Println("2nd goroutine sleeping...")
-        time.Sleep(2)
-    }()
-    
-    wg.Wait()                       
-    fmt.Println("All goroutines complete.")
+```go
+var wg sync.WaitGroup
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO8-1)  
+wg.Add(1)           // ①
+go func() {
+    defer wg.Done() // ②
+    fmt.Println("1st goroutine sleeping...")
+    time.Sleep(1)
+}()
+
+wg.Add(1)           // ①
+go func() {
+    defer wg.Done() // ②
+    fmt.Println("2nd goroutine sleeping...")
+    time.Sleep(2)
+}()
+
+wg.Wait()           // ③
+fmt.Println("All goroutines complete.")
+```
+
+  - ①  
     Here we call `Add` with an argument of 1 to indicate that one
     goroutine is
     beginning.
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO8-2)  
+  - ②  
     Here we call `Done` using the `defer` keyword to ensure that before
     we exit the <span class="keep-together">goroutine</span>’s closure,
     we indicate to the `WaitGroup` that we’ve
     exited.
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO8-5)  
+  - ③  
     Here we call `Wait`, which will block the main goroutine until all
     goroutines have indicated they have exited.
 
@@ -649,37 +628,36 @@ This produces:
     1st goroutine sleeping...
     All goroutines complete.
 
-You can think of a `WaitGroup` like a concurrent-safe counter: calls to
-`Add` increment the counter by the integer passed in, and calls to
-`Done` decrement the counter by one. Calls to `Wait` block until the
-counter is zero.
+You can think of a `WaitGroup` like a concurrent-safe counter: calls to `Add` 
+increment the counter by the integer passed in, and calls to `Done` decrement 
+the counter by one. Calls to `Wait` block until the counter is zero.
 
-Notice that the calls to `Add` are done outside the goroutines they’re
-helping to track. If we didn’t do this, we would have introduced a race
-condition, because remember from [“Goroutines”](#goroutines) that we
-have no guarantees about when the goroutines will be scheduled; we could
-reach the call to `Wait` before either of the goroutines begin. Had the
-calls to `Add` been placed inside the goroutines’ closures, the call to
-`Wait` could have returned without blocking at all because the calls to
-`Add` would not have taken place.
+Notice that the calls to `Add` are done outside the goroutines they’re helping 
+to track. If we didn’t do this, we would have introduced a race condition, 
+because remember from [“Goroutines”](#goroutines) that we have no guarantees 
+about when the goroutines will be scheduled; we could reach the call to `Wait` 
+before either of the goroutines begin. Had the calls to `Add` been placed inside 
+the goroutines’ closures, the call to `Wait` could have returned without 
+blocking at all because the calls to `Add` would not have taken place.
 
-It’s customary to couple calls to `Add` as closely as possible to the
-goroutines they’re helping to track, but sometimes you’ll find `Add`
-called to track a group of goroutines all at once. I usually do this
-before `for` loops like this:
+It’s customary to couple calls to `Add` as closely as possible to the goroutines 
+they’re helping to track, but sometimes you’ll find `Add` called to track a 
+group of goroutines all at once. I usually do this before `for` loops like this:
 
-    hello := func(wg *sync.WaitGroup, id int) {
-        defer wg.Done()
-        fmt.Printf("Hello from %v!\n", id)
-    }
-    
-    const numGreeters = 5
-    var wg sync.WaitGroup
-    wg.Add(numGreeters)
-    for i := 0; i < numGreeters; i++ {
-        go hello(&wg, i+1)
-    }
-    wg.Wait()
+```go
+hello := func(wg *sync.WaitGroup, id int) {
+    defer wg.Done()
+    fmt.Printf("Hello from %v!\n", id)
+}
+
+const numGreeters = 5
+var wg sync.WaitGroup
+wg.Add(numGreeters)
+for i := 0; i < numGreeters; i++ {
+    go hello(&wg, i+1)
+}
+wg.Wait()
+```
 
 This produces:
 
@@ -689,79 +667,73 @@ This produces:
     Hello from 2!
     Hello from 1!
 
-</div>
-
-</div>
-
-<div class="section" data-type="sect2" data-pdf-bookmark="Mutex and RWMutex">
-
-<div id="idm140183156107584" class="sect2">
 
 ## Mutex and RWMutex
 
 <span id="SPmutex03"></span><span id="mutex03"></span><span id="rwmutex03"></span><span id="idm140183156032512"></span>If
-you’re already familiar with languages that handle concurrency through
-memory access synchronization, then you’ll probably immediately
-recognize `Mutex`. If you don’t count yourself among that group, don’t
-worry, `Mutex` is very easy to understand. *Mutex* stands for “mutual
-exclusion” and is a way to guard critical sections of your program. If
-you remember from [Chapter 1](ch01.html#intro_to_concurrency), a
-critical section is an area of your program that requires exclusive
-access to a shared resource. A `Mutex` provides a concurrent-safe way to
-express exclusive access to these shared resources. To borrow a Goism,
-whereas channels share memory by communicating, a `Mutex` shares memory
-by creating a convention developers must follow to synchronize access to
-the memory. You are responsible for coordinating access to this memory
-by guarding access to it with a mutex. Here’s a simple example of two
-goroutines that are attempting to increment and decrement a common
-value; they use a `Mutex` to synchronize access:
+you’re already familiar with languages that handle concurrency through memory 
+access synchronization, then you’ll probably immediately recognize `Mutex`. If 
+you don’t count yourself among that group, don’t worry, `Mutex` is very easy to 
+understand. *Mutex* stands for “mutual exclusion” and is a way to guard critical 
+sections of your program. If you remember from [Chapter 1][9], a critical 
+section is an area of your program that requires exclusive access to a shared 
+resource. A `Mutex` provides a concurrent-safe way to express exclusive access 
+to these shared resources. To borrow a Goism, whereas channels share memory by 
+communicating, a `Mutex` shares memory by creating a convention developers must 
+follow to synchronize access to the memory. You are responsible for coordinating 
+access to this memory by guarding access to it with a mutex. Here’s a simple 
+example of two goroutines that are attempting to increment and decrement a 
+common value; they use a `Mutex` to synchronize access:
 
-    var count int
-    var lock sync.Mutex
-    
-    increment := func() {
-        lock.Lock()                 
-        defer lock.Unlock()         
-        count++
-        fmt.Printf("Incrementing: %d\n", count)
-    }
-    
-    decrement := func() {
-        lock.Lock()                 
-        defer lock.Unlock()         
-        count--
-        fmt.Printf("Decrementing: %d\n", count)
-    }
-    
-    // Increment
-    var arithmetic sync.WaitGroup
-    for i := 0; i <= 5; i++ {
-        arithmetic.Add(1)
-        go func() {
-            defer arithmetic.Done()
-            increment()
-        }()
-    }
-    
-    // Decrement
-    for i := 0; i <= 5; i++ {
-        arithmetic.Add(1)
-        go func() {
-            defer arithmetic.Done()
-            decrement()
-        }()
-    }
-    
-    arithmetic.Wait()
-    fmt.Println("Arithmetic complete.")
+[9]: ./ch01-an-introduction-to-concurrency.md#intro_to_concurrency
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO9-1)  
-    Here we request exclusive use of the critical section—in this case
-    the `count` variable—guarded by a `Mutex`,
-    `lock`.
+```go
+var count int
+var lock sync.Mutex
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO9-2)  
-    Here we indicate that we’re done with the critical section `lock` is
+increment := func() {
+    lock.Lock()         // ①
+    defer lock.Unlock() // ②
+    count++
+    fmt.Printf("Incrementing: %d\n", count)
+}
+
+decrement := func() {
+    lock.Lock()         // ①
+    defer lock.Unlock() // ②
+    count--
+    fmt.Printf("Decrementing: %d\n", count)
+}
+
+// Increment
+var arithmetic sync.WaitGroup
+for i := 0; i <= 5; i++ {
+    arithmetic.Add(1)
+    go func() {
+        defer arithmetic.Done()
+        increment()
+    }()
+}
+
+// Decrement
+for i := 0; i <= 5; i++ {
+    arithmetic.Add(1)
+    go func() {
+        defer arithmetic.Done()
+        decrement()
+    }()
+}
+
+arithmetic.Wait()
+fmt.Println("Arithmetic complete.")
+```
+
+  - ①  
+    Here we request exclusive use of the critical section—in this case the 
+    `count` variable—guarded by a `Mutex`, `lock`.
+
+  - ②  
+    Here we indicate that we’re done with the critical section `lock` is 
     guarding.
 
 This produces:
@@ -780,84 +752,83 @@ This produces:
     Incrementing: 0
     Arithmetic complete.
 
-You’ll notice that we always call `Unlock` within a `defer` statement.
-This is a very common idiom when utilizing a `Mutex` to ensure the call
-always happens, even when `panic`ing. Failing to do so will probably
-cause your program to deadlock.
+You’ll notice that we always call `Unlock` within a `defer` statement.  This is 
+a very common idiom when utilizing a `Mutex` to ensure the call always happens, 
+even when `panic`ing. Failing to do so will probably cause your program to 
+deadlock.
 
-Critical sections are so named because they reflect a bottleneck in your
-program. It is somewhat expensive to enter and exit a critical section,
-and so generally people attempt to minimize the time spent in critical
-sections.
+Critical sections are so named because they reflect a bottleneck in your 
+program. It is somewhat expensive to enter and exit a critical section, and so 
+generally people attempt to minimize the time spent in critical sections.
 
-One strategy for doing so is to reduce the cross-section of the critical
-section. There may be memory that needs to be shared between multiple
-concurrent processes, but perhaps not all of these processes will read
-*and* write to this memory. If this is the case, you can take advantage
-of a different type of mutex: `sync.RWMutex`.
+One strategy for doing so is to reduce the cross-section of the critical 
+section. There may be memory that needs to be shared between multiple concurrent 
+processes, but perhaps not all of these processes will read *and* write to this 
+memory. If this is the case, you can take advantage of a different type of 
+mutex: `sync.RWMutex`.
 
-The `sync.RWMutex` is conceptually the same thing as a `Mutex`: it
-guards access to memory; however, `RWMutex` gives you a little bit more
-control over the memory. You can request a lock for reading, in which
-case you will be granted access unless the lock is being held for
-writing. This means that an arbitrary number of readers can hold a
-reader lock so long as nothing else is holding a writer lock. Here’s an
-example that demonstrates a producer that is less active than the
-numerous consumers the code creates:
+The `sync.RWMutex` is conceptually the same thing as a `Mutex`: it guards access 
+to memory; however, `RWMutex` gives you a little bit more control over the 
+memory. You can request a lock for reading, in which case you will be granted 
+access unless the lock is being held for writing. This means that an arbitrary 
+number of readers can hold a reader lock so long as nothing else is holding a 
+writer lock. Here’s an example that demonstrates a producer that is less active 
+than the numerous consumers the code creates:
 
-    producer := func(wg *sync.WaitGroup, l sync.Locker) { 
-        defer wg.Done()
-        for i := 5; i > 0; i-- {
-            l.Lock()
-            l.Unlock()
-            time.Sleep(1) 
-        }
-    }
-    
-    observer := func(wg *sync.WaitGroup, l sync.Locker) {
-        defer wg.Done()
+```go
+producer := func(wg *sync.WaitGroup, l sync.Locker) { // ②
+    defer wg.Done()
+    for i := 5; i > 0; i-- {
         l.Lock()
-        defer l.Unlock()
+        l.Unlock()
+        time.Sleep(1) // ②
     }
-    
-    test := func(count int, mutex, rwMutex sync.Locker) time.Duration {
-        var wg sync.WaitGroup
-        wg.Add(count+1)
-        beginTestTime := time.Now()
-        go producer(&wg, mutex)
-        for i := count; i > 0; i-- {
-            go observer(&wg, rwMutex)
-        }
-    
-        wg.Wait()
-        return time.Since(beginTestTime)
-    }
-    
-    tw := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-    defer tw.Flush()
-    
-    var m sync.RWMutex
-    fmt.Fprintf(tw, "Readers\tRWMutext\tMutex\n")
-    for i := 0; i < 20; i++ {
-        count := int(math.Pow(2, float64(i)))
-        fmt.Fprintf(
-            tw,
-            "%d\t%v\t%v\n",
-            count,
-            test(count, &m, m.RLocker()),
-            test(count, &m, &m),
-        )
+}
+
+observer := func(wg *sync.WaitGroup, l sync.Locker) {
+    defer wg.Done()
+    l.Lock()
+    defer l.Unlock()
+}
+
+test := func(count int, mutex, rwMutex sync.Locker) time.Duration {
+    var wg sync.WaitGroup
+    wg.Add(count+1)
+    beginTestTime := time.Now()
+    go producer(&wg, mutex)
+    for i := count; i > 0; i-- {
+        go observer(&wg, rwMutex)
     }
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO10-1)  
-    The `producer` function’s second parameter is of the type
-    `sync.Locker`. This interface has two methods, `Lock` and `Unlock`,
-    which the `Mutex` and `RWMutex` types
-    satisfy.
+    wg.Wait()
+    return time.Since(beginTestTime)
+}
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO10-2)  
-    Here we make the producer sleep for one second to make it less
-    active than the `observer` goroutines.
+tw := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
+defer tw.Flush()
+
+var m sync.RWMutex
+fmt.Fprintf(tw, "Readers\tRWMutext\tMutex\n")
+for i := 0; i < 20; i++ {
+    count := int(math.Pow(2, float64(i)))
+    fmt.Fprintf(
+        tw,
+        "%d\t%v\t%v\n",
+        count,
+        test(count, &m, m.RLocker()),
+        test(count, &m, &m),
+    )
+}
+```
+
+  - ①  
+    The `producer` function’s second parameter is of the type `sync.Locker`. 
+    This interface has two methods, `Lock` and `Unlock`, which the `Mutex` and 
+    `RWMutex` types satisfy.
+
+  - ②  
+    Here we make the producer sleep for one second to make it less active than 
+    the `observer` goroutines.
 
 This produces:
 
@@ -883,179 +854,165 @@ This produces:
     262144   158.76261ms   119.634601ms
     524288   303.865661ms  231.072729ms
 
-You can see for this particular example that reducing the cross-section
-of our critical-section really only begins to pay off around
-2<sup>13</sup> readers. This will vary depending on what your critical
-section is doing, but it’s usually advisable to use `RWMutex` instead of
-`Mutex` when it logically makes
-sense.<span id="idm140183154681952"></span><span id="idm140183154669520"></span><span id="idm140183154668576"></span>
+You can see for this particular example that reducing the cross-section of our 
+critical-section really only begins to pay off around 2<sup>13</sup> readers. 
+This will vary depending on what your critical section is doing, but it’s 
+usually advisable to use `RWMutex` instead of `Mutex` when it logically makes 
+sense.
 
-</div>
-
-</div>
-
-<div class="section" data-type="sect2" data-pdf-bookmark="Cond">
-
-<div id="idm140183156036720" class="sect2">
 
 ## Cond
 
 <span id="SPcond03"></span><span id="cond03"></span><span id="idm140183155717616"></span><span id="CPcond03"></span>The
-comment for the `Cond` type really does a great job of describing its
-purpose:
+comment for the `Cond` type really does a great job of describing its purpose:
 
     ...a rendezvous point for goroutines waiting for or announcing the occurrence
     of an event.
 
-In that definition, an “event” is any arbitrary signal between two or
-more goroutines that carries no information other than the fact that it
-has occurred. Very often you’ll want to wait for one of these signals
-before continuing execution on a goroutine. If we were to look at how to
-accomplish this without the `Cond` type, one naive approach to doing
-this is to use an infinite loop:
+In that definition, an “event” is any arbitrary signal between two or more 
+goroutines that carries no information other than the fact that it has occurred. 
+Very often you’ll want to wait for one of these signals before continuing 
+execution on a goroutine. If we were to look at how to accomplish this without 
+the `Cond` type, one naive approach to doing this is to use an infinite loop:
 
-    for conditionTrue() == false {
-    }
+```go
+for conditionTrue() == false {
+}
+```
 
-However this would consume all cycles of one core. To fix that, we could
+However this would consume all cycles of one core. To fix that, we could 
 introduce a `time.Sleep`:
 
-    for conditionTrue() == false {
-        time.Sleep(1*time.Millisecond)
-    }
+```go
+for conditionTrue() == false {
+    time.Sleep(1*time.Millisecond)
+}
+```
 
-This is better, but it’s still inefficient, and you have to figure out
-how long to sleep for: too long, and you’re artificially degrading
-performance; too short, and you’re unnecessarily consuming too much CPU
-time. It would be better if there were some kind of way for a goroutine
-to efficiently sleep until it was signaled to wake and check its
-condition. This is exactly what the `Cond` type does for us. Using a
-`Cond`, we could write the previous examples like this:
+This is better, but it’s still inefficient, and you have to figure out how long 
+to sleep for: too long, and you’re artificially degrading performance; too 
+short, and you’re unnecessarily consuming too much CPU time. It would be better 
+if there were some kind of way for a goroutine to efficiently sleep until it was 
+signaled to wake and check its condition. This is exactly what the `Cond` type 
+does for us. Using a `Cond`, we could write the previous examples like this:
 
-    c := sync.NewCond(&sync.Mutex{}) 
-    c.L.Lock() 
-    for conditionTrue() == false {
-        c.Wait() 
-    }
-    c.L.Unlock() 
+```go
+c := sync.NewCond(&sync.Mutex{}) // ①
+c.L.Lock()   // ②
+for conditionTrue() == false {
+    c.Wait() // ③
+}
+c.L.Unlock() // ④
+```
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO11-1)  
-    Here we instantiate a new `Cond`. The `NewCond` function takes in a
-    type that satisfies the `sync.Locker` interface. This is what allows
-    the `Cond` type to facilitate coordination with other goroutines in
-    a concurrent-safe
+  - ①  
+
+    Here we instantiate a new `Cond`. The `NewCond` function takes in a type 
+    that satisfies the `sync.Locker` interface. This is what allows the `Cond` 
+    type to facilitate coordination with other goroutines in a concurrent-safe 
     way.
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO11-2)  
-    Here we lock the `Locker` for this condition. This is necessary
-    because the call to `Wait` automatically calls `Unlock` on the
-    `Locker` when
-    entered.
+  - ②  
+    Here we lock the `Locker` for this condition. This is necessary because the 
+    call to `Wait` automatically calls `Unlock` on the `Locker` when entered.
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO11-3)  
-    Here we wait to be notified that the condition has occurred. This is
-    a blocking call and the goroutine will be
-    suspended.
+  - ③  
+    Here we wait to be notified that the condition has occurred. This is a 
+    blocking call and the goroutine will be suspended.
 
-  - [![4](/library/view/concurrency-in-go/9781491941294/assets/4.png)](#co_go__8217_s_concurrency_building_blocks_CO11-4)  
-    Here we unlock the `Locker` for this condition. This is necessary
-    because when the call to `Wait` exits, it calls `Lock` on the
-    `Locker` for the condition.
-
-This approach is *much* more efficient. Note that the call to `Wait`
-doesn’t just block, it *suspends* the current goroutine, allowing other
-goroutines to run on the OS thread. A few other things happen when you
-call `Wait`: upon entering `Wait`, `Unlock` is called on the `Cond`
-variable’s `Locker`, and upon exiting `Wait`, `Lock` is called on the
-`Cond` variable’s `Locker`. In my opinion, this takes a little getting
-used to; it’s effectively a hidden side effect of the method. It looks
-like we’re holding this lock the entire time while we wait for the
-condition to occur, but that’s not actually the case. When you’re
-scanning code, you’ll just have to keep an eye out for this pattern.
-
-Let’s expand on this example and show both sides of the equation: a
-goroutine that is waiting for a signal, and a goroutine that is sending
-signals. Say we have a queue of fixed length 2, and 10 items we want to
-push onto the queue. We want to enqueue items as soon as there is room,
-so we want to be notified as soon as there’s room in the queue. Let’s
-try using a `Cond` to manage this coordination:
-
-    c := sync.NewCond(&sync.Mutex{}) 
-    queue := make([]interface{}, 0, 10) 
-    
-    removeFromQueue := func(delay time.Duration) {
-        time.Sleep(delay)
-        c.L.Lock() 
-        queue = queue[1:] 
-        fmt.Println("Removed from queue")
-        c.L.Unlock() 
-        c.Signal() 
-    }
-    
-    for i := 0; i < 10; i++{
-        c.L.Lock() 
-        for len(queue) == 2 { 
-            c.Wait() 
-        }
-        fmt.Println("Adding to queue")
-        queue = append(queue, struct{}{})
-        go removeFromQueue(1*time.Second) 
-        c.L.Unlock() 
-    }
-
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO12-1)  
-    First, we create our condition using a standard `sync.Mutex` as the
-    `Locker`.
-
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO12-2)  
-    Next, we create a slice with a length of zero. Since we know we’ll
-    eventually add 10 items, we instantiate it with a capacity of
-    10.
-
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO12-7)  
-    We enter the critical section for the condition by calling `Lock` on
-    the condition’s
-    `Locker`.
-
-  - [![4](/library/view/concurrency-in-go/9781491941294/assets/4.png)](#co_go__8217_s_concurrency_building_blocks_CO12-8)  
-    Here we check the length of the queue in a loop. This is important
-    because a signal on the condition doesn’t necessarily mean what
-    you’ve been waiting for has occurred—only that *something* has
-    occurred.
-
-  - [![5](/library/view/concurrency-in-go/9781491941294/assets/5.png)](#co_go__8217_s_concurrency_building_blocks_CO12-9)  
-    We call `Wait`, which will suspend the main goroutine until a signal
-    on the condition has been
-    sent.
-
-  - [![6](/library/view/concurrency-in-go/9781491941294/assets/6.png)](#co_go__8217_s_concurrency_building_blocks_CO12-10)  
-    Here we create a new goroutine that will dequeue an element after
-    one
-    second.
-
-  - [![7](/library/view/concurrency-in-go/9781491941294/assets/7.png)](#co_go__8217_s_concurrency_building_blocks_CO12-11)  
-    Here we exit the condition’s critical section since we’ve
-    successfully enqueued an
-    item.
-
-  - [![8](/library/view/concurrency-in-go/9781491941294/assets/8.png)](#co_go__8217_s_concurrency_building_blocks_CO12-3)  
-    We once again enter the critical section for the condition so we can
-    modify data pertinent to the
+  - ④  
+    Here we unlock the `Locker` for this condition. This is necessary because 
+    when the call to `Wait` exits, it calls `Lock` on the `Locker` for the 
     condition.
 
-  - [![9](/library/view/concurrency-in-go/9781491941294/assets/9.png)](#co_go__8217_s_concurrency_building_blocks_CO12-4)  
-    Here we simulate dequeuing an item by reassigning the head of the
-    slice to the second
-    item.
+This approach is *much* more efficient. Note that the call to `Wait` doesn’t 
+just block, it *suspends* the current goroutine, allowing other goroutines to 
+run on the OS thread. A few other things happen when you call `Wait`: upon 
+entering `Wait`, `Unlock` is called on the `Cond` variable’s `Locker`, and upon 
+exiting `Wait`, `Lock` is called on the `Cond` variable’s `Locker`. In my 
+opinion, this takes a little getting used to; it’s effectively a hidden side 
+effect of the method. It looks like we’re holding this lock the entire time 
+while we wait for the condition to occur, but that’s not actually the case. When 
+you’re scanning code, you’ll just have to keep an eye out for this pattern.
 
-  - [![10](/library/view/concurrency-in-go/9781491941294/assets/10.png)](#co_go__8217_s_concurrency_building_blocks_CO12-5)  
-    Here we exit the condition’s critical section since we’ve
-    successfully dequeued an
-    item.
+Let’s expand on this example and show both sides of the equation: a goroutine 
+that is waiting for a signal, and a goroutine that is sending signals. Say we 
+have a queue of fixed length 2, and 10 items we want to push onto the queue. We 
+want to enqueue items as soon as there is room, so we want to be notified as 
+soon as there’s room in the queue. Let’s try using a `Cond` to manage this 
+coordination:
 
-  - [![11](/library/view/concurrency-in-go/9781491941294/assets/11.png)](#co_go__8217_s_concurrency_building_blocks_CO12-6)  
-    Here we let a goroutine waiting on the condition know that something
-    has occurred.
+```go
+c := sync.NewCond(&sync.Mutex{})    // ①
+queue := make([]interface{}, 0, 10) // ②
+
+removeFromQueue := func(delay time.Duration) {
+    time.Sleep(delay)
+    c.L.Lock()          // ⑧
+    queue = queue[1:]   // ⑨
+    fmt.Println("Removed from queue")
+    c.L.Unlock()    // ⑩
+    c.Signal()      // ⑪
+}
+
+for i := 0; i < 10; i++{
+    c.L.Lock()              // ③
+    for len(queue) == 2 {   // ④
+        c.Wait()            // ⑤
+    }
+    fmt.Println("Adding to queue")
+    queue = append(queue, struct{}{})
+    go removeFromQueue(1*time.Second) // ⑥
+    c.L.Unlock() // ⑦
+}
+```
+
+  - ①  
+    First, we create our condition using a standard `sync.Mutex` as the 
+    `Locker`.
+
+  - ②  
+    Next, we create a slice with a length of zero. Since we know we’ll 
+    eventually add 10 items, we instantiate it with a capacity of 10.
+
+  - ③  
+
+    We enter the critical section for the condition by calling `Lock` on the 
+    condition’s `Locker`.
+
+  - ④  
+    Here we check the length of the queue in a loop. This is important because a 
+    signal on the condition doesn’t necessarily mean what you’ve been waiting 
+    for has occurred—only that *something* has occurred.
+
+  - ⑤  
+    We call `Wait`, which will suspend the main goroutine until a signal on the 
+    condition has been sent.
+
+  - ⑥  
+    Here we create a new goroutine that will dequeue an element after one 
+    second.
+
+  - ⑦  
+
+    Here we exit the condition’s critical section since we’ve successfully 
+    enqueued an item.
+
+  - ⑧  
+    We once again enter the critical section for the condition so we can modify 
+    data pertinent to the condition.
+
+  - ⑨  
+    Here we simulate dequeuing an item by reassigning the head of the slice to 
+    the second item.
+
+  - ⑩  
+    Here we exit the condition’s critical section since we’ve successfully 
+    dequeued an item.
+
+  - ⑪  
+    Here we let a goroutine waiting on the condition know that something has 
+    occurred.
 
 This produces:
 
@@ -1078,10 +1035,9 @@ This produces:
     Removed from queue
     Adding to queue
 
-As you can see, the program successfully adds all 10 items to the queue
-(and exits before it has a chance to dequeue the last two items). It
-also always waits until at least one item is dequeued before enqueing
-another.
+As you can see, the program successfully adds all 10 items to the queue (and 
+exits before it has a chance to dequeue the last two items). It also always 
+waits until at least one item is dequeued before enqueing another.
 
 <span id="idm140183155262768"></span>We also have a new method in this
 example, `Signal`. This is one of two methods that the `Cond` type
@@ -1098,85 +1054,81 @@ trivially reproduce `Signal` with channels (as we’ll see in the section
 to `Broadcast` would be more difficult. In addition, the `Cond` type is
 much more performant than utilizing channels.
 
-To get a feel for what it’s like to use `Broadcast`, let’s imagine we’re
-creating a GUI application with a button on it. We want to register an
-arbitrary number of functions that will run when that button is clicked.
-A `Cond` is perfect for this because we can use its `Broadcast` method
-to notify all registered handlers. Let’s see how that might look:
+To get a feel for what it’s like to use `Broadcast`, let’s imagine we’re 
+creating a GUI application with a button on it. We want to register an arbitrary 
+number of functions that will run when that button is clicked.  A `Cond` is 
+perfect for this because we can use its `Broadcast` method to notify all 
+registered handlers. Let’s see how that might look:
 
-    type Button struct { 
-        Clicked *sync.Cond
-    }
-    button := Button{ Clicked: sync.NewCond(&sync.Mutex{}) }
-    
-    subscribe := func(c *sync.Cond, fn func()) { 
-        var goroutineRunning sync.WaitGroup
-        goroutineRunning.Add(1)
-        go func() {
-            goroutineRunning.Done()
-            c.L.Lock()
-            defer c.L.Unlock()
-            c.Wait()
-            fn()
-        }()
-        goroutineRunning.Wait()
-    }
-    
-    var clickRegistered sync.WaitGroup 
-    clickRegistered.Add(3)
-    subscribe(button.Clicked, func() { 
-        fmt.Println("Maximizing window.")
-        clickRegistered.Done()
-    })
-    subscribe(button.Clicked, func() { 
-        fmt.Println("Displaying annoying dialog box!")
-        clickRegistered.Done()
-    })
-    subscribe(button.Clicked, func() { 
-        fmt.Println("Mouse clicked.")
-        clickRegistered.Done()
-    })
-    
-    button.Clicked.Broadcast() 
-    
-    clickRegistered.Wait()
+```go
+type Button struct { 
+    Clicked *sync.Cond
+}
+button := Button{ Clicked: sync.NewCond(&sync.Mutex{}) }
 
-  - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO13-1)  
-    We define a type `Button` that contains a condition,
-    `Clicked`.
+subscribe := func(c *sync.Cond, fn func()) { 
+    var goroutineRunning sync.WaitGroup
+    goroutineRunning.Add(1)
+    go func() {
+        goroutineRunning.Done()
+        c.L.Lock()
+        defer c.L.Unlock()
+        c.Wait()
+        fn()
+    }()
+    goroutineRunning.Wait()
+}
 
-  - [![2](/library/view/concurrency-in-go/9781491941294/assets/2.png)](#co_go__8217_s_concurrency_building_blocks_CO13-2)  
-    Here we define a convenience function that will allow us to register
-    functions to handle signals from a condition. Each handler is run on
-    its own goroutine, and `subscribe` will not exit until that
-    goroutine is confirmed to be
-    running.
+var clickRegistered sync.WaitGroup 
+clickRegistered.Add(3)
+subscribe(button.Clicked, func() { 
+    fmt.Println("Maximizing window.")
+    clickRegistered.Done()
+})
+subscribe(button.Clicked, func() { 
+    fmt.Println("Displaying annoying dialog box!")
+    clickRegistered.Done()
+})
+subscribe(button.Clicked, func() { 
+    fmt.Println("Mouse clicked.")
+    clickRegistered.Done()
+})
 
-  - [![3](/library/view/concurrency-in-go/9781491941294/assets/3.png)](#co_go__8217_s_concurrency_building_blocks_CO13-3)  
-    Here we set a handler for when the mouse button is raised. It in
-    turn calls `Broadcast` on the `Clicked` `Cond` to let all handlers
-    know that the mouse button has been clicked (a more robust
-    implementation would first check that it had been
-    depressed).
+button.Clicked.Broadcast() 
 
-  - [![4](/library/view/concurrency-in-go/9781491941294/assets/4.png)](#co_go__8217_s_concurrency_building_blocks_CO13-4)  
-    Here we create a `WaitGroup`. This is done only to ensure our
-    program doesn’t exit before our writes to `stdout`
-    occur.
+clickRegistered.Wait()
+```
 
-  - [![5](/library/view/concurrency-in-go/9781491941294/assets/5.png)](#co_go__8217_s_concurrency_building_blocks_CO13-5)  
-    Here we register a handler that simulates maximizing the button’s
-    window when the button is
-    clicked.
+  -   
+    We define a type `Button` that contains a condition, `Clicked`.
 
-  - [![6](/library/view/concurrency-in-go/9781491941294/assets/6.png)](#co_go__8217_s_concurrency_building_blocks_CO13-6)  
-    Here we register a handler that simulates displaying a dialog box
-    when the mouse is
-    clicked.
+  -   
+    Here we define a convenience function that will allow us to register 
+    functions to handle signals from a condition. Each handler is run on its own 
+    goroutine, and `subscribe` will not exit until that goroutine is confirmed 
+    to be running.
 
-  - [![7](/library/view/concurrency-in-go/9781491941294/assets/7.png)](#co_go__8217_s_concurrency_building_blocks_CO13-7)  
-    Next, we simulate a user raising the mouse button from having
-    clicked the application’s button.
+  -   
+    Here we set a handler for when the mouse button is raised. It in turn calls 
+    `Broadcast` on the `Clicked` `Cond` to let all handlers know that the mouse 
+    button has been clicked (a more robust implementation would first check that 
+    it had been depressed).
+
+  -   
+    Here we create a `WaitGroup`. This is done only to ensure our program 
+    doesn’t exit before our writes to `stdout` occur.
+
+  -   
+    Here we register a handler that simulates maximizing the button’s window 
+    when the button is clicked.
+
+  -   
+    Here we register a handler that simulates displaying a dialog box when the 
+    mouse is clicked.
+
+  -   
+    Next, we simulate a user raising the mouse button from having clicked the 
+    application’s button.
 
 This produces:
 
@@ -1184,71 +1136,65 @@ This produces:
     Maximizing window.
     Displaying annoying dialog box!
 
-You can see that with one call to `Broadcast` on the `Clicked` `Cond`,
-all three <span class="keep-together">handlers are</span> run. Were it
-not for the `clickRegistered` `WaitGroup`, we could call
-`button.Clicked.Broadcast()` multiple times, and each time all three
-handlers would be invoked. This is something channels can’t do easily
-and thus is one of the main reasons to utilize the `Cond` type.
+You can see that with one call to `Broadcast` on the `Clicked` `Cond`, all three 
+handlers are run. Were it not for the `clickRegistered` `WaitGroup`, we could 
+call `button.Clicked.Broadcast()` multiple times, and each time all three 
+handlers would be invoked. This is something channels can’t do easily and thus 
+is one of the main reasons to utilize the `Cond` type.
 
-Like most other things in the `sync` package, usage of `Cond` works best
-when constrained to a tight scope, or exposed to a broader scope through
-a type that encapsulates
-it.<span id="idm140183154953584"></span><span id="idm140183154952608"></span><span id="idm140183154951664"></span>
+Like most other things in the `sync` package, usage of `Cond` works best when 
+constrained to a tight scope, or exposed to a broader scope through a type that 
+encapsulates it.
 
-</div>
-
-</div>
-
-<div class="section" data-type="sect2" data-pdf-bookmark="Once">
-
-<div id="idm140183155727232" class="sect2">
 
 ## Once
 
 <span id="Sonce03"></span><span id="idm140183154948368"></span><span id="idm140183154947424"></span>What
 do you think this code will print out?
 
-    var count int
-    
-    increment := func() {
-        count++
-    }
-    
-    var once sync.Once
-    
-    var increments sync.WaitGroup
-    increments.Add(100)
-    for i := 0; i < 100; i++ {
-        go func() {
-            defer increments.Done()
-            once.Do(increment)
-        }()
-    }
-    
-    increments.Wait()
-    fmt.Printf("Count is %d\n", count)
+```go
+var count int
 
-It’s tempting to say the result will be `Count is 100`, but I’m sure
-you’ve noticed the `sync.Once` variable, and that we’re somehow
-wrapping the call to increment within the `Do` method of `once`. In
-fact, this code will print out the following:
+increment := func() {
+    count++
+}
+
+var once sync.Once
+
+var increments sync.WaitGroup
+increments.Add(100)
+for i := 0; i < 100; i++ {
+    go func() {
+        defer increments.Done()
+        once.Do(increment)
+    }()
+}
+
+increments.Wait()
+fmt.Printf("Count is %d\n", count)
+```
+
+It’s tempting to say the result will be `Count is 100`, but I’m sure you’ve 
+noticed the `sync.Once` variable, and that we’re somehow wrapping the call to 
+increment within the `Do` method of `once`. In fact, this code will print out 
+the following:
 
     Count is 1
 
-As the name implies, `sync.Once` is a type that utilizes some `sync`
-primitives internally to ensure that only one call to `Do` ever calls
-the function passed in—even on different goroutines. This is indeed
-because we wrap the call to `increment` in a `sync.Once` `Do` method.
+As the name implies, `sync.Once` is a type that utilizes some `sync` primitives 
+internally to ensure that only one call to `Do` ever calls the function passed 
+in—even on different goroutines. This is indeed because we wrap the call to 
+`increment` in a `sync.Once` `Do` method.
 
-It may seem like the ability to call a function exactly once is a
-strange thing to encapsulate and put into the standard package, but it
-turns out that the need for this pattern comes up rather frequently.
-Just for fun, let’s check Go’s standard library and see how often Go
-itself uses this primitive. Here’s a `grep` command that will perform
-the search:
+It may seem like the ability to call a function exactly once is a strange thing 
+to encapsulate and put into the standard package, but it turns out that the need 
+for this pattern comes up rather frequently.  Just for fun, let’s check Go’s 
+standard library and see how often Go itself uses this primitive. Here’s a 
+`grep` command that will perform the search:
 
-    grep -ir sync.Once $(go env GOROOT)/src |wc -l
+```bash
+grep -ir sync.Once $(go env GOROOT)/src |wc -l
+```
 
 This produces:
 
@@ -1256,39 +1202,42 @@ This produces:
 70
 ```
 
-There are a few things to note about utilizing `sync.Once`. Let’s take a
-look at another example; what do you think it will print?
+There are a few things to note about utilizing `sync.Once`. Let’s take a look at 
+another example; what do you think it will print?
 
-    var count int
-    increment := func() { count++ }
-    decrement := func() { count-- }
-    
-    var once sync.Once
-    once.Do(increment)
-    once.Do(decrement)
-    
-    fmt.Printf("Count: %d\n", count)
+```go
+var count int
+increment := func() { count++ }
+decrement := func() { count-- }
+
+var once sync.Once
+once.Do(increment)
+once.Do(decrement)
+
+fmt.Printf("Count: %d\n", count)
+```
 
 This produces:
 
     Count: 1
 
-Is it surprising that the output displays `1` and not `0`? This is
-because `sync.Once` only counts the number of times `Do` is called, not
-how many times unique functions passed into `Do` are called. In this
-way, copies of `sync.Once` are tightly coupled to the functions they are
-intended to be called with; once again we see how usage of the types
-within the `sync` package work best within a tight scope.
-<span id="idm140183154312416"></span>I recommend that you formalize this
-coupling by wrapping any usage of `sync.Once` in a small lexical block:
-either a small function, or by wrapping both in a type. What about this
+Is it surprising that the output displays `1` and not `0`? This is because 
+`sync.Once` only counts the number of times `Do` is called, not how many times 
+unique functions passed into `Do` are called. In this way, copies of `sync.Once` 
+are tightly coupled to the functions they are intended to be called with; once 
+again we see how usage of the types within the `sync` package work best within a 
+tight scope.  <span id="idm140183154312416"></span>I recommend that you 
+formalize this coupling by wrapping any usage of `sync.Once` in a small lexical 
+block: either a small function, or by wrapping both in a type. What about this 
 example? What do you think will happen?
 
-    var onceA, onceB sync.Once
-    var initB func()
-    initA := func() { onceB.Do(initB) }
-    initB = func() { onceA.Do(initA) } 
-    onceA.Do(initA) 
+```go
+var onceA, onceB sync.Once
+var initB func()
+initA := func() { onceB.Do(initB) }
+initB = func() { onceA.Do(initA) } 
+onceA.Do(initA) 
+```
 
   - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#icon_go__8217_s_concurrency_building_blocks_CO14-1)  
     This call can’t proceed until the call at
@@ -1306,13 +1255,6 @@ intended to guard against multiple initialization, but the only thing
 Sometimes this is done by deadlocking your program and exposing the flaw
 in your logic—in this case a circular reference.
 
-</div>
-
-</div>
-
-<div class="section" data-type="sect2" data-pdf-bookmark="Pool">
-
-<div id="idm140183154950464" class="sect2">
 
 ## Pool
 
@@ -1324,33 +1266,33 @@ design patterns<sup>[2](ch03.html#idm140183154143696)</sup>; however,
 since `Pool` resides in the `sync` package, we’ll briefly discuss why
 you might be interested in utilizing it.
 
-At a high level, a the pool pattern is a way to create and make
-available a fixed number, or pool, of things for use. It’s commonly used
-to constrain the creation of things that are expensive (e.g., database
-connections) so that only a fixed number of them are ever created, but
-an indeterminate number of operations can still request access to these
-things. In the case of Go’s `sync.Pool`, this data type can be safely
-used by multiple goroutines.
+At a high level, a the pool pattern is a way to create and make available a 
+fixed number, or pool, of things for use. It’s commonly used to constrain the 
+creation of things that are expensive (e.g., database connections) so that only 
+a fixed number of them are ever created, but an indeterminate number of 
+operations can still request access to these things. In the case of Go’s 
+`sync.Pool`, this data type can be safely used by multiple goroutines.
 
-`Pool`’s <span id="idm140183154140016"></span>primary interface is its
-`Get` method. When called, `Get` will first check whether there are any
-available instances within the pool to return to the caller, and if not,
-call its `New` member variable to create a new one. When finished,
-callers call `Put` to place the instance they were working with back in
-the pool for use by other processes. Here’s a simple example to
-demonstrate:
+`Pool`’s <span id="idm140183154140016"></span>primary interface is its `Get` 
+method. When called, `Get` will first check whether there are any available 
+instances within the pool to return to the caller, and if not, call its `New` 
+member variable to create a new one. When finished, callers call `Put` to place 
+the instance they were working with back in the pool for use by other processes. 
+Here’s a simple example to demonstrate:
 
-    myPool := &sync.Pool{
-        New: func() interface{} {
-            fmt.Println("Creating new instance.")
-            return struct{}{}
-        },
-    }
-    
-    myPool.Get() 
-    instance := myPool.Get() 
-    myPool.Put(instance) 
-    myPool.Get() 
+```go
+myPool := &sync.Pool{
+    New: func() interface{} {
+        fmt.Println("Creating new instance.")
+        return struct{}{}
+    },
+}
+
+myPool.Get() 
+instance := myPool.Get() 
+myPool.Put(instance) 
+myPool.Get() 
+```
 
   - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO14-1)  
     Here we call `Get` on the pool. These calls will invoke the `New`
@@ -1376,38 +1318,40 @@ So why use a pool and not just instantiate objects as you go? Go has a
 garbage collector, so the instantiated objects will be automatically
 cleaned up. What’s the point? Consider this example:
 
-    var numCalcsCreated int
-    calcPool := &sync.Pool {
-        New: func() interface{} {
-            numCalcsCreated += 1
-            mem := make([]byte, 1024)
-            return &mem 
-        },
-    }
-    
-    // Seed the pool with 4KB
-    calcPool.Put(calcPool.New())
-    calcPool.Put(calcPool.New())
-    calcPool.Put(calcPool.New())
-    calcPool.Put(calcPool.New())
-    
-    const numWorkers = 1024*1024
-    var wg sync.WaitGroup
-    wg.Add(numWorkers)
-    for i := numWorkers; i > 0; i-- {
-        go func() {
-            defer wg.Done()
-    
-            mem := calcPool.Get().(*[]byte) 
-            defer calcPool.Put(mem)
-    
-            // Assume something interesting, but quick is being done with
-            // this memory.
-        }()
-    }
-    
-    wg.Wait()
-    fmt.Printf("%d calculators were created.", numCalcsCreated)
+```go
+var numCalcsCreated int
+calcPool := &sync.Pool {
+    New: func() interface{} {
+        numCalcsCreated += 1
+        mem := make([]byte, 1024)
+        return &mem 
+    },
+}
+
+// Seed the pool with 4KB
+calcPool.Put(calcPool.New())
+calcPool.Put(calcPool.New())
+calcPool.Put(calcPool.New())
+calcPool.Put(calcPool.New())
+
+const numWorkers = 1024*1024
+var wg sync.WaitGroup
+wg.Add(numWorkers)
+for i := numWorkers; i > 0; i-- {
+    go func() {
+        defer wg.Done()
+
+        mem := calcPool.Get().(*[]byte) 
+        defer calcPool.Put(mem)
+
+        // Assume something interesting, but quick is being done with
+        // this memory.
+    }()
+}
+
+wg.Wait()
+fmt.Printf("%d calculators were created.", numCalcsCreated)
+```
 
   - [![1](/library/view/concurrency-in-go/9781491941294/assets/1.png)](#co_go__8217_s_concurrency_building_blocks_CO15-1)  
     Notice that we are storing the *address* of the slice of
@@ -1420,82 +1364,88 @@ This produces:
 
     8 calculators were created.
 
-Had I run this example without a `sync.Pool`, though the results are
-non-deterministic, in the worst case I could have been attempting to
-allocate a gigabyte of memory, but as you see from the output, I’ve only
-allocated 4 KB.
+Had I run this example without a `sync.Pool`, though the results are non-
+deterministic, in the worst case I could have been attempting to allocate a 
+gigabyte of memory, but as you see from the output, I’ve only allocated 4 KB.
 
-Another common situation where a `Pool` is useful is for warming a cache
-of pre-allocated objects for operations that must run as quickly as
-possible. In this case, instead of trying to guard the host machine’s
-memory by constraining the number of objects created, we’re trying to
-guard consumers’ time by front-loading the time it takes to get a
-reference to another object. This is very common when writing
-high-throughput network servers that attempt to respond to requests as
-quickly as possible. Let’s take a look at such a scenario.
+Another common situation where a `Pool` is useful is for warming a cache of pre-
+allocated objects for operations that must run as quickly as possible. In this 
+case, instead of trying to guard the host machine’s memory by constraining the 
+number of objects created, we’re trying to guard consumers’ time by front-
+loading the time it takes to get a reference to another object. This is very 
+common when writing high-throughput network servers that attempt to respond to 
+requests as quickly as possible. Let’s take a look at such a scenario.
 
-First, let’s create a function that simulates creating a connection to a
+First, let’s create a function that simulates creating a connection to a 
 service. We’ll make this connection take a long time:
 
-    func connectToService() interface{} {
-        time.Sleep(1*time.Second)
-        return struct{}{}
-    }
+```go
+func connectToService() interface{} {
+    time.Sleep(1*time.Second)
+    return struct{}{}
+}
+```
 
-Next, let’s see how performant a network service would be if for every
-request we started a new connection to the service. We’ll write a
-network handler that opens a connection to another service for every
-connection the network handler accepts. To make the benchmarking simple,
-we’ll only allow one connection at a time:
+Next, let’s see how performant a network service would be if for every request 
+we started a new connection to the service. We’ll write a network handler that 
+opens a connection to another service for every connection the network handler 
+accepts. To make the benchmarking simple, we’ll only allow one connection at a 
+time:
 
-    func startNetworkDaemon() *sync.WaitGroup {
-        var wg sync.WaitGroup
-        wg.Add(1)
-        go func() {
-            server, err := net.Listen("tcp", "localhost:8080")
+```go
+func startNetworkDaemon() *sync.WaitGroup {
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go func() {
+        server, err := net.Listen("tcp", "localhost:8080")
+        if err != nil {
+            log.Fatalf("cannot listen: %v", err)
+        }
+        defer server.Close()
+
+        wg.Done()
+
+        for {
+            conn, err := server.Accept()
             if err != nil {
-                log.Fatalf("cannot listen: %v", err)
+                log.Printf("cannot accept connection: %v", err)
+                continue
             }
-            defer server.Close()
-    
-            wg.Done()
-    
-            for {
-                conn, err := server.Accept()
-                if err != nil {
-                    log.Printf("cannot accept connection: %v", err)
-                    continue
-                }
-                connectToService()
-                fmt.Fprintln(conn, "")
-                conn.Close()
-            }
-        }()
-        return &wg
-    }
+            connectToService()
+            fmt.Fprintln(conn, "")
+            conn.Close()
+        }
+    }()
+    return &wg
+}
+```
 
 Now let’s benchmark this:
 
-    func init() {
-        daemonStarted := startNetworkDaemon()
-        daemonStarted.Wait()
-    }
-    
-    func BenchmarkNetworkRequest(b *testing.B) {
-        for i := 0; i < b.N; i++ {
-            conn, err := net.Dial("tcp", "localhost:8080")
-            if err != nil {
-                b.Fatalf("cannot dial host: %v", err)
-            }
-            if _, err := ioutil.ReadAll(conn); err != nil {
-                b.Fatalf("cannot read: %v", err)
-            }
-            conn.Close()
-        }
-    }
+```go
+func init() {
+    daemonStarted := startNetworkDaemon()
+    daemonStarted.Wait()
+}
 
-    cd src/gos-concurrency-building-blocks/the-sync-package/pool/ && \
-    go test -benchtime=10s -bench=.
+func BenchmarkNetworkRequest(b *testing.B) {
+    for i := 0; i < b.N; i++ {
+        conn, err := net.Dial("tcp", "localhost:8080")
+        if err != nil {
+            b.Fatalf("cannot dial host: %v", err)
+        }
+        if _, err := ioutil.ReadAll(conn); err != nil {
+            b.Fatalf("cannot read: %v", err)
+        }
+        conn.Close()
+    }
+}
+```
+
+```bash
+cd src/gos-concurrency-building-blocks/the-sync-package/pool/ && \
+go test -benchtime=10s -bench=.
+```
 
 This
 produces:
@@ -1506,53 +1456,57 @@ produces:
 | PASS                      |                        |            |       |
 | ok                        | command-line-arguments | 11.008s    |       |
 
-Looks like like roughly 1E9 ns/op. This seems reasonable as far as
-performance goes, but let’s see if we can improve it by using a
-`sync.Pool` to host connections to our fictitious service:
+Looks like like roughly 1E9 ns/op. This seems reasonable as far as performance 
+goes, but let’s see if we can improve it by using a `sync.Pool` to host 
+connections to our fictitious service:
 
-    func warmServiceConnCache() *sync.Pool {
-        p := &sync.Pool {
-            New: connectToService,
-        }
-        for i := 0; i < 10; i++ {
-            p.Put(p.New())
-        }
-        return p
+```go
+func warmServiceConnCache() *sync.Pool {
+    p := &sync.Pool {
+        New: connectToService,
     }
-    
-    func startNetworkDaemon() *sync.WaitGroup {
-        var wg sync.WaitGroup
-        wg.Add(1)
-        go func() {
-            connPool := warmServiceConnCache()
-    
-            server, err := net.Listen("tcp", "localhost:8080")
+    for i := 0; i < 10; i++ {
+        p.Put(p.New())
+    }
+    return p
+}
+
+func startNetworkDaemon() *sync.WaitGroup {
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go func() {
+        connPool := warmServiceConnCache()
+
+        server, err := net.Listen("tcp", "localhost:8080")
+        if err != nil {
+            log.Fatalf("cannot listen: %v", err)
+        }
+        defer server.Close()
+
+        wg.Done()
+
+        for {
+            conn, err := server.Accept()
             if err != nil {
-                log.Fatalf("cannot listen: %v", err)
+                log.Printf("cannot accept connection: %v", err)
+                continue
             }
-            defer server.Close()
-    
-            wg.Done()
-    
-            for {
-                conn, err := server.Accept()
-                if err != nil {
-                    log.Printf("cannot accept connection: %v", err)
-                    continue
-                }
-                svcConn := connPool.Get()
-                fmt.Fprintln(conn, "")
-                connPool.Put(svcConn)
-                conn.Close()
-            }
-        }()
-        return &wg
-    }
+            svcConn := connPool.Get()
+            fmt.Fprintln(conn, "")
+            connPool.Put(svcConn)
+            conn.Close()
+        }
+    }()
+    return &wg
+}
+```
 
 And if we benchmark this, like so:
 
-    cd src/gos-concurrency-building-blocks/the-sync-package/pool && \
-    go test -benchtime=10s -bench=.
+```bash
+cd src/gos-concurrency-building-blocks/the-sync-package/pool && \
+go test -benchtime=10s -bench=.
+```
 
 We get:
 
@@ -1562,50 +1516,37 @@ We get:
 | PASS                      |                        |         |       |
 | ok                        | command-line-arguments | 32.647s |       |
 
-2.9E6 ns/op: three orders of magnitude faster\! You can see how
-utilizing this pattern when working with things that are expensive to
-create can drastically improve response time.
+2.9E6 ns/op: three orders of magnitude faster! You can see how utilizing this 
+pattern when working with things that are expensive to create can drastically 
+improve response time.
 
-As we’ve seen, the object pool design pattern is best used either when
-you have concurrent processes that require objects, but dispose of them
-very rapidly after instantiation, or when construction of these objects
-could negatively impact memory.
+As we’ve seen, the object pool design pattern is best used either when you have 
+concurrent processes that require objects, but dispose of them very rapidly 
+after instantiation, or when construction of these objects could negatively 
+impact memory.
 
-However, there is one thing to be wary of when determining whether or
-not you should utilize a `Pool`: if the code that utilizes the `Pool`
-requires things that are not roughly homogenous, you may spend more time
-converting what you’ve retrieved from the `Pool` than it would have
-taken to just instantiate it in the first place. For instance, if your
-program requires slices of random and variable length, a `Pool` isn’t
-going to help you much. The probability that you’ll receive a slice the
-length you require is low.
+However, there is one thing to be wary of when determining whether or not you 
+should utilize a `Pool`: if the code that utilizes the `Pool` requires things 
+that are not roughly homogenous, you may spend more time converting what you’ve 
+retrieved from the `Pool` than it would have taken to just instantiate it in the 
+first place. For instance, if your program requires slices of random and 
+variable length, a `Pool` isn’t going to help you much. The probability that 
+you’ll receive a slice the length you require is low.
 
 So when working with a `Pool`, just remember the following points:
 
-  - When instantiating `sync.Pool`, give it a `New` member variable that
-    is thread-safe when called.
+  - When instantiating `sync.Pool`, give it a `New` member variable that is 
+    thread-safe when called.
 
-  - When you receive an instance from `Get`, make no assumptions
-    regarding the state of the object you receive back.
+  - When you receive an instance from `Get`, make no assumptions regarding the 
+    state of the object you receive back.
 
-  - Make sure to call `Put` when you’re finished with the object you
-    pulled out of the pool. Otherwise, the `Pool` is useless. Usually
-    this is done with `defer`.
+  - Make sure to call `Put` when you’re finished with the object you pulled out 
+    of the pool. Otherwise, the `Pool` is useless. Usually this is done with 
+    `defer`.
 
-  - Objects in the pool must be roughly uniform in
-    makeup.<span id="idm140183153254048"></span><span id="idm140183153253072"></span><span id="idm140183153252128"></span>
+  - Objects in the pool must be roughly uniform in makeup.
 
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="section" data-type="sect1" data-pdf-bookmark="Channels">
-
-<div id="channels" class="sect1">
 
 # Channels
 

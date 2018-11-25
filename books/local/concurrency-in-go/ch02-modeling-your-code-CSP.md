@@ -2,12 +2,12 @@
 
 by Katherine Cox-Buday
 
-# Chapter 2.  
-Modeling Your Code: Communicating Sequential Processes
+<h1>Chapter 2.<br/>
+Modeling Your Code: Communicating Sequential Processes</h1>
 
 
 * [The Difference Between Concurrency and Parallelism](#the-difference-between-concurrency-and-parallelism)
-                * [Is This Really a Silly Example?](#is-this-really-a-silly-example)
+    * [Is This Really a Silly Example?](#is-this-really-a-silly-example)
 * [What Is CSP?](#what-is-csp)
 * [How This Helps You](#how-this-helps-you)
 * [Go’s Philosophy on Concurrency](#gos-philosophy-on-concurrency)
@@ -39,7 +39,7 @@ Well, let’s think about that for second. If I write my code with the intent th
 two chunks of the program will run in parallel, do I have any guarantee that 
 will actually happen when the program is run? What happens if I run the code on 
 a machine with only one core? Some of you may be thinking, *It will run in 
-parallel*, but this isn’t true\!
+parallel*, but this isn’t true!
 
 The chunks of our program may *appear* to be running in parallel, but really 
 they’re executing in a sequential manner faster than is distinguishable. The CPU 
@@ -98,10 +98,10 @@ the world in terms of separate computers, operating systems, and processes.
 These abstractions allow us to confidently assert correctness.
 
 
-##### Is This Really a Silly Example?
+### Is This Really a Silly Example?
 
 Using individual computers seems like a contrived example to make a point, but 
-personal computers weren’t always so ubiquitous\! Up until the late 1970s, 
+personal computers weren’t always so ubiquitous! Up until the late 1970s, 
 mainframes were the norm, and the common context developers used when thinking 
 about problems concurrently was a program’s process.
 
