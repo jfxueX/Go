@@ -114,8 +114,6 @@ primitives.
 To avoid distraction, we make it a boring example.
 
 ```go
-// +build OMIT
-
 package main
 
 import (
@@ -141,8 +139,6 @@ func boring(msg string) {
 Make the intervals between messages unpredictable (still under a second).
 
 ```go
-// +build OMIT
-
 package main
 
 import (
@@ -169,8 +165,6 @@ func boring(msg string) {
 The boring function runs on forever, like a boring party guest.
 
 ```go
-// +build OMIT
-
 package main
 
 import (
@@ -346,7 +340,7 @@ func boring(msg string, c chan string) {
 
 When the main function executes `<–c`, it will wait for a value to be sent.
 
-Similarly, when the boring function executes c `<– value`, it waits for a 
+Similarly, when the boring function executes `c <– value`, it waits for a 
 receiver to be ready.
 
 A sender and receiver must both be ready to play their part in the
@@ -465,8 +459,6 @@ func fanIn(input1, input2 <-chan string) <-chan string {
 ```
 
 ```go
-// +build OMIT
-
 package main
 
 import (
@@ -494,7 +486,6 @@ func boring(msg string) <-chan string { // Returns receive-only channel of strin
     return c // Return the channel to the caller. // HL
 }
 
-// START3 OMIT
 func fanIn(input1, input2 <-chan string) <-chan string { // HL
     c := make(chan string)
     go func() { for { c <- <-input1 } }() // HL
@@ -583,7 +574,7 @@ func boring(msg string) <-chan Message { // Returns receive-only channel of stri
 func fanIn(inputs ... <-chan Message) <-chan Message { // HL
     c := make(chan Message)
     for i := range inputs {
-        input := inputs[i] // New instance of 'input' for each loop.
+        input := inputs[i] // New instance of 'input' for each loop. ① 
         go func() { for { c <- <-input } }()
     }
     return c
@@ -599,12 +590,20 @@ The reason channels and goroutines are built into the language.
 
 ### Select
 
-The select statement provides another way to handle multiple channels.  
-It's like a switch, but each case is a communication:  
+The select statement provides another way to handle multiple channels.
+Select 语句提供了另一种处理多个通道的方法。
+
+It's like a switch, but each case is a communication:
+它就像 switch 语句，但每一个 case 都是一次通讯：
+
 - All channels are evaluated.
+  所有信道都被评估。
 - Selection blocks until one communication can proceed, which then does.
+  直到有一个通讯可以处理时（或发送或接收），selection 块才能执行。
 - If multiple can proceed, select chooses pseudo-randomly.
+  如果多个信道都可以处理，则进行伪随机选择。
 - A default clause, if present, executes immediately if no channel is ready.
+  如果提供 default 子句，在没有信道准备好的情况下，该子句会被立即执行。
 
 
 ```go
@@ -623,6 +622,7 @@ default:
 ### Fan-in again
 
 Rewrite our original fanIn function. Only one goroutine is needed. Old:
+重写原来的 finIn 函数。现在只需要一个 goroutine。旧的（需要两个 goroutine）：
 
 ```go
 func fanIn(input1, input2 <-chan string) <-chan string {
@@ -637,6 +637,7 @@ func fanIn(input1, input2 <-chan string) <-chan string {
 ### Fan-in using select
 
 Rewrite our original fanIn function. Only one goroutine is needed. New:
+重写原来的 finIn 函数。现在只需要一个 goroutine。新的：
 
 ```go
 package main
@@ -685,6 +686,7 @@ func fanIn(input1, input2 <-chan string) <-chan string {
 
 The time.After function returns a channel that blocks for the specified
 duration.
+time.After 函数返回阻塞了指定时长的信道。
 
 After the interval, the channel delivers the current time, once.
 
@@ -1426,3 +1428,125 @@ Google
 Use the left and right arrow keys or click the left and right edges of the page 
 to navigate between slides.  
 (Press 'H' or navigate to hide this message.)
+
+*****************************
+
+①  如果把 fanIn 改写成下面的样子会出错：
+
+```go
+func fanIn(inputs ...<-chan Message) <-chan Message {
+	c := make(chan Message)
+	for _, input := range inputs {
+		go func() {
+			for {
+				c <- <-input
+			}
+		}()
+	}
+	return c
+}
+```
+运行程序后输出：
+```
+Ann 0
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan receive]:
+main.main()
+    /home/jfxue/excise/src/concurrency/go-concurrency-patterns/example10/test.go:19 +0x21a
+
+    goroutine 18 [chan send]:
+    main.boring.func1(0xc42005e060, 0x4bb61b, 0x3, 0xc42005e0c0)
+        /home/jfxue/excise/src/concurrency/go-concurrency-patterns/example10/test.go:32 +0x15b
+        created by main.boring
+            /home/jfxue/excise/src/concurrency/go-concurrency-patterns/example10/test.go:30 +0x9d
+...
+```
+
+我们看一下这种情况下生成的 closure 的代码：
+```asm
+"".fanIn.func1 STEXT size=116 args=0x10 locals=0x30
+	0x0000 00000 (test.go:69)	TEXT	"".fanIn.func1(SB), $48-16
+	0x0000 00000 (test.go:69)	MOVQ	(TLS), CX
+	0x0009 00009 (test.go:69)	CMPQ	SP, 16(CX)
+	0x000d 00013 (test.go:69)	JLS	109
+	0x000f 00015 (test.go:69)	SUBQ	$48, SP
+	0x0013 00019 (test.go:69)	MOVQ	BP, 40(SP)
+	0x0018 00024 (test.go:69)	LEAQ	40(SP), BP
+	0x001d 00029 (test.go:69)	FUNCDATA	$0, gclocals·f8f97633289e1e5e749eaf42e320ec6f(SB)
+	0x001d 00029 (test.go:69)	FUNCDATA	$1, gclocals·335e8931e599400bf6923610fd44182e(SB)
+	0x001d 00029 (test.go:71)	MOVQ	$0, ""..autotmp_2+16(SP)
+	0x0026 00038 (test.go:71)	MOVQ	$0, ""..autotmp_2+24(SP)
+	0x002f 00047 (test.go:71)	MOVQ	$0, ""..autotmp_2+32(SP)
+	0x0038 00056 (test.go:71)	MOVQ	"".&input+64(SP), AX ; ⑴ 
+	0x003d 00061 (test.go:71)	MOVQ	(AX), CX ; ⑵ 
+	0x0040 00064 (test.go:71)	MOVQ	CX, (SP) ; ⑶ 
+	0x0044 00068 (test.go:71)	LEAQ	""..autotmp_2+16(SP), CX
+	0x0049 00073 (test.go:71)	MOVQ	CX, 8(SP)
+	0x004e 00078 (test.go:71)	PCDATA	$0, $1
+	0x004e 00078 (test.go:71)	CALL	runtime.chanrecv1(SB)
+	0x0053 00083 (test.go:71)	MOVQ	"".c+56(SP), AX
+	0x0058 00088 (test.go:71)	MOVQ	AX, (SP)
+	0x005c 00092 (test.go:71)	LEAQ	""..autotmp_2+16(SP), CX
+	0x0061 00097 (test.go:71)	MOVQ	CX, 8(SP)
+	0x0066 00102 (test.go:71)	PCDATA	$0, $1
+	0x0066 00102 (test.go:71)	CALL	runtime.chansend1(SB)
+	0x006b 00107 (test.go:70)	JMP	29
+	0x006d 00109 (test.go:70)	NOP
+	0x006d 00109 (test.go:69)	PCDATA	$0, $-1
+	0x006d 00109 (test.go:69)	CALL	runtime.morestack_noctxt(SB)
+	0x0072 00114 (test.go:69)	JMP	0
+```
+我们看 ⑴ , ⑵ , ⑶  处的代码，不难发现，原来 input 传给 closure 时不是按值传递，而
+是按地址传递的，而 fanIn 中的循环会导致该地址处的值被修改，因而导致 closure 中循
+环调用时获取到不同的 input 的值。
+
+除了前面给出的方法外，也可以这样改写来避免这个问题：
+
+```go
+func fanIn(inputs ...<-chan Message) <-chan Message {
+	c := make(chan Message)
+	for _, input := range inputs {
+		go func(input <-chan Message) {
+			for {
+				c <- <-input
+			}
+		}(input)
+	}
+	return c
+}
+```
+这种情况下 input 会按值传递给 closure：
+
+```asm
+"".fanIn.func1 STEXT size=113 args=0x10 locals=0x30
+	0x0000 00000 (test.go:81)	TEXT	"".fanIn.func1(SB), $48-16
+	0x0000 00000 (test.go:81)	MOVQ	(TLS), CX
+	0x0009 00009 (test.go:81)	CMPQ	SP, 16(CX)
+	0x000d 00013 (test.go:81)	JLS	106
+	0x000f 00015 (test.go:81)	SUBQ	$48, SP
+	0x0013 00019 (test.go:81)	MOVQ	BP, 40(SP)
+	0x0018 00024 (test.go:81)	LEAQ	40(SP), BP
+	0x001d 00029 (test.go:81)	FUNCDATA	$0, gclocals·f8f97633289e1e5e749eaf42e320ec6f(SB)
+	0x001d 00029 (test.go:81)	FUNCDATA	$1, gclocals·335e8931e599400bf6923610fd44182e(SB)
+	0x001d 00029 (test.go:83)	MOVQ	$0, ""..autotmp_2+16(SP)
+	0x0026 00038 (test.go:83)	MOVQ	$0, ""..autotmp_2+24(SP)
+	0x002f 00047 (test.go:83)	MOVQ	$0, ""..autotmp_2+32(SP)
+	0x0038 00056 (test.go:83)	MOVQ	"".input+64(SP), AX // ⑴  
+	0x003d 00061 (test.go:83)	MOVQ	AX, (SP)            // ⑵ 
+	0x0041 00065 (test.go:83)	LEAQ	""..autotmp_2+16(SP), CX
+	0x0046 00070 (test.go:83)	MOVQ	CX, 8(SP)
+	0x004b 00075 (test.go:83)	PCDATA	$0, $1
+	0x004b 00075 (test.go:83)	CALL	runtime.chanrecv1(SB)
+	0x0050 00080 (test.go:83)	MOVQ	"".c+56(SP), AX
+	0x0055 00085 (test.go:83)	MOVQ	AX, (SP)
+	0x0059 00089 (test.go:83)	LEAQ	""..autotmp_2+16(SP), CX
+	0x005e 00094 (test.go:83)	MOVQ	CX, 8(SP)
+	0x0063 00099 (test.go:83)	PCDATA	$0, $1
+	0x0063 00099 (test.go:83)	CALL	runtime.chansend1(SB)
+	0x0068 00104 (test.go:82)	JMP	29
+	0x006a 00106 (test.go:82)	NOP
+	0x006a 00106 (test.go:81)	PCDATA	$0, $-1
+	0x006a 00106 (test.go:81)	CALL	runtime.morestack_noctxt(SB)
+	0x006f 00111 (test.go:81)	JMP	0
+```
