@@ -18,16 +18,13 @@ Specifically, we'll look at:
 - How interface composition works.
 - How and at what cost do type assertions work.
 
-As we dig deeper and deeper, we'll also poke at miscellaneous low-level concerns, such as some 
-implementation details of modern CPUs as well as various optimizations techniques used by the Go 
-compiler.
+As we dig deeper and deeper, we'll also poke at miscellaneous low-level 
+concerns, such as some implementation details of modern CPUs as well as various 
+optimizations techniques used by the Go compiler.
 
 ---
 
 **Table of Contents**
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [Function and method calls](#function-and-method-calls)
   - [Overview of direct calls](#overview-of-direct-calls)
@@ -53,19 +50,20 @@ compiler.
 - [Conclusion](#conclusion)
 - [Links](#links)
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 ---
 
-- *This chapter assumes you're familiar with Go's assembler ([chapter I](../chapter1_assembly_primer/README.md)).*
+- *This chapter assumes you're familiar with Go's assembler ([chapter I][1]).*
 - *If and when running into architecture-specific matters, always assume `linux/amd64`.*
 - *We will always work with compiler optimizations **enabled**.*
 - *Quoted text and/or comments always come from the official documentation (including Russ Cox 
-"Function Calls" design document) and/or codebase, unless stated otherwise.*
+  "Function Calls" design document) and/or codebase, unless stated otherwise.*
+
+[1]: ../chapter1_assembly_primer/README.md
 
 ## Function and method calls
 
-As pointed out by Russ Cox in his design document about function calls (listed at the end of this chapter), Go has..:
+As pointed out by Russ Cox in his design document about function calls (listed 
+at the end of this chapter), Go has..:
 
 ..4 different kinds of functions..:
 > - top-level func
@@ -94,10 +92,12 @@ Mixed together, these make up for 10 possible combinations of function and call 
 >
 > (A slash separates what is known at compile time from what is only found out at run time.)
 
-We'll first take a few minutes to review the three kinds of direct calls, then we'll shift our focus 
-towards interfaces and indirect method calls for the rest of this chapter.  
-We won't cover function literals in this chapter, as doing so would first require us to become 
-familiar with the mechanics of closures.. which we'll inevitably do, in due time.
+We'll first take a few minutes to review the three kinds of direct calls, then 
+we'll shift our focus towards interfaces and indirect method calls for the rest 
+of this chapter.  
+We won't cover function literals in this chapter, as doing so would first 
+require us to become familiar with the mechanics of closures.. which we'll 
+inevitably do, in due time.
 
 ### Overview of direct calls
 
@@ -139,15 +139,15 @@ Looking at the assembly output for `Add(10, 32)`:
   ;; ...omitted everything but the actual function call...
 ```
 
-We see that, as we already knew from chapter I, this translates into a direct jump to a global 
-function symbol in the `.text` section, with the arguments and return values stored on the caller's 
-stack-frame.  
+We see that, as we already knew from chapter I, this translates into a direct 
+jump to a global function symbol in the `.text` section, with the arguments and 
+return values stored on the caller's stack-frame.  
 It's as straightforward as it gets.
 
 Russ Cox wraps it up as such in his document:
 > *Direct call of top-level func:*
-> A direct call of a top-level func passes all arguments on the stack, expecting results to occupy 
-> the successive stack positions.
+> A direct call of a top-level func passes all arguments on the stack, expecting 
+> results to occupy the successive stack positions.
 
 **Direct call of a method with pointer receiver**
 
@@ -157,8 +157,8 @@ First things first, the receiver is initialized via `adder := Adder{id: 6754}`:
 0x0034 MOVL	$6754, "".adder+28(SP)
 ```
 
-*(The extra-space on our stack-frame was pre-allocated as part of the frame-pointer preamble, which 
-we haven't shown here for conciseness.)*
+*(The extra-space on our stack-frame was pre-allocated as part of the frame-
+pointer preamble, which we haven't shown here for conciseness.)*
 
 Then comes the actual method call to `adder.AddPtr(10, 32)`:
 
@@ -170,21 +170,22 @@ Then comes the actual method call to `adder.AddPtr(10, 32)`:
 0x006f CALL	"".(*Adder).AddPtr(SB)
 ```
 
-Looking at the assembly output, we can clearly see that a call to a method (whether it has a value 
-or pointer receiver) is almost identical to a function call, the only difference being that the 
-receiver is passed as first argument.  
-In this case, we do so by loading the effective address (`LEAQ`) of `"".adder+28(SP)` at the top of 
-the frame, so that argument #1 becomes `&adder` (if you're a bit confused regarding the semantics of 
-`LEA` vs. `MOV`, you may want to have a look at the links at the end of this chapter for some 
-pointers).
+Looking at the assembly output, we can clearly see that a call to a method 
+(whether it has a value or pointer receiver) is almost identical to a function 
+call, the only difference being that the receiver is passed as first argument.  
+In this case, we do so by loading the effective address (`LEAQ`) of 
+`"".adder+28(SP)` at the top of the frame, so that argument #1 becomes `&adder` 
+(if you're a bit confused regarding the semantics of `LEA` vs. `MOV`, you may 
+want to have a look at the links at the end of this chapter for some pointers).
 
-Note how the compiler encodes the type of the receiver and whether it's a value or pointer directly 
-into the name of the symbol: `"".(*Adder).AddPtr`.
+Note how the compiler encodes the type of the receiver and whether it's a value 
+or pointer directly into the name of the symbol: `"".(*Adder).AddPtr`.
 
 > *Direct call of method:*
-> In order to use the same generated code for both an indirect call of a func value and for a direct 
-> call, the code generated for a method (both value and pointer receivers) is chosen to have the same 
-> calling convention as a top-level function with the receiver as a leading argument.
+> In order to use the same generated code for both an indirect call of a func 
+> value and for a direct call, the code generated for a method (both value and 
+> pointer receivers) is chosen to have the same calling convention as a top-level 
+> function with the receiver as a leading argument.
 
 **Direct call of a method with value receiver**
 
@@ -198,31 +199,34 @@ Consider `adder.AddVal(10, 32)`:
 0x0052 CALL	"".Adder.AddVal(SB)
 ```
 
-Looks like something a bit trickier is going on here, though: the generated assembly isn't even 
-referencing `"".adder+28(SP)` anywhere, even though that is where our receiver currently resides.  
-So what's really going on here? Well, since the receiver is a value, and since the compiler is able 
-to statically infer that value, it doesn't bother with copying the existing value from its current 
-location (`28(SP)`): instead, it simply creates a new, identical `Adder` value directly on the 
-stack, and merges this operation with the creation of the second argument to save one more 
-instruction in the process.
+Looks like something a bit trickier is going on here, though: the generated 
+assembly isn't even referencing `"".adder+28(SP)` anywhere, even though that is 
+where our receiver currently resides.  So what's really going on here? Well, 
+since the receiver is a value, and since the compiler is able to statically 
+infer that value, it doesn't bother with copying the existing value from its 
+current location (`28(SP)`): instead, it simply creates a new, identical `Adder` 
+value directly on the stack, and merges this operation with the creation of the 
+second argument to save one more instruction in the process.
 
-Once again, notice how the symbol name of the method explicitly denotes that it expects a value receiver.
+Once again, notice how the symbol name of the method explicitly denotes that it 
+expects a value receiver.
 
 ### Implicit dereferencing
 
 There's one final call that we haven't looked at yet: `(&adder).AddVal(10, 32)`.  
-In that case, we're using a pointer variable to call a method that instead expects a value receiver. 
-Somehow, Go automagically dereferences our pointer and manages to make the call. How so?
+In that case, we're using a pointer variable to call a method that instead 
+expects a value receiver.  Somehow, Go automagically dereferences our pointer 
+and manages to make the call. How so?
 
-How the compiler handles this kind of situation depends on whether or not the receiver being pointed 
-to has escaped to the heap or not.
+How the compiler handles this kind of situation depends on whether or not the 
+receiver being pointed to has escaped to the heap or not.
 
 **Case A: The receiver is on the stack**
 
-If the receiver is still on the stack and its size is sufficiently small that it can be copied in a 
-few instructions, as is the case here, the compiler simply copies its value over to the top of the 
-stack then does a straightforward method call to `"".Adder.AddVal` (i.e. the one with a value 
-receiver).
+If the receiver is still on the stack and its size is sufficiently small that it 
+can be copied in a few instructions, as is the case here, the compiler simply 
+copies its value over to the top of the stack then does a straightforward method 
+call to `"".Adder.AddVal` (i.e. the one with a value receiver).
 
 `(&adder).AddVal(10, 32)` thus looks like this in this situation:
 
@@ -238,16 +242,18 @@ Boring (although efficient). Let's move on to case B.
 
 **Case B: The receiver is on the heap**
 
-If the receiver has escaped to the heap then the compiler has to take a cleverer route: it generates 
-a new method (with a pointer receiver, this time) that wraps `"".Adder.AddVal`, and replaces the 
-original call to `"".Adder.AddVal` (the wrappee) with a call to `"".(*Adder).AddVal` (the wrapper).  
-The wrapper's sole mission, then, is to make sure that the receiver gets properly dereferenced 
-before being passed to the wrappee, and that any arguments and return values involved are properly 
-copied back and forth between the caller and the wrappee.
+If the receiver has escaped to the heap then the compiler has to take a cleverer 
+route: it generates a new method (with a pointer receiver, this time) that wraps 
+`"".Adder.AddVal`, and replaces the original call to `"".Adder.AddVal` (the 
+wrappee) with a call to `"".(*Adder).AddVal` (the wrapper).  The wrapper's sole 
+mission, then, is to make sure that the receiver gets properly dereferenced 
+before being passed to the wrappee, and that any arguments and return values 
+involved are properly copied back and forth between the caller and the wrappee.
 
 (*NOTE: In assembly outputs, these wrapper methods are marked as `<autogenerated>`.*)
 
-Here's an annotated listing of the generated wrapper that should hopefully clear things up a bit:
+Here's an annotated listing of the generated wrapper that should hopefully clear 
+things up a bit:
 
 ```asm
 0x0000 TEXT	"".(*Adder).AddVal(SB), DUPOK|WRAPPER, $32-24
@@ -279,20 +285,23 @@ Here's an annotated listing of the generated wrapper that should hopefully clear
   ;; ...omitted epilogues...
 ```
 
-Obviously, this kind of wrapper can induce quite a bit of overhead considering all the copying that 
-needs to be done in order to pass the arguments back and forth; especially if the wrappee is just a 
-few instructions.  
-Fortunately, in practice, the compiler would have inlined the wrappee directly into the wrapper to 
-amortize these costs (when feasible, at least).
+Obviously, this kind of wrapper can induce quite a bit of overhead considering 
+all the copying that needs to be done in order to pass the arguments back and 
+forth; especially if the wrappee is just a few instructions.  Fortunately, in 
+practice, the compiler would have inlined the wrappee directly into the wrapper 
+to amortize these costs (when feasible, at least).
 
-Note the `WRAPPER` directive in the definition of the symbol, which indicates that this method 
-shouldn't appear in backtraces (so as not to confuse the end-user), nor should it be able to recover 
-from panics that might be thrown by the wrappee.
+Note the `WRAPPER` directive in the definition of the symbol, which indicates 
+that this method shouldn't appear in backtraces (so as not to confuse the end-
+user), nor should it be able to recover from panics that might be thrown by the 
+wrappee.
 > WRAPPER: This is a wrapper function and should not count as disabling recover.
 
-The `runtime.panicwrap` function, which throws a panic if the wrapper's receiver is `nil`, is pretty 
-self-explanatory; here's its complete listing for reference ([src/runtime/error.go](https://
-github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/error.go#L132-L157)):
+The `runtime.panicwrap` function, which throws a panic if the wrapper's receiver 
+is `nil`, is pretty self-explanatory; here's its complete listing for reference 
+([src/runtime/error.go][2]):
+
+[2]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/error.go#L132-L157
 
 ```Go
 // panicwrap generates a panic for a call to a wrapped value method
@@ -327,22 +336,24 @@ func panicwrap() {
 }
 ```
 
-That's all for function and method calls, we'll now focus on the main course: interfaces.
+That's all for function and method calls, we'll now focus on the main course: 
+interfaces.
 
 ## Anatomy of an interface
 
 ### Overview of the datastructures
 
-Before we can understand how they work, we first need to build a mental model of the datastructures 
-that make up interfaces and how they're laid out in memory.  
-To that end, we'll have a quick peek into the runtime package to see what an interface actually 
-looks like from the standpoint of the Go implementation.
+Before we can understand how they work, we first need to build a mental model of 
+the datastructures that make up interfaces and how they're laid out in memory.  
+To that end, we'll have a quick peek into the runtime package to see what an 
+interface actually looks like from the standpoint of the Go implementation.
 
 **The `iface` structure**
 
-`iface` is the root type that represents an interface within the runtime 
-([src/runtime/runtime2.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L143-L146)).  
-Its definition goes like this:
+`iface` is the root type that represents an interface within the runtime (
+[src/runtime/runtime2.go][3]).  Its definition goes like this:
+
+[3]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L143-L146
 
 ```go
 type iface struct { // 16 bytes on a 64bit arch
@@ -352,15 +363,17 @@ type iface struct { // 16 bytes on a 64bit arch
 ```
 
 An interface is thus a very simple structure that maintains 2 pointers:
-- `tab` holds the address of an `itab` object, which embeds the datastructures that describe both 
-the type of the interface as well as the type of the data it points to.
+
+- `tab` holds the address of an `itab` object, which embeds the datastructures 
+  that describe both the type of the interface as well as the type of the data 
+  it points to.
 - `data` is a raw (i.e. `unsafe`) pointer to the value held by the interface.
 
-While extremely simple, this definition already gives us some valuable information: since interfaces 
-can only hold pointers, *any concrete value that we wrap into an interface will have to have its 
-address taken*.  
-More often than not, this will result in a heap allocation as the compiler takes the conservative 
-route and forces the receiver to escape.  
+While extremely simple, this definition already gives us some valuable 
+information: since interfaces can only hold pointers, *any concrete value that 
+we wrap into an interface will have to have its address taken*.  
+More often than not, this will result in a heap allocation as the compiler takes 
+the conservative route and forces the receiver to escape.  
 This holds true even for scalar types!
 
 We can prove that with a few lines of code ([escape.go](./escape.go)):
@@ -385,7 +398,8 @@ escape.go:13:10: Addifier(adder) escapes to heap
 # ...
 ```
 
-One could even visualize the resulting heap allocation using a simple benchmark ([escape_test.go](./escape_test.go)):
+One could even visualize the resulting heap allocation using a simple benchmark 
+([escape_test.go](./escape_test.go)):
 
 ```Go
 func BenchmarkDirect(b *testing.B) {
@@ -416,51 +430,74 @@ BenchmarkDirect-8      	2000000000	         1.60 ns/op	       0 B/op	       0 al
 BenchmarkInterface-8   	100000000	         15.0 ns/op	       4 B/op	       1 allocs/op
 ```
 
-We can clearly see how each time we create a new `Addifier` interface and initialize it with our 
-`adder` variable, a heap allocation of `sizeof(Adder)` actually takes place. 
-Later in this chapter, we'll see how even simple scalar types can lead to heap allocations when used 
-with interfaces.
+We can clearly see how each time we create a new `Addifier` interface and 
+initialize it with our `adder` variable, a heap allocation of `sizeof(Adder)` 
+actually takes place. 
+
+Later in this chapter, we'll see how even simple scalar types can lead to heap 
+allocations when used with interfaces.
 
 Let's turn our attention towards the next datastructure: `itab`.
 
 **The `itab` structure**
 
-`itab` is defined thusly ([src/runtime/runtime2.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L648-L658)):
+`itab` is defined thusly ([src/runtime/runtime2.go][4]):
+
+[4]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L648-L658
 
 ```go
-type itab struct { // 40 bytes on a 64bit arch
+type itab struct {  // 40 bytes on a 64bit arch
     inter *interfacetype
     _type *_type
-    hash  uint32 // copy of _type.hash. Used for type switches.
+    hash  uint32    // copy of _type.hash. Used for type switches.
     _     [4]byte
-    fun   [1]uintptr // variable sized. fun[0]==0 means _type does not implement inter.
+    fun   [1]uintptr// variable sized. fun[0]==0 means _type does not implement inter.
+}
+```
+
+in go 1.9
+```go
+type itab struct {
+	inter  *interfacetype
+	_type  *_type
+	link   *itab
+	hash   uint32 // copy of _type.hash. Used for type switches.
+	bad    bool   // type does not implement interface
+	inhash bool   // has this itab been added to hash?
+	unused [2]byte
+	fun    [1]uintptr // variable sized
 }
 ```
 
 An `itab` is the heart & brain of an interface.  
 
-First, it embeds a `_type`, which is the internal representation of any Go type within the runtime.  
-A `_type` describes every facets of a type: its name, its characteristics (e.g. size, alignment...), 
-and to some extent, even how it behaves (e.g. comparison, hashing...)!  
-In this instance, the `_type` field describes the type of the value held by the interface, i.e. the 
-value that the `data` pointer points to.
+First, it embeds a `_type`, which is the internal representation of any Go type 
+within the runtime.  
+A `_type` describes every facets of a type: its name, its characteristics (e.g. 
+size, alignment...), and to some extent, even how it behaves (e.g. comparison, 
+hashing...)!  
+In this instance, the `_type` field describes the type of the value held by the 
+interface, i.e. the value that the `data` pointer points to.
 
-Second, we find a pointer to an `interfacetype`, which is merely a wrapper around `_type` with some 
-extra information that are specific to interfaces.  
+Second, we find a pointer to an `interfacetype`, which is merely a wrapper 
+around `_type` with some extra information that are specific to interfaces.  
 As you'd expect, the `inter` field describes the type of the interface itself.
 
-Finally, the `fun` array holds the function pointers that make up the virtual/dispatch table of the 
-interface.  
-Notice the comment that says `// variable sized`, meaning that the size with which this array is 
-declared is *irrelevant*.  
-We'll see later in this chapter that the compiler is responsible for allocating the memory that 
-backs this array, and does so independently of the size indicated here. Likewise, the runtime always 
-accesses this array using raw pointers, thus bounds-checking does not apply here.
+Finally, the `fun` array holds the function pointers that make up the virtual/
+dispatch table of the interface.  
+Notice the comment that says `// variable sized`, meaning that the size with 
+which this array is declared is *irrelevant*.  
+We'll see later in this chapter that the compiler is responsible for allocating 
+the memory that backs this array, and does so independently of the size 
+indicated here. Likewise, the runtime always accesses this array using raw 
+pointers, thus bounds-checking does not apply here.
 
 **The `_type` structure**
 
 As we said above, the `_type` structure gives a complete description of a Go type.  
-It's defined as such ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L25-L43)):
+It's defined as such ([src/runtime/type.go][5]):
+
+[5]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L25-L43
 
 ```go
 type _type struct { // 48 bytes on a 64bit arch
@@ -483,24 +520,32 @@ type _type struct { // 48 bytes on a 64bit arch
 
 Thankfully, most of these fields are quite self-explanatory.
 
-The `nameOff` & `typeOff` types are `int32` offsets into the metadata embedded into the final 
-executable by the linker. This metadata is loaded into `runtime.moduledata` structures at run time 
-([src/runtime/symtab.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/symtab.go#L352-L393)), 
-which should look fairly similar if you've ever had to look at the content of an ELF file.  
-The runtime provide helpers that implement the necessary logic for following these offsets through 
-the `moduledata` structures, such as e.g. `resolveNameOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L168-L196)) 
-and `resolveTypeOff` ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L202-L236)):
+The `nameOff` & `typeOff` types are `int32` offsets into the metadata embedded 
+into the final executable by the linker. This metadata is loaded into 
+`runtime.moduledata` structures at run time ([src/runtime/symtab.go][6]), which 
+should look fairly similar if you've ever had to look at the content of an ELF 
+file.  The runtime provide helpers that implement the necessary logic for 
+following these offsets through the `moduledata` structures, such as e.g. 
+`resolveNameOff` ([src/runtime/type.go][7]) and `resolveTypeOff` (
+[src/runtime/type.go][8]):
+
+[6]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/symtab.go#L352-L393
+[7]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L168-L196
+[8]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L202-L236
 
 ```go
 func resolveNameOff(ptrInModule unsafe.Pointer, off nameOff) name {}
 func resolveTypeOff(ptrInModule unsafe.Pointer, off typeOff) *_type {}
 ```
 
-I.e., assuming `t` is a `_type`, calling `resolveTypeOff(t, t.ptrToThis)` returns a copy of `t`.
+I.e., assuming `t` is a `_type`, calling `resolveTypeOff(t, t.ptrToThis)` 
+returns a copy of `t`.
 
 **The `interfacetype` structure**
 
-Finally, here's the `interfacetype` structure ([src/runtime/type.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L342-L346)):
+Finally, here's the `interfacetype` structure ([src/runtime/type.go][9]):
+
+[9]: https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/type.go#L342-L346
 
 ```go
 type interfacetype struct { // 80 bytes on a 64bit arch
@@ -515,15 +560,16 @@ type imethod struct {
 }
 ```
 
-As mentioned, an `interfacetype` is just a wrapper around a `_type` with some extra interface-
-specific metadata added on top.  
-In the current implementation, this metadata is mostly composed of a list of offsets that points to 
-the respective names and types of the methods exposed by the interface (`[]imethod`).
+As mentioned, an `interfacetype` is just a wrapper around a `_type` with some 
+extra interface-specific metadata added on top.  
+In the current implementation, this metadata is mostly composed of a list of 
+offsets that points to the respective names and types of the methods exposed by 
+the interface (`[]imethod`).
 
 **Conclusion**
 
-Here's an overview of what an `iface` looks like when represented with all of its sub-types inlined; 
-this hopefully should help connect all the dots:
+Here's an overview of what an `iface` looks like when represented with all of 
+its sub-types inlined; this hopefully should help connect all the dots:
 
 ```go
 type iface struct { // `iface`
@@ -569,15 +615,15 @@ type iface struct { // `iface`
 }
 ```
 
-This section glossed over the different data-types that make up an interface to help us to start 
-building a mental model of the various cogs involved in the overall machinery, and how they all work 
-with each other.  
+This section glossed over the different data-types that make up an interface to 
+help us to start building a mental model of the various cogs involved in the 
+overall machinery, and how they all work with each other.  
 In the next section, we'll learn how these datastructures actually get computed.
 
 ### Creating an interface
 
-Now that we've had a quick look at all the datastructures involved, we'll focus on how they actually 
-get allocated and initiliazed.
+Now that we've had a quick look at all the datastructures involved, we'll focus 
+on how they actually get allocated and initiliazed.
 
 Consider the following program ([iface.go](./iface.go)):
 
@@ -1094,13 +1140,16 @@ If you've got some hints, don't hesitate to say so in the issues.
 
 ## Dynamic dispatch
 
-In this section we'll finally cover the main feature of interfaces: dynamic dispatch.  
-Specifically, we'll look at how dynamic dispatch works under the hood, and how much we got to pay for it.
+In this section we'll finally cover the main feature of interfaces: dynamic 
+dispatch.  
+Specifically, we'll look at how dynamic dispatch works under the hood, and how 
+much we got to pay for it.
 
 ### Indirect method call on interface
 
 Let's have a look back at our code from earlier ([iface.go](./iface.go)):
-```Go
+
+```go
 type Mather interface {
     Add(a, b int32) int32
     Sub(a, b int64) int64
@@ -1118,20 +1167,24 @@ func main() {
 }
 ```
 
-We've already had a deeper look into most of what happens in this piece of code: how the 
-`iface<Mather, Adder>` interface gets created, how it's laid out in the final exectutable, and how 
-it ends up being loaded by the runtime.  
-There's only one thing left for us to look at, and that is the actual indirect method call that 
-follows: `m.Add(10, 32)`.
+We've already had a deeper look into most of what happens in this piece of code: 
+how the `iface<Mather, Adder>` interface gets created, how it's laid out in the 
+final exectutable, and how it ends up being loaded by the runtime.  
+There's only one thing left for us to look at, and that is the actual indirect 
+method call that follows: `m.Add(10, 32)`.
 
-To refresh our memory, we'll zoom in on both the creation of the interface as well as on the method call itself:
-```Go
+To refresh our memory, we'll zoom in on both the creation of the interface as 
+well as on the method call itself:
+
+```go
 m := Mather(Adder{id: 6754})
 m.Add(10, 32)
 ```
-Thankfully, we already have a fully annotated version of the assembly generated by the instantiation 
-done on the first line (`m := Mather(Adder{id: 6754})`):
-```Assembly
+
+Thankfully, we already have a fully annotated version of the assembly generated 
+by the instantiation done on the first line (`m := Mather(Adder{id: 6754})`):
+
+```asm
 ;; m := Mather(Adder{id: 6754})
 0x001d MOVL	$6754, ""..autotmp_1+36(SP)         ;; create an addressable $6754 value at 36(SP)
 0x0025 LEAQ	go.itab."".Adder,"".Mather(SB), AX  ;; set up go.itab."".Adder,"".Mather..
@@ -1142,8 +1195,10 @@ done on the first line (`m := Mather(Adder{id: 6754})`):
 0x003f MOVQ	16(SP), AX                          ;; AX now holds i.tab (go.itab."".Adder,"".Mather)
 0x0044 MOVQ	24(SP), CX                          ;; CX now holds i.data (&$6754, somewhere on the heap)
 ```
+
 And now, here's the assembly listing for the indirect method call that follows (`m.Add(10, 32)`):
-```Assembly
+
+```asm
 ;; m.Add(10, 32)
 0x0049 MOVQ	24(AX), AX
 0x004d MOVQ	$137438953482, DX
@@ -1152,17 +1207,20 @@ And now, here's the assembly listing for the indirect method call that follows (
 0x0060 CALL	AX
 ```
 
-With the knowledge accumulated from the previous sections, these few instructions should be 
-straightforward to understand.
+With the knowledge accumulated from the previous sections, these few 
+instructions should be straightforward to understand.
 
-```Assembly
+```asm
 0x0049 MOVQ	24(AX), AX
 ```
-Once `runtime.convT2I32` has returned, `AX` holds `i.tab`, which as we know is a pointer to an 
-`itab`; and more specifically a pointer to `go.itab."".Adder,"".Mather` in this case.  
-By dereferencing `AX` and offsetting 24 bytes forward, we reach `i.tab.fun`, which corresponds to 
-the first entry of the virtual table.  
+
+Once `runtime.convT2I32` has returned, `AX` holds `i.tab`, which as we know is a 
+pointer to an `itab`; and more specifically a pointer to 
+`go.itab."".Adder,"".Mather` in this case.  By dereferencing `AX` and offsetting 
+24 bytes forward, we reach `i.tab.fun`, which corresponds to the first entry of 
+the virtual table.  
 Here's a reminder of what the offset table for `itab` looks like:
+
 ```Go
 type itab struct {       // 32 bytes on a 64bit arch
     inter *interfacetype // offset 0x00 ($00)
@@ -1174,28 +1232,34 @@ type itab struct {       // 32 bytes on a 64bit arch
 }
 ```
 
-As we've seen in the previous section where we've reconstructed the final `itab` directly from the 
-executable, `iface.tab.fun[0]` is a pointer to `main.(*Adder).add`, which is the compiler-generated 
-wrapper-method that wraps our original value-receiver `main.Adder.add` method.
+As we've seen in the previous section where we've reconstructed the final `itab` 
+directly from the executable, `iface.tab.fun[0]` is a pointer to `main.
+(*Adder).add`, which is the compiler-generated wrapper-method that wraps our 
+original value-receiver `main.Adder.add` method.
 
-```Assembly
+```asm
 0x004d MOVQ	$137438953482, DX
 0x0057 MOVQ	DX, 8(SP)
 ```
+
 We store `10` and `32` at the top of the stack, as arguments #2 & #3.
 
-```Assembly
+```asm
 0x005c MOVQ	CX, (SP)
 0x0060 CALL	AX
 ```
-Once `runtime.convT2I32` has returned, `CX` holds `i.data`, which is a pointer to our `Adder` instance.  
-We move this pointer to the top of stack, as argument #1, to satisfy the calling convention: the 
-receiver for a method should always be passed as the first argument.
+
+Once `runtime.convT2I32` has returned, `CX` holds `i.data`, which is a pointer 
+to our `Adder` instance.  We move this pointer to the top of stack, as 
+argument #1, to satisfy the calling convention: the receiver for a method should 
+always be passed as the first argument.
 
 Finally, with our stack all set up, we can do the actual call.
 
-We'll close this section with a complete annotated assembly listing of the entire process:
-```Assembly
+We'll close this section with a complete annotated assembly listing of the 
+entire process:
+
+```asm
 ;; m := Mather(Adder{id: 6754})
 0x001d MOVL	$6754, ""..autotmp_1+36(SP)         ;; create an addressable $6754 value at 36(SP)
 0x0025 LEAQ	go.itab."".Adder,"".Mather(SB), AX  ;; set up go.itab."".Adder,"".Mather..
@@ -1214,81 +1278,95 @@ We'll close this section with a complete annotated assembly listing of the entir
 0x0060 CALL	AX                                  ;; you know the drill
 ```
 
-We now have a clear picture of the entire machinery required for interfaces and virtual method calls to work.  
-In the next section, we'll measure the actual cost of this machinery, in theory as well as in practice.
+We now have a clear picture of the entire machinery required for interfaces and 
+virtual method calls to work.  In the next section, we'll measure the actual 
+cost of this machinery, in theory as well as in practice.
 
 ### Overhead
 
-As we've seen, the implementation of interfaces delegates most of the work on both the compiler and 
-the linker. From a performance standpoint, this is obviously very good news: we effectively want to 
-relieve the runtime from as much work as possible.  
-There do exist some specific cases where instantiating an interface may also require the runtime to 
-get to work (e.g. the `runtime.convT2*` family of functions), though they are not so prevalent in 
-practice.  
-We'll learn more about these edge cases in the [section dedicated to the special cases of interfaces](#special-cases--compiler-tricks). 
-In the meantime, we'll concentrate purely on the overhead of virtual method calls and ignore the 
-one-time costs related to instantiation.
+As we've seen, the implementation of interfaces delegates most of the work on 
+both the compiler and the linker. From a performance standpoint, this is 
+obviously very good news: we effectively want to relieve the runtime from as 
+much work as possible.  
+There do exist some specific cases where instantiating an interface may also 
+require the runtime to get to work (e.g. the `runtime.convT2*` family of 
+functions), though they are not so prevalent in practice.  
+We'll learn more about these edge cases in the [section dedicated to the special 
+cases of interfaces](#special-cases--compiler-tricks).  In the meantime, we'll 
+concentrate purely on the overhead of virtual method calls and ignore the one-
+time costs related to instantiation.
 
-Once an interface has been properly instantiated, calling methods on it is nothing more than going 
-through one more layer of indirection compared to the usual statically dispatched call (i.e. 
-dereferencing `itab.fun` at the desired index).  
-As such, one would imagine this process to be virtually free.. and one would be kind of right, but 
-not quite: the theory is a bit tricky, and the reality even trickier still.
+Once an interface has been properly instantiated, calling methods on it is 
+nothing more than going through one more layer of indirection compared to the 
+usual statically dispatched call (i.e.  dereferencing `itab.fun` at the desired 
+index).  
+As such, one would imagine this process to be virtually free.. and one would be 
+kind of right, but not quite: the theory is a bit tricky, and the reality even 
+trickier still.
 
 #### The theory: quick refresher on modern CPUs
 
-The extra indirection inherent to virtual calls is, in and of itself, effectively free *for as long 
-as it is somewhat predictable from the standpoint of the CPU*.  
-Modern CPUs are very aggressive beasts: they cache aggressively, they aggressively pre-fetch both 
-instructions & data, they pre-execute code aggressively, they even reorder and parallelize it as 
-they see fit.  
-All of this extra work is done whether we want it or not, hence we should always strive not to get 
-in the way of the CPU's efforts to be extra smart, so all of these precious cycles don't go 
-needlessly wasted.
+The extra indirection inherent to virtual calls is, in and of itself, 
+effectively free *for as long as it is somewhat predictable from the standpoint 
+of the CPU*.  
+Modern CPUs are very aggressive beasts: they cache aggressively, they 
+aggressively pre-fetch both instructions & data, they pre-execute code 
+aggressively, they even reorder and parallelize it as they see fit.  
+All of this extra work is done whether we want it or not, hence we should always 
+strive not to get in the way of the CPU's efforts to be extra smart, so all of 
+these precious cycles don't go needlessly wasted.
 
 This is where virtual method calls can quickly become a problem.
 
-In the case of a statically dispatched call, the CPU has foreknowledge of the upcoming branch in the 
-program and pre-fetches the necessary instructions accordingly. This makes up for a smooth, 
-transparent transition from one branch of the program to the other as far as performance is 
-concerned.  
-With dynamic dispatch, on the other hand, the CPU cannot know in advance where the program is 
-heading: it all depends on computations whose results are, by definition, not known until run time. 
-To counter-balance this, the CPU applies various algorithms and heuristics in order to guess where 
-the program is going to branch next (i.e. "branch prediction").
+In the case of a statically dispatched call, the CPU has foreknowledge of the 
+upcoming branch in the program and pre-fetches the necessary instructions 
+accordingly. This makes up for a smooth, transparent transition from one branch 
+of the program to the other as far as performance is concerned.  
+With dynamic dispatch, on the other hand, the CPU cannot know in advance where 
+the program is heading: it all depends on computations whose results are, by 
+definition, not known until run time.  To counter-balance this, the CPU applies 
+various algorithms and heuristics in order to guess where the program is going 
+to branch next (i.e. "branch prediction").
 
-If the processor guesses correctly, we can expect a dynamic branch to be almost as efficient as a 
-static one, since the instructions of the landing site have already been pre-fetched into the 
-processor's caches anyway.
+If the processor guesses correctly, we can expect a dynamic branch to be almost 
+as efficient as a static one, since the instructions of the landing site have 
+already been pre-fetched into the processor's caches anyway.
 
-If it gets things wrong, though, things can get a bit rough: first, of course, we'll have to pay for 
-the extra indirection plus the corresponding (slow) load from main memory (i.e. the CPU is 
-effectively stalled) to load the right instructions into the L1i cache. Even worse, we'll have to 
-pay for the price of the CPU backtracking in its own mistakes and flushing its instruction pipeline 
+If it gets things wrong, though, things can get a bit rough: first, of course, 
+we'll have to pay for the extra indirection plus the corresponding (slow) load 
+from main memory (i.e. the CPU is effectively stalled) to load the right 
+instructions into the L1i cache. Even worse, we'll have to pay for the price of 
+the CPU backtracking in its own mistakes and flushing its instruction pipeline 
 following the branch misprediction.  
-Another important downside of dynamic dispatch is that it makes inlining impossible by definition: 
-one simply cannot inline what they don't know is coming.
+Another important downside of dynamic dispatch is that it makes inlining 
+impossible by definition: one simply cannot inline what they don't know is 
+coming.
 
-All in all, it should, at least in theory, be very possible to end up with massive differences in 
-performance between a direct call to an inlined function F, and a call to that same function that 
-couldn't be inlined and had to go through some extra layers of indirection, and maybe even got hit 
-by a branch misprediction on its way.
+All in all, it should, at least in theory, be very possible to end up with 
+massive differences in performance between a direct call to an inlined function 
+F, and a call to that same function that couldn't be inlined and had to go 
+through some extra layers of indirection, and maybe even got hit by a branch 
+misprediction on its way.
 
 That's mostly it for the theory.  
-When it comes to modern hardware, though, one should always be wary of the theory.
+When it comes to modern hardware, though, one should always be wary of the 
+theory.
 
 Let's measure this stuff.
 
 #### The practice: benchmarks
 
 First things first, some information about the CPU we're running on:
-```Bash
+
+```bash
 $ lscpu | sed -nr '/Model name/ s/.*:\s*(.* @ .*)/\1/p'
 Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
 ```
 
-We'll define the interface used for our benchmarks as such ([iface_bench_test.go](./iface_bench_test.go)):
-```Go
+We'll define the interface used for our benchmarks as such 
+([iface_bench_test.go](./iface_bench_test.go)):
+
+```go
 type identifier interface {
     idInline() int32
     idNoInline() int32
@@ -1306,9 +1384,10 @@ func (id *id32) idNoInline() int32 { return id.id }
 
 **Benchmark suite A: single instance, many calls, inlined & non-inlined**
 
-For our first two benchmarks, we'll try calling a non-inlined method inside a busy-loop, on both an 
-`*Adder` value and a `iface<Mather, *Adder>` interface:
-```Go
+For our first two benchmarks, we'll try calling a non-inlined method inside a 
+busy-loop, on both an `*Adder` value and a `iface<Mather, *Adder>` interface:
+
+```go
 var escapeMePlease *id32
 // escapeToHeap makes sure that `id` escapes to the heap.
 //
@@ -1357,23 +1436,29 @@ func BenchmarkMethodCall_interface(b *testing.B) {
 }
 ```
 
-We expect both benchmarks to run A) extremely fast and B) at almost the same speeds.
+We expect both benchmarks to run A) extremely fast and B) at almost the same 
+speeds.
 
-Given the tightness of the loop, we can expect both benchmarks to have their data (receiver & 
-vtable) and instructions (`"".(*id32).idNoInline`) already be present in the L1d/L1i caches of the 
-CPU for each iteration of the loop. I.e., performance should be purely CPU-bound.
+Given the tightness of the loop, we can expect both benchmarks to have their 
+data (receiver & vtable) and instructions (`"".(*id32).idNoInline`) already be 
+present in the L1d/L1i caches of the CPU for each iteration of the loop. I.e., 
+performance should be purely CPU-bound.
 
-`BenchmarkMethodCall_interface` should run a bit slower (on the nanosecond scale) though, as it has 
-to deal with the overhead of finding & copying the right pointer from the virtual table (which is 
-already in the L1 cache, though).  
-Since the `CALL CX` instruction has a strong dependency on the output of these few extra 
-instructions required to consult the vtable, the processor has no choice but to execute all of this 
-extra logic as a sequential stream, leaving any chance of instruction-level parallelization on the 
-table.  
-This is ultimately the main reason why we would expect the "interface" version to run a bit slower.
+`BenchmarkMethodCall_interface` should run a bit slower (on the nanosecond 
+scale) though, as it has to deal with the overhead of finding & copying the 
+right pointer from the virtual table (which is already in the L1 cache, though).  
+
+Since the `CALL CX` instruction has a strong dependency on the output of these 
+few extra instructions required to consult the vtable, the processor has no 
+choice but to execute all of this extra logic as a sequential stream, leaving 
+any chance of instruction-level parallelization on the table.  
+
+This is ultimately the main reason why we would expect the "interface" version 
+to run a bit slower.
 
 We end up with the following results for the "direct" version:
-```Bash
+
+```bash
 $ go test -run=NONE -o iface_bench_test.bin iface_bench_test.go && \
   perf stat --cpu=1 \
   taskset 2 \
@@ -1396,8 +1481,10 @@ BenchmarkMethodCall_direct/single/noinline         	2000000000	         1.80 ns/
 
       11.702332281 seconds time elapsed
 ```
+
 And here's for the "interface" version:
-```Bash
+
+```bash
 $ go test -run=NONE -o iface_bench_test.bin iface_bench_test.go && \
   perf stat --cpu=1 \
   taskset 2 \
@@ -1421,26 +1508,29 @@ BenchmarkMethodCall_interface/single/noinline         	2000000000	         1.96 
       12.709412950 seconds time elapsed
 ```
 
-The results match our expectations: the "interface" version is indeed a bit slower, with 
-approximately 0.15 extra nanoseconds per iteration, or a ~8% slowdown.  
-8% might sound like a noticeable difference at first, but we have to keep in mind that A) these are 
-nanosecond-scale measurements and B) the method being called does so little work that it magnifies 
-even more the overhead of the call.
+The results match our expectations: the "interface" version is indeed a bit 
+slower, with approximately 0.15 extra nanoseconds per iteration, or a ~8% 
+slowdown.  
+8% might sound like a noticeable difference at first, but we have to keep in 
+mind that A) these are nanosecond-scale measurements and B) the method being 
+called does so little work that it magnifies even more the overhead of the call.
 
-Looking at the number of instructions per benchmark, we see that the interface-based version has had 
-to execute for ~14 billion more instructions compared to the "direct" version (`110,979,100,648` vs. 
-`124,467,105,161`), even though both benchmarks were run for `6,000,000,000` (`2,000,000,000\*3`) 
-iterations.  
-As we've mentioned before, the CPU cannot parallelize these extra instructions due to the `CALL` 
-depending on them, which gets reflected quite clearly in the instruction-per-cycle ratio: both 
-benchmarks end up with a similar IPC ratio (`2.54` vs. `2.63`) even though the "interface" version 
-has much more work to do overall.  
-This lack of parallelism piles up to an extra ~3.5 billion CPU cycles for the "interface" version, 
-which is where those extra 0.15ns that we've measured are actually spent.
+Looking at the number of instructions per benchmark, we see that the interface-
+based version has had to execute for ~14 billion more instructions compared to 
+the "direct" version (`110,979,100,648` vs.  `124,467,105,161`), even though 
+both benchmarks were run for `6,000,000,000` (`2,000,000,000\*3`) iterations.  
+As we've mentioned before, the CPU cannot parallelize these extra instructions 
+due to the `CALL` depending on them, which gets reflected quite clearly in the 
+instruction-per-cycle ratio: both benchmarks end up with a similar IPC ratio 
+(`2.54` vs. `2.63`) even though the "interface" version has much more work to do 
+overall.  
+This lack of parallelism piles up to an extra ~3.5 billion CPU cycles for the 
+"interface" version, which is where those extra 0.15ns that we've measured are 
+actually spent.
 
 Now what happens when we let the compiler inline the method call?
 
-```Go
+```go
 var myID int32
 
 func BenchmarkMethodCall_direct(b *testing.B) {
@@ -1474,14 +1564,19 @@ func BenchmarkMethodCall_interface(b *testing.B) {
 ```
 
 Two things jump out at us:
-- `BenchmarkMethodCall_direct`: Thanks to inlining, the call has been reduced to a simple pair of 
-memory moves.
-- `BenchmarkMethodCall_interface`: Due to dynamic dispatch, the compiler has been unable to inline 
-the call, thus the generated assembly ends up being exactly the same as before.
 
-We won't even bother running `BenchmarkMethodCall_interface` since the code hasn't changed a bit.  
+- `BenchmarkMethodCall_direct`: Thanks to inlining, the call has been reduced to 
+   a simple pair of memory moves.
+
+- `BenchmarkMethodCall_interface`: Due to dynamic dispatch, the compiler has 
+   been unable to inline the call, thus the generated assembly ends up being 
+   exactly the same as before.
+
+We won't even bother running `BenchmarkMethodCall_interface` since the code 
+hasn't changed a bit.  
 Let's have a quick look at the "direct" version though:
-```Bash
+
+```bash
 $ go test -run=NONE -o iface_bench_test.bin iface_bench_test.go && \
   perf stat --cpu=1 \
   taskset 2 \
@@ -1505,36 +1600,47 @@ BenchmarkMethodCall_direct/single/inline         	2000000000	         0.34 ns/op
        2.464386341 seconds time elapsed
 ```
 
-As expected, this runs ridiculously fast now that the overhead of the call is gone.  
-With ~0.34ns per op for the "direct" inlined version, the "interface" version is now ~475% slower, 
-quite a steep drop from the ~8% difference that we've measured earlier with inlining disabled.
+As expected, this runs ridiculously fast now that the overhead of the call is 
+gone.  
+With ~0.34ns per op for the "direct" inlined version, the "interface" version is 
+now ~475% slower, quite a steep drop from the ~8% difference that we've measured 
+earlier with inlining disabled.
 
-Notice how, with the branching inherent to the method call now gone, the CPU is able to parallelize 
-and speculatively execute the remaining instructions much more efficiently, reaching an IPC ratio of 
-4.61.
+Notice how, with the branching inherent to the method call now gone, the CPU is 
+able to parallelize and speculatively execute the remaining instructions much 
+more efficiently, reaching an IPC ratio of 4.61.
 
 **Benchmark suite B: many instances, many non-inlined calls, small/big/pseudo-random iterations**
 
-For this second benchmark suite, we'll look at a more real-world-like situation in which an iterator 
-goes through a slice of objects that all expose a common method and calls it for each object.  
-To better mimic reality, we'll disable inlining, as most methods called this way in a real program 
-would most likely by sufficiently complex not to be inlined by the compiler (YMMV; a good counter-
-example of this is the `sort.Interface` interface from the standard library).
+For this second benchmark suite, we'll look at a more real-world-like situation 
+in which an iterator goes through a slice of objects that all expose a common 
+method and calls it for each object.  
+To better mimic reality, we'll disable inlining, as most methods called this way 
+in a real program would most likely by sufficiently complex not to be inlined by 
+the compiler (YMMV; a good counter- example of this is the `sort.Interface` 
+interface from the standard library).
 
-We'll define 3 similar benchmarks that just differ in the way they access this slice of objects; the 
-goal being to simulate decreasing levels of cache friendliness:
-1. In the first case, the iterator walks the array in order, calls the method, then gets incremented 
-by the size of one object for each iteration.
-1. In the second case, the iterator still walks the slice in order, but this time gets incremented 
-by a value that's larger than the size of a single cache-line.
-1. Finally, in the third case, the iterator will pseudo-randomly steps through the slice.
+We'll define 3 similar benchmarks that just differ in the way they access this 
+slice of objects; the goal being to simulate decreasing levels of cache 
+friendliness:
 
-In all three cases, we'll make sure that the array is big enough not to fit entirely in any of the 
-processor's caches in order to simulate (not-so-accurately) a very busy server that's putting a lot 
-of pressure of both its CPU caches and main memory.
+1. In the first case, the iterator walks the array in order, calls the method, 
+   then gets incremented by the size of one object for each iteration.
+2. In the second case, the iterator still walks the slice in order, but this 
+   time gets incremented by a value that's larger than the size of a single 
+   cache line.
+3. Finally, in the third case, the iterator will pseudo-randomly steps through 
+   the slice.
 
-Here's a quick recap of the processor's attributes, we'll design the benchmarks accordingly:
-```Bash
+In all three cases, we'll make sure that the array is big enough not to fit 
+entirely in any of the processor's caches in order to simulate (not-so-
+accurately) a very busy server that's putting a lot of pressure of both its CPU 
+caches and main memory.
+
+Here's a quick recap of the processor's attributes, we'll design the benchmarks 
+accordingly:
+
+```bash
 $ lscpu | sed -nr '/Model name/ s/.*:\s*(.* @ .*)/\1/p'
 Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
 $ lscpu | grep cache
@@ -1553,10 +1659,11 @@ $ find /sys/devices/system/cpu/cpu0/cache/index{1,2,3} -name "shared_cpu_list" -
 0-7 # L3 (shared + hyperthreading)
 ```
 
-Here's what the benchmark suite looks like for the "direct" version (the benchmarks marked as 
-`baseline` compute the cost of retrieving the receiver in isolation, so that we can subtract that 
-cost from the final measurements):
-```Go
+Here's what the benchmark suite looks like for the "direct" version (the 
+benchmarks marked as `baseline` compute the cost of retrieving the receiver in 
+isolation, so that we can subtract that cost from the final measurements):
+
+```go
 const _maxSize = 2097152             // 2^21
 const _maxSizeModMask = _maxSize - 1 // avoids a mod (%) in the hot path
 
@@ -1625,9 +1732,12 @@ func BenchmarkMethodCall_direct(b *testing.B) {
     })
 }
 ```
-The benchmark suite for the "interface" version is identical, except that the array is initialized 
-with interface values instead of pointers to the concrete type, as one would expect:
-```Go
+
+The benchmark suite for the "interface" version is identical, except that the 
+array is initialized with interface values instead of pointers to the concrete 
+type, as one would expect:
+
+```go
 func BenchmarkMethodCall_interface(b *testing.B) {
     adders := make([]identifier, _maxSize)
     for i := range adders {
@@ -1640,7 +1750,8 @@ func BenchmarkMethodCall_interface(b *testing.B) {
 ```
 
 For the "direct" suite, we get the following results:
-```Bash
+
+```bash
 $ go test -run=NONE -o iface_bench_test.bin iface_bench_test.go && \
   benchstat <(
     taskset 2 ./iface_bench_test.bin -test.cpu=1 -test.benchtime=1s -test.count=3 \
@@ -1653,23 +1764,28 @@ MethodCall_direct/many/noinline/big_incr/call         17.1ns ± 1% # 17.1 - 5.86
 MethodCall_direct/many/noinline/random_incr/baseline  8.80ns ± 0%
 MethodCall_direct/many/noinline/random_incr/call      30.8ns ± 0% # 30.8 - 8.8 = 22ns
 ```
-There really are no surprises here:
-1. `small_incr`: By being *extremely* cache-friendly, we obtain results similar to the previous 
-benchmark that looped over a single instance.
-2. `big_incr`: By forcing the CPU to fetch a new cache-line at every iteration, we do see a 
-noticeable bump in latencies, which is completely unrelated to the cost of doing the call, though: 
-~6ns are attributable to the baseline while the rest is a combination of the cost of dereferencing 
-the receiver in order to get to its `id` field and copying around the return value.
-3. `random_incr`: Same remarks as with `big_incr`, except that the bump in latencies is even more 
-pronounced due to A) the pseudo-random accesses and B) the cost of retrieving the next index from 
-the pre-computed array of indexes (which triggers cache misses in and of itself).
 
-As logic would dictate, thrashing the CPU d-caches doesn't seem to influence the latency of the 
-actual direct method call (inlined or not) by any mean, although it does make everything that 
-surrounds it slower.
+There really are no surprises here:
+
+1. `small_incr`: By being *extremely* cache-friendly, we obtain results similar 
+   to the previous benchmark that looped over a single instance.
+2. `big_incr`: By forcing the CPU to fetch a new cache-line at every iteration, 
+   we do see a noticeable bump in latencies, which is completely unrelated to 
+   the cost of doing the call, though: ~6ns are attributable to the baseline 
+   while the rest is a combination of the cost of dereferencing the receiver in 
+   order to get to its `id` field and copying around the return value.
+3. `random_incr`: Same remarks as with `big_incr`, except that the bump in 
+   latencies is even more pronounced due to A) the pseudo-random accesses and B) 
+   the cost of retrieving the next index from the pre-computed array of indexes 
+   (which triggers cache misses in and of itself).
+
+As logic would dictate, thrashing the CPU d-caches doesn't seem to influence the 
+latency of the actual direct method call (inlined or not) by any mean, although 
+it does make everything that surrounds it slower.
 
 What about dynamic dispatch?
-```Bash
+
+```bash
 $ go test -run=NONE -o iface_bench_test.bin iface_bench_test.go && \
   benchstat <(
     taskset 2 ./iface_bench_test.bin -test.cpu=1 -test.benchtime=1s -test.count=3 \
@@ -1682,6 +1798,7 @@ MethodCall_interface/many/noinline/big_incr/call         19.6ns ± 1% # 19.6 - 6
 MethodCall_interface/many/noinline/random_incr/baseline  11.0ns ± 0%
 MethodCall_interface/many/noinline/random_incr/call      34.7ns ± 0% # 34.7 - 11.0 = 23.7ns
 ```
+
 The results are extremely similar, albeit a tiny bit slower overall simply due to the fact that 
 we're copying two quad-words (i.e. both fields of an `identifier` interface) out of the slice at 
 each iteration instead of one (a pointer to `id32`).
@@ -1712,8 +1829,10 @@ satisfied) instead of being used as an abstraction on top of a more complex, lay
 In practice, in Go, I've found it's very rare to have to iterate over a set of interfaces that carry 
 many different underlying types. YMMV, of course.
 
-For the curious-minded, here's what the results of the "direct" version would have looked like with inlining enabled:
-```Bash
+For the curious-minded, here's what the results of the "direct" version would 
+have looked like with inlining enabled:
+
+```bash
 name                                                time/op
 MethodCall_direct/many/inline/small_incr            0.97ns ± 1% # 0.97ns
 MethodCall_direct/many/inline/big_incr/baseline     5.96ns ± 1%
@@ -1721,58 +1840,72 @@ MethodCall_direct/many/inline/big_incr/call         11.9ns ± 1% # 11.9 - 5.96 =
 MethodCall_direct/many/inline/random_incr/baseline  9.20ns ± 1%
 MethodCall_direct/many/inline/random_incr/call      16.9ns ± 1% # 16.9 - 9.2 = 7.7ns
 ```
-Which would have made the "direct" version around 2 to 3 times faster than the "interface" version 
-in cases where the compiler would have been able to inline the call.  
-Then again, as we've mentioned earlier, the limited capabilities of the current compiler with 
-regards to inlining mean that, in practice, these kind of wins would rarely be seen. And of course, 
-there often are times when you really don't have a choice but to resort to virtual calls anyway.
+
+Which would have made the "direct" version around 2 to 3 times faster than the 
+"interface" version in cases where the compiler would have been able to inline 
+the call.  
+Then again, as we've mentioned earlier, the limited capabilities of the current 
+compiler with regards to inlining mean that, in practice, these kind of wins 
+would rarely be seen. And of course, there often are times when you really don't 
+have a choice but to resort to virtual calls anyway.
 
 **Conclusion**
 
-Effectively measuring the latency of a virtual call turned out to be quite a complex endeavor, as 
-most of it is the direct consequence of many intertwined side-effects that result from the very 
-complex implementation details of modern hardware.
+Effectively measuring the latency of a virtual call turned out to be quite a 
+complex endeavor, as most of it is the direct consequence of many intertwined 
+side-effects that result from the very complex implementation details of modern 
+hardware.
 
-*In Go*, thanks to the idioms encouraged by the design of the language, and taking into account the 
-(current) limitations of the compiler with regards to inlining, one could effectively consider 
-dynamic dispatch as virtually free.  
-Still, when in doubt, one should always measure their hot paths and look at the relevant performance 
-counters to assert with certainty whether dynamic dispatch ends up being an issue or not.
+*In Go*, thanks to the idioms encouraged by the design of the language, and 
+taking into account the (current) limitations of the compiler with regards to 
+inlining, one could effectively consider dynamic dispatch as virtually free.  
 
-*(NOTE: We will look at the inlining capabilities of the compiler in a later chapter of this book.*)
+Still, when in doubt, one should always measure their hot paths and look at the 
+relevant performance counters to assert with certainty whether dynamic dispatch 
+ends up being an issue or not.
+
+*(NOTE: We will look at the inlining capabilities of the compiler in a later 
+chapter of this book.*)
 
 ## Special cases & compiler tricks
 
-This section will review some of the most common special cases that we encounter every day when dealing with interfaces.
+This section will review some of the most common special cases that we encounter 
+every day when dealing with interfaces.
 
-By now you should have a pretty clear idea of how interfaces work, so we'll try and aim for conciseness here.
+By now you should have a pretty clear idea of how interfaces work, so we'll try 
+and aim for conciseness here.
 
 ### The empty interface
 
-The datastructure for the empty interface is what you'd intuitively think it would be: an `iface` without an `itab`.  
-There are two reasons for that:
-1. Since the empty interface has no methods, everything related to dynamic dispatch can safely be 
-dropped from the datastructure.
-1. With the virtual table gone, the type of the empty interface itself, not to be confused with the 
-type of the data it holds, is always the same (i.e. we talk about *the* empty interface rather than 
-*an* empty interface).
+The datastructure for the empty interface is what you'd intuitively think it 
+would be: an `iface` without an `itab`.  There are two reasons for that:
 
-*NOTE: Similar to the notation we used for `iface`, we'll denote the empty interface holding a type T as `eface<T>`*
+1. Since the empty interface has no methods, everything related to dynamic 
+   dispatch can safely be dropped from the datastructure.
+
+1. With the virtual table gone, the type of the empty interface itself, not to 
+   be confused with the type of the data it holds, is always the same (i.e. we 
+   talk about *the* empty interface rather than *an* empty interface).
+
+*NOTE: Similar to the notation we used for `iface`, we'll denote the empty 
+interface holding a type T as `eface<T>`*
 
 `eface` is the root type that represents the empty interface within the runtime ([src/runtime/runtime2.go](https://github.com/golang/go/blob/bf86aec25972f3a100c3aa58a6abcbcc35bdea49/src/runtime/runtime2.go#L148-L151)).  
 Its definition goes like this:
-```Go
+
+```go
 type eface struct { // 16 bytes on a 64bit arch
     _type *_type
     data  unsafe.Pointer
 }
 ```
+
 Where `_type` holds the type information of the value pointed to by `data`.  
 As expected, the `itab` has been dropped entirely.
 
-While the empty interface could just reuse the `iface` datastructure (it is a superset of `eface` 
-after all), the runtime chooses to distinguish the two for two main reasons: space efficiency and 
-code clarity.
+While the empty interface could just reuse the `iface` datastructure (it is a 
+superset of `eface` after all), the runtime chooses to distinguish the two for 
+two main reasons: space efficiency and code clarity.
 
 ### Interface holding a scalar type
 

@@ -943,27 +943,27 @@ soon as there’s room in the queue. Let’s try using a `Cond` to manage this
 coordination:
 
 ```go
-c := sync.NewCond(&sync.Mutex{})    // ①
-queue := make([]interface{}, 0, 10) // ②
+c := sync.NewCond(&sync.Mutex{})    // ① 
+queue := make([]interface{}, 0, 10) // ② 
 
 removeFromQueue := func(delay time.Duration) {
     time.Sleep(delay)
-    c.L.Lock()          // ⑧
-    queue = queue[1:]   // ⑨
+    c.L.Lock()          // ⑧ 
+    queue = queue[1:]   // ⑨ 
     fmt.Println("Removed from queue")
-    c.L.Unlock()    // ⑩
+    c.L.Unlock()    // ⑩ 
     c.Signal()      // ⑪
 }
 
 for i := 0; i < 10; i++{
-    c.L.Lock()              // ③
-    for len(queue) == 2 {   // ④
-        c.Wait()            // ⑤
+    c.L.Lock()              // ③ 
+    for len(queue) == 2 {   // ④ 
+        c.Wait()            // ⑤ 
     }
     fmt.Println("Adding to queue")
     queue = append(queue, struct{}{})
-    go removeFromQueue(1*time.Second) // ⑥
-    c.L.Unlock() // ⑦
+    go removeFromQueue(1*time.Second) // ⑥ 
+    c.L.Unlock() // ⑦ 
 }
 ```
 
